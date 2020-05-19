@@ -20,7 +20,7 @@
             <ColumnDefinition Width="4*" />
             <ColumnDefinition Width="30" />
         </Grid.ColumnDefinitions>
-        <Menu Grid.Row="0" Grid.Column="0"  Grid.ColumnSpan="7" Background="CornflowerBlue" >
+        <Menu Grid.Row="0" Grid.Column="0"  Grid.ColumnSpan="7" Background="AliceBlue" >
             <MenuItem Header="_File">
                 <MenuItem Header="N_ew"    Click="fileNewClick"/>
                 <MenuItem Header="O_pen"   Click="fileOpenClick"/>
@@ -33,14 +33,14 @@
                     <MenuItem Command="ApplicationCommands.Paste"/>
             </MenuItem>
         </Menu>
-        <StackPanel Name="previewPanel" Grid.Column="2" Grid.Row="1" Grid.ColumnSpan="2"></StackPanel>
+        <Image Name="previewImage" Grid.Column="2" Grid.Row="1" Grid.ColumnSpan="2"></Image>
         <GridSplitter Name="horizontalSplitter" Grid.Column="2" Grid.Row="2" Height="8" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="CornflowerBlue" />
         <GridSplitter Name="verticalSplitter" Grid.Row="1" Grid.Column="1" Width="8" Grid.RowSpan="4" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="CornflowerBlue" />
         <ScrollViewer  Grid.Column="0" Grid.Row="1" Grid.RowSpan="3">
-            <StackPanel HorizontalAlignment="Stretch" Name="SlidePanel" Orientation="Vertical" CanVerticallyScroll="True"></StackPanel>
+            <StackPanel HorizontalAlignment="Stretch" Name="slidePanel" Orientation="Vertical" CanVerticallyScroll="True"></StackPanel>
         </ScrollViewer>
-        <ScrollViewer  Grid.Column="2" Grid.Row="3" Grid.RowSpan="2" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled">
-            <StackPanel VerticalAlignment="Stretch" Name="KeyframePanel" Orientation="Horizontal" CanHorizontallyScroll="True"></StackPanel>
+        <ScrollViewer Grid.Column="2" Grid.Row="3" Grid.RowSpan="2" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled">
+            <StackPanel VerticalAlignment="Stretch" Name="keyframePanel" Orientation="Horizontal" CanHorizontallyScroll="True"></StackPanel>
         </ScrollViewer>
         <Grid Grid.Row ="5" Grid.Column="0" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
