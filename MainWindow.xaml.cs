@@ -24,5 +24,13 @@ namespace KB30
         {
             InitializeComponent();
         }
+
+        private void fileNewClick(object sender, RoutedEventArgs e) { }
+        private void fileOpenClick(object sender, RoutedEventArgs e) { }
+        private void fileSaveClick(object sender, RoutedEventArgs e) { }
+        private void fileSaveAsClick(object sender, RoutedEventArgs e) { }
+        private void addSlideClick(object sender, RoutedEventArgs e) { }
+        private void addKeyframeClick(object sender, RoutedEventArgs e) { }
+
     }
 }
