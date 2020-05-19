@@ -18,7 +18,7 @@
             <ColumnDefinition Width="1*" />
             <ColumnDefinition Width="8" />
             <ColumnDefinition Width="4*" />
-            <ColumnDefinition Width="25" />
+            <ColumnDefinition Width="30" />
         </Grid.ColumnDefinitions>
         <Menu Grid.Row="0" Grid.Column="0"  Grid.ColumnSpan="7" Background="CornflowerBlue" >
             <MenuItem Header="_File">
@@ -42,11 +42,29 @@
         <ScrollViewer  Grid.Column="2" Grid.Row="3" Grid.RowSpan="2" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled">
             <StackPanel VerticalAlignment="Stretch" Name="KeyframePanel" Orientation="Horizontal" CanHorizontallyScroll="True"></StackPanel>
         </ScrollViewer>
-        <Button Grid.Row ="5" Grid.Column="0" Name="addSlideButton" Click="addSlideClick">
-            <Image Source="Resources/Add_16x.png"/>
-        </Button>
+        <Grid Grid.Row ="5" Grid.Column="0" HorizontalAlignment="Stretch">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"></ColumnDefinition>
+                <ColumnDefinition Width="1*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Button Name="playButton" Click="playClick" Grid.Column="0">
+                <StackPanel Orientation="Horizontal">
+                    <Image Source="Resources/PlayVideo_16x.png"/>
+                    <TextBlock Margin="2">Play</TextBlock>
+                </StackPanel>
+            </Button>
+            <Button Name="addSlideButton" Click="addSlideClick" Grid.Column="1">
+                <StackPanel Orientation="Horizontal">
+                    <Image Source="Resources/Add_16x.png"/>
+                    <TextBlock Margin="2">Add</TextBlock>
+                </StackPanel>
+            </Button>
+        </Grid>
         <Button Grid.Row ="3" Grid.Column="3" Name="addKeyframeButton" Grid.RowSpan="2" Click="addKeyframeClick">
-            <Image Source="Resources/Add_16x.png"/>
+            <StackPanel Orientation="Vertical">
+                <Image Source="Resources/Add_16x.png"/>
+                <TextBlock Margin="2">Add</TextBlock>
+            </StackPanel>
         </Button>
     </Grid>
 </Window>

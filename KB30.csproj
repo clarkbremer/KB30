@@ -8,10 +8,14 @@
 
   <ItemGroup>
     <None Remove="Resources\Add_16x.png" />
+    <None Remove="Resources\PlayVideo_16x.png" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Resources\Add_16x.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\PlayVideo_16x.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
