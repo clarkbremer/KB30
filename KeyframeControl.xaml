@@ -1,0 +1,30 @@
+﻿<UserControl x:Class="KB30.KeyframeControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:KB30"
+             mc:Ignorable="d" 
+             d:DesignHeight="80" d:DesignWidth="100">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="1*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Duration: "/>
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="X: "/>
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Y: "/>
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Zoom: "/>
+        <TextBox   Grid.Row="0" Grid.Column="1" Name="durTb" Text="myDuration"/>
+        <TextBlock Grid.Row="1" Grid.Column="1" Name="xTxt" Text="myX"/>
+        <TextBlock Grid.Row="2" Grid.Column="1" Name="yTxt" Text="myY"/>
+        <TextBlock Grid.Row="3" Grid.Column="1" Name="zoomTxt" Text="myZoom"/>
+    </Grid>
+    
+</UserControl>

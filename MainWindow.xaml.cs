@@ -25,6 +25,9 @@ namespace KB30
     /// </summary>
     public partial class MainWindow : Window
     {
+        public int currentSlideIndex = 0;
+        public int currentKeyframeIndex = 0;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -78,77 +81,86 @@ namespace KB30
             public List<Slide> slides { get; set; }
         }
 
-        public void initializeUI()
+        public void selectKeyframe(int keyFrameIndex)
         {
-            Uri uri = new Uri(slides[0].fileName);
-            var bitmap = new BitmapImage(uri);
-            previewImage.Source = bitmap;
+            (keyframePanel.Children[keyFrameIndex] as Border).BorderBrush = Brushes.Blue;
+            currentKeyframeIndex = keyFrameIndex;
+        }
 
-            slides.ForEach(slide =>
+        public void initializeKeysUI(Slide slide)
+        {
+
+            List<KF> keys = slide.keys;
+            for (int i = 0; i < keys.Count; i++)
             {
-                Image thumb = new Image();
-                slide.thumb = thumb;
-                Uri uri = new Uri(slide.fileName);
-                var bitmap = new BitmapImage(uri);
-                thumb.Source = bitmap;
-                thumb.Margin = new Thickness(5, 5, 5, 5);
+                KF key = keys[i];
 
                 Border border = new Border
                 {
-                    Background = Brushes.LightBlue,
-                    BorderThickness = new Thickness(5, 5, 5, 5)
+                    Name = "keyBorder" + i.ToString(),
+                    Background = Brushes.Transparent,
+                    BorderBrush = Brushes.LightBlue,
+                    Margin = new Thickness(2, 2, 2, 2),
+                    BorderThickness = new Thickness(5, 5, 5, 5),
+                    VerticalAlignment = System.Windows.VerticalAlignment.Center
                 };
-                border.Child = thumb;
-                slidePanel.Children.Add(border);
-                Rectangle gap = new Rectangle();
-                gap.Height = 5;
-                gap.VerticalAlignment = System.Windows.VerticalAlignment.Stretch;
-                slidePanel.Children.Add(gap);
-            });
+                keyframePanel.Children.Add(border);
 
+                KeyframeControl kfControl = new KeyframeControl();
+                kfControl.Margin = new Thickness(2, 2, 2, 2);
 
-
-            List<KF> keys = slides[0].keys;
-            for (int i = 0; i < keys.Count; i++) {
-                KF key = keys[i];
-                StackPanel keyPanel = new StackPanel {
-                    Name = "keyPanel" + i.ToString(),
-                    Orientation = Orientation.Vertical,
-                    Margin = new Thickness(5, 5, 5, 5)
-                };
-                key.keyPanel = keyPanel;
-
-                StackPanel durPanel = new StackPanel { Orientation = Orientation.Horizontal, DataContext = key };
+                kfControl.DataContext = key;
                 Binding durBinding = new Binding();
                 durBinding.Source = key;
                 durBinding.Path = new PropertyPath("duration");
                 durBinding.Mode = BindingMode.TwoWay;
+                BindingOperations.SetBinding(kfControl.durTb, TextBox.TextProperty, durBinding);
 
-                TextBox durTB = new TextBox { Width = 25 };
-                BindingOperations.SetBinding(durTB, TextBox.TextProperty, durBinding);
 
-                durPanel.Children.Add(new Label { Content = "Duration: " });
-                durPanel.Children.Add(durTB);
+                // kfControl.durTb.Text = key.duration.ToString();
+                kfControl.xTxt.Text = key.x.ToString();
+                kfControl.yTxt.Text = key.y.ToString();
+                kfControl.zoomTxt.Text = key.zoomFactor.ToString();
 
-                keyPanel.Children.Add(durPanel);
-                keyPanel.Children.Add(new TextBlock { Text = "X: " + key.x.ToString() });
-                keyPanel.Children.Add(new TextBlock { Text = "Y: " + key.y.ToString() });
-                keyPanel.Children.Add(new TextBlock { Text = "Zoom: " + key.zoomFactor.ToString() });
-                Border border = new Border {
-                    Name = "keyBorder" + i.ToString(),
-                    Background = Brushes.LightBlue,
-                    BorderThickness = new Thickness(5, 5, 5, 5),
-                    VerticalAlignment = System.Windows.VerticalAlignment.Center
-                };
-                border.Child = keyPanel;
-                keyframePanel.Children.Add(border);
-                Rectangle gap = new Rectangle();
-                gap.Width= 5;
-                gap.HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch;
-                keyframePanel.Children.Add(gap);
+                border.Child = kfControl;
             }
 
-            (keyframePanel.Children[0] as Border).Background = Brushes.Blue;
+            selectKeyframe(0);
+        }
+
+
+        public void selectSlide(int slideIndex)
+        {
+            Uri uri = new Uri(slides[slideIndex].fileName);
+            var bitmap = new BitmapImage(uri);
+            previewImage.Source = bitmap;
+            currentKeyframeIndex = slideIndex;
+            (slidePanel.Children[slideIndex] as Border).BorderBrush = Brushes.Blue;
+
+            initializeKeysUI(slides[slideIndex]);
+        }
+
+        public void initializeUI()
+        {
+            slides.ForEach(slide =>
+            {
+                Image thumb = new Image { 
+                    Source = new BitmapImage(new Uri(slide.fileName))
+                };
+
+                slide.thumb = thumb;
+
+                Border border = new Border
+                {
+                    BorderBrush = Brushes.LightBlue,
+                    Background = Brushes.Transparent,
+                    Margin = new Thickness(2, 2, 2, 2),
+                    BorderThickness = new Thickness(5, 5, 5, 5)
+                };
+                border.Child = thumb;
+                slidePanel.Children.Add(border);
+            });
+            selectSlide(0);
         }
 
 
