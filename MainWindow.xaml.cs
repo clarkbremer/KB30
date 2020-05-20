@@ -16,6 +16,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Win32;
+using System.ComponentModel;
 
 namespace KB30
 {
@@ -43,7 +44,11 @@ namespace KB30
                 this.y = y;
                 this.duration = d;
             }
+
             public KF() { }
+
+            [JsonIgnore]
+            public StackPanel keyPanel { get; set; }
 
         }
 
@@ -60,6 +65,9 @@ namespace KB30
                 fileName = s;
                 keys = new List<KF>();
             }
+
+            [JsonIgnore]
+            public Image thumb { get; set; }
         }
 
         public List<Slide> slides = new List<Slide>();
@@ -79,13 +87,21 @@ namespace KB30
             slides.ForEach(slide =>
             {
                 Image thumb = new Image();
+                slide.thumb = thumb;
                 Uri uri = new Uri(slide.fileName);
                 var bitmap = new BitmapImage(uri);
                 thumb.Source = bitmap;
                 thumb.Margin = new Thickness(5, 5, 5, 5);
-                slidePanel.Children.Add(thumb);
+
+                Border border = new Border
+                {
+                    Background = Brushes.LightBlue,
+                    BorderThickness = new Thickness(5, 5, 5, 5)
+                };
+                border.Child = thumb;
+                slidePanel.Children.Add(border);
                 Rectangle gap = new Rectangle();
-                gap.Height = 10;
+                gap.Height = 5;
                 gap.VerticalAlignment = System.Windows.VerticalAlignment.Stretch;
                 slidePanel.Children.Add(gap);
             });
@@ -93,25 +109,48 @@ namespace KB30
 
 
             List<KF> keys = slides[0].keys;
-            keys.ForEach(key =>
-            {
-                StackPanel keyPanel = new StackPanel();
-                keyPanel.Orientation = Orientation.Vertical;
-                keyPanel.Margin = new Thickness(5, 5, 5, 5);
-                keyPanel.Children.Add(new TextBox { Text = "X: " + key.x.ToString() });
-                keyPanel.Children.Add(new TextBox { Text = "Y: " + key.y.ToString() });
-                keyPanel.Children.Add(new TextBox { Text = "Zoom: " + key.zoomFactor.ToString() });
-                keyPanel.Children.Add(new TextBox { Text = "Duration: " + key.duration.ToString() });
-                Border border = new Border { Background = Brushes.Transparent, BorderThickness = new Thickness(5,5,5,5) };
-                keyPanel.Children.Add(border);
-                keyframePanel.Children.Add(keyPanel);
+            for (int i = 0; i < keys.Count; i++) {
+                KF key = keys[i];
+                StackPanel keyPanel = new StackPanel {
+                    Name = "keyPanel" + i.ToString(),
+                    Orientation = Orientation.Vertical,
+                    Margin = new Thickness(5, 5, 5, 5)
+                };
+                key.keyPanel = keyPanel;
+
+                StackPanel durPanel = new StackPanel { Orientation = Orientation.Horizontal, DataContext = key };
+                Binding durBinding = new Binding();
+                durBinding.Source = key;
+                durBinding.Path = new PropertyPath("duration");
+                durBinding.Mode = BindingMode.TwoWay;
+
+                TextBox durTB = new TextBox { Width = 25 };
+                BindingOperations.SetBinding(durTB, TextBox.TextProperty, durBinding);
+
+                durPanel.Children.Add(new Label { Content = "Duration: " });
+                durPanel.Children.Add(durTB);
+
+                keyPanel.Children.Add(durPanel);
+                keyPanel.Children.Add(new TextBlock { Text = "X: " + key.x.ToString() });
+                keyPanel.Children.Add(new TextBlock { Text = "Y: " + key.y.ToString() });
+                keyPanel.Children.Add(new TextBlock { Text = "Zoom: " + key.zoomFactor.ToString() });
+                Border border = new Border {
+                    Name = "keyBorder" + i.ToString(),
+                    Background = Brushes.LightBlue,
+                    BorderThickness = new Thickness(5, 5, 5, 5),
+                    VerticalAlignment = System.Windows.VerticalAlignment.Center
+                };
+                border.Child = keyPanel;
+                keyframePanel.Children.Add(border);
                 Rectangle gap = new Rectangle();
-                gap.Width= 10;
+                gap.Width= 5;
                 gap.HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch;
                 keyframePanel.Children.Add(gap);
-            });
+            }
 
+            (keyframePanel.Children[0] as Border).Background = Brushes.Blue;
         }
+
 
 
         private void fileNewClick(object sender, RoutedEventArgs e) { MessageBox.Show("File New"); }
