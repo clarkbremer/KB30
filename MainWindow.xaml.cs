@@ -70,7 +70,7 @@ namespace KB30
             }
 
             [JsonIgnore]
-            public Image thumb { get; set; }
+            public Button thumb { get; set; }
         }
 
         public List<Slide> slides = new List<Slide>();
@@ -89,7 +89,7 @@ namespace KB30
 
         public void initializeKeysUI(Slide slide)
         {
-
+            keyframePanel.Children.Clear();
             List<KF> keys = slide.keys;
             for (int i = 0; i < keys.Count; i++)
             {
@@ -134,21 +134,25 @@ namespace KB30
             Uri uri = new Uri(slides[slideIndex].fileName);
             var bitmap = new BitmapImage(uri);
             previewImage.Source = bitmap;
-            currentKeyframeIndex = slideIndex;
+            (slidePanel.Children[currentSlideIndex] as Border).BorderBrush = Brushes.LightBlue;
             (slidePanel.Children[slideIndex] as Border).BorderBrush = Brushes.Blue;
 
             initializeKeysUI(slides[slideIndex]);
+            currentSlideIndex = slideIndex;
         }
 
         public void initializeUI()
         {
-            slides.ForEach(slide =>
-            {
-                Image thumb = new Image { 
-                    Source = new BitmapImage(new Uri(slide.fileName))
-                };
+            slidePanel.Children.Clear();
 
-                slide.thumb = thumb;
+            for (int i = 0; i < slides.Count; i++)
+            {
+                Slide slide = slides[i];
+
+                ThumbButtonControl thumbButton = new ThumbButtonControl();
+                thumbButton.image.Source = new BitmapImage(new Uri(slide.fileName));
+                thumbButton.button.Click += slideClick;
+                slide.thumb = thumbButton.button;
 
                 Border border = new Border
                 {
@@ -157,10 +161,18 @@ namespace KB30
                     Margin = new Thickness(2, 2, 2, 2),
                     BorderThickness = new Thickness(5, 5, 5, 5)
                 };
-                border.Child = thumb;
+                border.Child = thumbButton;
                 slidePanel.Children.Add(border);
-            });
+            }
             selectSlide(0);
+        }
+
+        private void slideClick(object sender, RoutedEventArgs e) {
+            Button btn = e.Source as Button;
+            Slide slide = slides.Find(s => s.thumb == btn);
+            int index = slides.IndexOf(slide, 0);
+
+            selectSlide(index);
         }
 
 
