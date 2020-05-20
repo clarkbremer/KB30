@@ -27,6 +27,8 @@ namespace KB30
     {
         public int currentSlideIndex = 0;
         public int currentKeyframeIndex = 0;
+        private Point keyRectStart;
+        private Boolean keyRectDragging = false;
 
         public MainWindow()
         {
@@ -81,6 +83,7 @@ namespace KB30
             public List<Slide> slides { get; set; }
         }
 
+ 
         public void selectKeyframe(int keyFrameIndex)
         {
             (keyframePanel.Children[currentKeyframeIndex] as Border).BorderBrush = Brushes.LightBlue;
@@ -128,7 +131,6 @@ namespace KB30
                 kfControl.button.Click += keyFrameClick;
                 key.keyButton = kfControl.button;
 
-                // kfControl.durTb.Text = key.duration.ToString();
                 kfControl.xTxt.Text = key.x.ToString();
                 kfControl.yTxt.Text = key.y.ToString();
                 kfControl.zoomTxt.Text = key.zoomFactor.ToString();
@@ -227,6 +229,37 @@ namespace KB30
                 jsonString = JsonSerializer.Serialize(config, options);
                 File.WriteAllText(saveFileDialog.FileName, jsonString);
             }
+        }
+
+        private void previewMouseDown(object sender, MouseButtonEventArgs e) {
+            keyRectDragging = true;
+            keyRectStart = e.GetPosition(previewCanvas);
+
+            keyRect.Visibility = Visibility.Visible;
+            Canvas.SetLeft(keyRect, keyRectStart.X);
+            Canvas.SetTop(keyRect, keyRectStart.Y);
+        }
+        private void previewMouseMove(object sender, MouseEventArgs e) {
+            if (keyRectDragging)
+            {
+                var pos = e.GetPosition(previewCanvas);
+
+                var x = Math.Min(pos.X, keyRectStart.X);
+                var y = Math.Min(pos.Y, keyRectStart.Y);
+
+                var w = Math.Max(pos.X, keyRectStart.X) - x;
+                var h = Math.Max(pos.Y, keyRectStart.Y) - y;
+
+                keyRect.Width = w;
+                keyRect.Height = h;
+
+                Canvas.SetLeft(keyRect, x);
+                Canvas.SetTop(keyRect, y);
+            }
+        }
+        private void previewMouseUp(object sender, MouseButtonEventArgs e)
+        {
+            keyRectDragging = false;
         }
 
         private void fileSaveAsClick(object sender, RoutedEventArgs e) { MessageBox.Show("File SaveAs"); }
