@@ -51,7 +51,7 @@ namespace KB30
             public KF() { }
 
             [JsonIgnore]
-            public StackPanel keyPanel { get; set; }
+            public Button keyButton { get; set; }
 
         }
 
@@ -83,8 +83,18 @@ namespace KB30
 
         public void selectKeyframe(int keyFrameIndex)
         {
+            (keyframePanel.Children[currentKeyframeIndex] as Border).BorderBrush = Brushes.LightBlue;
             (keyframePanel.Children[keyFrameIndex] as Border).BorderBrush = Brushes.Blue;
             currentKeyframeIndex = keyFrameIndex;
+        }
+
+        private void keyFrameClick(object sender, RoutedEventArgs e)
+        {
+            List<KF> keys = slides[currentSlideIndex].keys;
+            Button btn = e.Source as Button;
+            KF key = keys.Find(k => k.keyButton == btn);
+            int index = keys.IndexOf(key, 0);
+            selectKeyframe(index);
         }
 
         public void initializeKeysUI(Slide slide)
@@ -115,7 +125,8 @@ namespace KB30
                 durBinding.Path = new PropertyPath("duration");
                 durBinding.Mode = BindingMode.TwoWay;
                 BindingOperations.SetBinding(kfControl.durTb, TextBox.TextProperty, durBinding);
-
+                kfControl.button.Click += keyFrameClick;
+                key.keyButton = kfControl.button;
 
                 // kfControl.durTb.Text = key.duration.ToString();
                 kfControl.xTxt.Text = key.x.ToString();
@@ -139,6 +150,16 @@ namespace KB30
 
             initializeKeysUI(slides[slideIndex]);
             currentSlideIndex = slideIndex;
+        }
+
+
+        private void slideClick(object sender, RoutedEventArgs e)
+        {
+            Button btn = e.Source as Button;
+            Slide slide = slides.Find(s => s.thumb == btn);
+            int index = slides.IndexOf(slide, 0);
+
+            selectSlide(index);
         }
 
         public void initializeUI()
@@ -167,14 +188,7 @@ namespace KB30
             selectSlide(0);
         }
 
-        private void slideClick(object sender, RoutedEventArgs e) {
-            Button btn = e.Source as Button;
-            Slide slide = slides.Find(s => s.thumb == btn);
-            int index = slides.IndexOf(slide, 0);
-
-            selectSlide(index);
-        }
-
+ 
 
 
         private void fileNewClick(object sender, RoutedEventArgs e) { MessageBox.Show("File New"); }
