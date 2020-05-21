@@ -27,8 +27,6 @@ namespace KB30
     {
         public int currentSlideIndex = 0;
         public int currentKeyframeIndex = 0;
-        private Point keyRectStart;
-        private Boolean keyRectDragging = false;
 
         public MainWindow()
         {
@@ -98,6 +96,7 @@ namespace KB30
             KF key = keys.Find(k => k.keyButton == btn);
             int index = keys.IndexOf(key, 0);
             selectKeyframe(index);
+            // position crop conttol here
         }
 
         public void initializeKeysUI(Slide slide)
@@ -146,7 +145,7 @@ namespace KB30
         {
             Uri uri = new Uri(slides[slideIndex].fileName);
             var bitmap = new BitmapImage(uri);
-            previewImage.Source = bitmap;
+            imageCropper.image.Source = bitmap;
             (slidePanel.Children[currentSlideIndex] as Border).BorderBrush = Brushes.LightBlue;
             (slidePanel.Children[slideIndex] as Border).BorderBrush = Brushes.Blue;
 
@@ -231,36 +230,6 @@ namespace KB30
             }
         }
 
-        private void previewMouseDown(object sender, MouseButtonEventArgs e) {
-            keyRectDragging = true;
-            keyRectStart = e.GetPosition(previewCanvas);
-
-            keyRect.Visibility = Visibility.Visible;
-            Canvas.SetLeft(keyRect, keyRectStart.X);
-            Canvas.SetTop(keyRect, keyRectStart.Y);
-        }
-        private void previewMouseMove(object sender, MouseEventArgs e) {
-            if (keyRectDragging)
-            {
-                var pos = e.GetPosition(previewCanvas);
-
-                var x = Math.Min(pos.X, keyRectStart.X);
-                var y = Math.Min(pos.Y, keyRectStart.Y);
-
-                var w = Math.Max(pos.X, keyRectStart.X) - x;
-                var h = Math.Max(pos.Y, keyRectStart.Y) - y;
-
-                keyRect.Width = w;
-                keyRect.Height = h;
-
-                Canvas.SetLeft(keyRect, x);
-                Canvas.SetTop(keyRect, y);
-            }
-        }
-        private void previewMouseUp(object sender, MouseButtonEventArgs e)
-        {
-            keyRectDragging = false;
-        }
 
         private void fileSaveAsClick(object sender, RoutedEventArgs e) { MessageBox.Show("File SaveAs"); }
         private void addSlideClick(object sender, RoutedEventArgs e) { MessageBox.Show("Add Slide"); }
