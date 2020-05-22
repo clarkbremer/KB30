@@ -82,11 +82,15 @@ namespace KB30
         }
 
  
-        public void selectKeyframe(int keyFrameIndex)
+        public void selectKeyframe(KF key, int keyFrameIndex)
         {
             (keyframePanel.Children[currentKeyframeIndex] as Border).BorderBrush = Brushes.LightBlue;
             (keyframePanel.Children[keyFrameIndex] as Border).BorderBrush = Brushes.Blue;
             currentKeyframeIndex = keyFrameIndex;
+            imageCropper.UpdateLayout();
+            imageCropper.cropZoom = key.zoomFactor;
+            imageCropper.cropX = key.x;
+            imageCropper.cropY = key.y;
         }
 
         private void keyFrameClick(object sender, RoutedEventArgs e)
@@ -95,8 +99,7 @@ namespace KB30
             Button btn = e.Source as Button;
             KF key = keys.Find(k => k.keyButton == btn);
             int index = keys.IndexOf(key, 0);
-            selectKeyframe(index);
-            // position crop conttol here
+            selectKeyframe(key, index);
         }
 
         public void initializeKeysUI(Slide slide)
@@ -127,6 +130,7 @@ namespace KB30
                 durBinding.Path = new PropertyPath("duration");
                 durBinding.Mode = BindingMode.TwoWay;
                 BindingOperations.SetBinding(kfControl.durTb, TextBox.TextProperty, durBinding);
+
                 kfControl.button.Click += keyFrameClick;
                 key.keyButton = kfControl.button;
 
@@ -137,7 +141,7 @@ namespace KB30
                 border.Child = kfControl;
             }
 
-            selectKeyframe(0);
+            selectKeyframe(keys[0], 0);
         }
 
 

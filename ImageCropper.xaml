@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:KB30"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+    <Grid x:Name="grid">
         <Image Name="image"></Image>
         <Canvas Name="cropperCanvas" MouseDown="cropperMouseDown" MouseMove="cropperMouseMove" MouseUp="cropperMouseUp" Background="Transparent">
             <Rectangle Name="cropper" Stroke="DarkOrange" Fill='#77ffffff' ></Rectangle>

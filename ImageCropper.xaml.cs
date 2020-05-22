@@ -21,12 +21,71 @@ namespace KB30
         public ImageCropper()
         {
             InitializeComponent();
-            cropper.Height = 100;
-            cropper.Width = 100;
-            Canvas.SetLeft(cropper, 100);
-            Canvas.SetTop(cropper, 100);
         }
 
+        public double cropX
+        {
+            get
+            {
+                double ix = (grid.ActualWidth - image.ActualWidth) / 2;
+                double rx = Canvas.GetLeft(cropper);
+                double rw = cropper.Width;
+                return (rx - ix + (rw / 2));
+            }
+
+            set
+            {
+                double ix = (grid.ActualWidth - image.ActualWidth) / 2;
+                double cc = value * image.ActualWidth;
+                double rw = cropper.Width;
+                Canvas.SetLeft(cropper, ix + cc - (rw / 2));
+            }
+        }
+        public double cropY
+        {
+            get
+            {
+                double iy = (grid.ActualHeight - image.ActualHeight) / 2;
+                double ry = Canvas.GetTop(cropper);
+                double rh = cropper.Height;
+                return (ry - iy + (rh / 2));
+            }
+
+            set
+            {
+                double iy = (grid.ActualHeight - image.ActualHeight) / 2;
+                double cc = value * image.ActualHeight;
+                double rh = cropper.Height;
+                Canvas.SetTop(cropper, iy + cc - (rh / 2));
+            }
+        }
+
+        public double cropZoom
+        {
+            get
+            {
+                return (cropper.ActualWidth / image.ActualWidth);
+            }
+
+            set
+            {
+                double iw = image.ActualWidth;
+                double ih = image.ActualHeight;
+
+                if((iw * 9) > (ih * 16))
+                {
+                    cropper.Height = image.ActualHeight / value;
+                    cropper.Width = cropper.Height * 16 / 9;
+                }
+                else
+                {
+                    cropper.Width = image.ActualWidth / value;
+                    cropper.Height = cropper.Width * 9 / 16;
+
+                }
+            }
+        }
+          
         // The part of the rectangle the mouse is over.
         private enum HitType
         {
@@ -185,13 +244,13 @@ namespace KB30
                         break;
                 }
 
-                // Don't use negative width or height.
-                if ((new_width > 0) && (new_height > 0))
+                // Don't use tiny width or height
+                if ((new_width > 5) && (new_height > 5) )
                 {
                     // Update the rectangle.
                     Canvas.SetLeft(cropper, new_x);
                     Canvas.SetTop(cropper, new_y);
-                    cropper.Width = new_width;
+                    cropper.Width = new_height * 16 / 9;
                     cropper.Height = new_height;
 
                     // Save the mouse's new location.
