@@ -10,19 +10,26 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.ComponentModel;
 
 namespace KB30
 {
     /// <summary>
     /// Interaction logic for CropControl.xaml
     /// </summary>
-    public partial class ImageCropper : UserControl
+    public partial class ImageCropper : UserControl, INotifyPropertyChanged
     {
         public ImageCropper()
         {
             InitializeComponent();
         }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged(string property)
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(property));
+        }
         public double cropX
         {
             get
@@ -30,7 +37,7 @@ namespace KB30
                 double ix = (grid.ActualWidth - image.ActualWidth) / 2;
                 double rx = Canvas.GetLeft(cropper);
                 double rw = cropper.Width;
-                return (rx - ix + (rw / 2));
+                return Math.Round(((rx - ix + (rw / 2))/ image.ActualWidth), 3);
             }
 
             set
@@ -41,6 +48,7 @@ namespace KB30
                 Canvas.SetLeft(cropper, ix + cc - (rw / 2));
             }
         }
+
         public double cropY
         {
             get
@@ -48,7 +56,7 @@ namespace KB30
                 double iy = (grid.ActualHeight - image.ActualHeight) / 2;
                 double ry = Canvas.GetTop(cropper);
                 double rh = cropper.Height;
-                return (ry - iy + (rh / 2));
+                return Math.Round(((ry - iy + (rh / 2))/ image.ActualHeight), 3);
             }
 
             set
@@ -60,11 +68,23 @@ namespace KB30
             }
         }
 
+
         public double cropZoom
         {
             get
             {
-                return (cropper.ActualWidth / image.ActualWidth);
+                double iw = image.ActualWidth;
+                double ih = image.ActualHeight;
+                double z;
+
+                if ((iw * 9) > (ih * 16))
+                {
+                    z = Math.Round((image.ActualHeight / cropper.ActualHeight), 3);
+                }
+                else { 
+                    z = Math.Round((image.ActualWidth / cropper.ActualWidth), 3);
+                }
+                return z;
             }
 
             set
@@ -85,7 +105,8 @@ namespace KB30
                 }
             }
         }
-          
+
+
         // The part of the rectangle the mouse is over.
         private enum HitType
         {
@@ -255,6 +276,11 @@ namespace KB30
 
                     // Save the mouse's new location.
                     LastPoint = point;
+
+                    // Tell the world
+                    OnPropertyChanged("cropX");
+                    OnPropertyChanged("cropY");
+                    OnPropertyChanged("cropZoom");
                 }
             }
         }

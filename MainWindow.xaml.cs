@@ -13,11 +13,20 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.IO;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.Win32;
 using System.ComponentModel;
+using Newtonsoft.Json;
 
+
+/*
+ * To DO:  
+ *  New Slide
+ *  New Keyframe
+ *  Animate Window
+ *  Delete Slide
+ *  Delete Key
+ *  Drag and Drop slides and keys to re-order
+ */
 namespace KB30
 {
     /// <summary>
@@ -27,18 +36,30 @@ namespace KB30
     {
         public int currentSlideIndex = 0;
         public int currentKeyframeIndex = 0;
+        private String currentFileName = "";
 
         public MainWindow()
         {
             InitializeComponent();
         }
 
-        public class KF
+        [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+        public class KF : FrameworkElement
         {
+            [JsonProperty] 
             public double zoomFactor { get; set; }
+            [JsonProperty] 
             public double x { get; set; }
+            [JsonProperty] 
             public double y { get; set; }
+            [JsonProperty] 
             public double duration { get; set; }
+
+            public static readonly DependencyProperty zoomFactorProperty = DependencyProperty.Register("zoomFactor", typeof(double), typeof(KF));
+            public static readonly DependencyProperty xProperty = DependencyProperty.Register("x", typeof(double), typeof(KF));
+            public static readonly DependencyProperty yProperty = DependencyProperty.Register("y", typeof(double), typeof(KF));
+            public static readonly DependencyProperty durationProperty = DependencyProperty.Register("duration", typeof(double), typeof(KF));
+           
 
             public KF(double z, double x, double y, double d)
             {
@@ -50,10 +71,8 @@ namespace KB30
 
             public KF() { }
 
-            [JsonIgnore]
-            public Button keyButton { get; set; }
-
-        }
+            public KeyframeControl kfControl { get; set; }
+         }
 
         public class Slide
         {
@@ -85,19 +104,86 @@ namespace KB30
         public void selectKeyframe(KF key, int keyFrameIndex)
         {
             (keyframePanel.Children[currentKeyframeIndex] as Border).BorderBrush = Brushes.LightBlue;
+            KF oldKey = slides[currentSlideIndex].keys[currentKeyframeIndex];
+            KeyframeControl oldKFControl = oldKey.kfControl;
+
+            BindingOperations.ClearBinding(oldKFControl.xTb, TextBox.TextProperty);
+            BindingOperations.ClearBinding(oldKFControl.yTb, TextBox.TextProperty);
+            BindingOperations.ClearBinding(oldKFControl.zoomTb, TextBox.TextProperty);
+
+            // because clearing the binding clears the targets
+            oldKFControl.xTb.Text = oldKey.x.ToString();
+            oldKFControl.yTb.Text = oldKey.y.ToString();
+            oldKFControl.zoomTb.Text = oldKey.zoomFactor.ToString();
+
             (keyframePanel.Children[keyFrameIndex] as Border).BorderBrush = Brushes.Blue;
+           
+
             currentKeyframeIndex = keyFrameIndex;
+
             imageCropper.UpdateLayout();
             imageCropper.cropZoom = key.zoomFactor;
             imageCropper.cropX = key.x;
             imageCropper.cropY = key.y;
+
+            imageCropper.UpdateLayout();
+
+            KeyframeControl kfControl = key.kfControl;
+            
+            Binding xBinding = new Binding("cropX")
+            {
+                Source = imageCropper,
+                Mode = BindingMode.OneWay
+            };
+            kfControl.xTb.SetBinding(TextBox.TextProperty, xBinding);
+
+            Binding yBinding = new Binding("cropY")
+            {
+                Source = imageCropper,
+                Mode = BindingMode.OneWay
+            };
+            kfControl.yTb.SetBinding(TextBox.TextProperty, yBinding);
+
+            Binding zoomBinding = new Binding("cropZoom")
+            {
+                Source = imageCropper,
+                Mode = BindingMode.OneWay
+            };
+            kfControl.zoomTb.SetBinding(TextBox.TextProperty, zoomBinding);
+            
         }
 
+        private void kfControlChangeEvent(object sender, TextChangedEventArgs e, KF key)
+        {
+            Double maybe;
+            TextBox tb = (e.Source as TextBox);
+            if (Double.TryParse(tb.Text, out maybe)){
+                if(!Double.IsNaN(maybe))
+                {
+                    switch (tb.Name)
+                    {
+                        case "xTb":
+                            key.x = maybe;
+                            break;
+                        case "yTb":
+                            key.y = maybe;
+                            break;
+                        case "durTb":
+                            key.duration = maybe;
+                            break;
+                        case "zoomTb":
+                            key.zoomFactor = maybe;
+                            break;
+                    }
+                }
+            }
+        }
+    
         private void keyFrameClick(object sender, RoutedEventArgs e)
         {
             List<KF> keys = slides[currentSlideIndex].keys;
             Button btn = e.Source as Button;
-            KF key = keys.Find(k => k.keyButton == btn);
+            KF key = keys.Find(k => k.kfControl == btn.Parent);
             int index = keys.IndexOf(key, 0);
             selectKeyframe(key, index);
         }
@@ -122,21 +208,20 @@ namespace KB30
                 keyframePanel.Children.Add(border);
 
                 KeyframeControl kfControl = new KeyframeControl();
+                key.kfControl = kfControl;
+
                 kfControl.Margin = new Thickness(2, 2, 2, 2);
-
-                kfControl.DataContext = key;
-                Binding durBinding = new Binding();
-                durBinding.Source = key;
-                durBinding.Path = new PropertyPath("duration");
-                durBinding.Mode = BindingMode.TwoWay;
-                BindingOperations.SetBinding(kfControl.durTb, TextBox.TextProperty, durBinding);
-
                 kfControl.button.Click += keyFrameClick;
-                key.keyButton = kfControl.button;
 
-                kfControl.xTxt.Text = key.x.ToString();
-                kfControl.yTxt.Text = key.y.ToString();
-                kfControl.zoomTxt.Text = key.zoomFactor.ToString();
+                kfControl.xTb.Text = key.x.ToString();
+                kfControl.yTb.Text = key.y.ToString();
+                kfControl.zoomTb.Text = key.zoomFactor.ToString();
+                kfControl.durTb.Text = key.duration.ToString();
+
+                kfControl.xTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
+                kfControl.yTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
+                kfControl.zoomTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
+                kfControl.durTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
 
                 border.Child = kfControl;
             }
@@ -206,36 +291,51 @@ namespace KB30
             openFileDialog.Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*";
             if (openFileDialog.ShowDialog() == true)
             {
-                jsonString = File.ReadAllText(openFileDialog.FileName);
-                config = JsonSerializer.Deserialize<Config>(jsonString);
+                currentFileName = openFileDialog.FileName;
+                jsonString = File.ReadAllText(currentFileName);
+                config = JsonConvert.DeserializeObject<Config>(jsonString);
+                // config = JsonSerializer.Deserialize<Config>(jsonString);
                 slides = config.slides;
                 initializeUI();
             }
         }
 
-        private void fileSaveClick(object sender, RoutedEventArgs e) {
+        private void saveIt(String filename)
+        {
             string jsonString;
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true
-            };
+
+            Config config = new Config();
+
+            config.version = "0.1";
+            config.slides = slides;
+
+            jsonString = JsonConvert.SerializeObject(config, Formatting.Indented);
+
+            File.WriteAllText(filename, jsonString);
+        }
+
+        private void fileSaveAsClick(object sender, RoutedEventArgs e) {
+ 
 
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*";
             if (saveFileDialog.ShowDialog() == true)
             {
-                Config config = new Config();
-
-                config.version = "0.1";
-                config.slides = slides;
-
-                jsonString = JsonSerializer.Serialize(config, options);
-                File.WriteAllText(saveFileDialog.FileName, jsonString);
+                saveIt(saveFileDialog.FileName);
             }
         }
 
 
-        private void fileSaveAsClick(object sender, RoutedEventArgs e) { MessageBox.Show("File SaveAs"); }
+        private void fileSaveClick(object sender, RoutedEventArgs e) { 
+            if(currentFileName == "")
+            {
+                fileSaveAsClick(sender, e);
+            }
+            else
+            {
+                saveIt(currentFileName);
+            }
+        }
         private void addSlideClick(object sender, RoutedEventArgs e) { MessageBox.Show("Add Slide"); }
         private void addKeyframeClick(object sender, RoutedEventArgs e) { MessageBox.Show("Add Keyframe"); }
         private void playClick(object sender, RoutedEventArgs e) { MessageBox.Show("Play it again, Sam"); }

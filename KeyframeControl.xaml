@@ -22,10 +22,10 @@
             <TextBlock Grid.Row="1" Grid.Column="0" Text="X: "/>
             <TextBlock Grid.Row="2" Grid.Column="0" Text="Y: "/>
             <TextBlock Grid.Row="3" Grid.Column="0" Text="Zoom: "/>
-            <TextBox   Grid.Row="0" Grid.Column="1" Name="durTb" Text="myDuration"/>
-            <TextBlock Grid.Row="1" Grid.Column="1" Name="xTxt" Text="myX"/>
-            <TextBlock Grid.Row="2" Grid.Column="1" Name="yTxt" Text="myY"/>
-            <TextBlock Grid.Row="3" Grid.Column="1" Name="zoomTxt" Text="myZoom"/>
+            <TextBox Grid.Row="0" Grid.Column="1" Name="durTb" Text="99"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Name="xTb" Text="99" IsReadOnly="True"/>
+            <TextBox Grid.Row="2" Grid.Column="1" Name="yTb" Text="99" IsReadOnly="True"/>
+            <TextBox Grid.Row="3" Grid.Column="1" Name="zoomTb" Text="99" IsReadOnly="True"/>
         </Grid>
     </Button>
 
