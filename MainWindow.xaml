@@ -28,11 +28,6 @@
                 <MenuItem Header="_Save"   Click="fileSaveClick"/>
                 <MenuItem Header="Save_As" Click="fileSaveAsClick"/>
             </MenuItem>
-                <MenuItem Header="_Edit">
-                    <MenuItem Command="ApplicationCommands.Copy"/>
-                    <MenuItem Command="ApplicationCommands.Cut"/>
-                    <MenuItem Command="ApplicationCommands.Paste"/>
-            </MenuItem>
         </Menu>
         <local:ImageCropper x:Name="imageCropper" Grid.Column="2" Grid.Row="1" Grid.ColumnSpan="2"></local:ImageCropper>
         <GridSplitter Name="horizontalSplitter" Grid.Column="2" Grid.Row="2" Height="8" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="CornflowerBlue" />

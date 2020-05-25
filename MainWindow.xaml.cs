@@ -34,6 +34,7 @@ namespace KB30
     /// </summary>
     public partial class MainWindow : Window
     {
+        const double DEFAULT_DURATION = 5.0;
         public int currentSlideIndex = 0;
         public int currentKeyframeIndex = 0;
         private String currentFileName = "";
@@ -188,6 +189,37 @@ namespace KB30
             selectKeyframe(key, index);
         }
 
+
+        public void addKeyframeControl(KF key)
+        {
+            Border border = new Border
+            {
+                Background = Brushes.Transparent,
+                BorderBrush = Brushes.LightBlue,
+                Margin = new Thickness(2, 2, 2, 2),
+                BorderThickness = new Thickness(5, 5, 5, 5),
+                VerticalAlignment = System.Windows.VerticalAlignment.Center
+            };
+            keyframePanel.Children.Add(border);
+
+            KeyframeControl kfControl = new KeyframeControl();
+            key.kfControl = kfControl;
+
+            kfControl.Margin = new Thickness(2, 2, 2, 2);
+            kfControl.button.Click += keyFrameClick;
+
+            kfControl.xTb.Text = key.x.ToString();
+            kfControl.yTb.Text = key.y.ToString();
+            kfControl.zoomTb.Text = key.zoomFactor.ToString();
+            kfControl.durTb.Text = key.duration.ToString();
+
+            kfControl.xTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
+            kfControl.yTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
+            kfControl.zoomTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
+            kfControl.durTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
+
+            border.Child = kfControl;
+        }
         public void initializeKeysUI(Slide slide)
         {
             keyframePanel.Children.Clear();
@@ -195,35 +227,7 @@ namespace KB30
             for (int i = 0; i < keys.Count; i++)
             {
                 KF key = keys[i];
-
-                Border border = new Border
-                {
-                    Name = "keyBorder" + i.ToString(),
-                    Background = Brushes.Transparent,
-                    BorderBrush = Brushes.LightBlue,
-                    Margin = new Thickness(2, 2, 2, 2),
-                    BorderThickness = new Thickness(5, 5, 5, 5),
-                    VerticalAlignment = System.Windows.VerticalAlignment.Center
-                };
-                keyframePanel.Children.Add(border);
-
-                KeyframeControl kfControl = new KeyframeControl();
-                key.kfControl = kfControl;
-
-                kfControl.Margin = new Thickness(2, 2, 2, 2);
-                kfControl.button.Click += keyFrameClick;
-
-                kfControl.xTb.Text = key.x.ToString();
-                kfControl.yTb.Text = key.y.ToString();
-                kfControl.zoomTb.Text = key.zoomFactor.ToString();
-                kfControl.durTb.Text = key.duration.ToString();
-
-                kfControl.xTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
-                kfControl.yTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
-                kfControl.zoomTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
-                kfControl.durTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
-
-                border.Child = kfControl;
+                addKeyframeControl(key);
             }
 
             selectKeyframe(keys[0], 0);
@@ -237,9 +241,9 @@ namespace KB30
             imageCropper.image.Source = bitmap;
             (slidePanel.Children[currentSlideIndex] as Border).BorderBrush = Brushes.LightBlue;
             (slidePanel.Children[slideIndex] as Border).BorderBrush = Brushes.Blue;
-
-            initializeKeysUI(slides[slideIndex]);
             currentSlideIndex = slideIndex;
+            currentKeyframeIndex = 0;
+            initializeKeysUI(slides[slideIndex]);
         }
 
 
@@ -252,33 +256,37 @@ namespace KB30
             selectSlide(index);
         }
 
+        public void addSlideControl(Slide slide)
+        {
+            ThumbButtonControl thumbButton = new ThumbButtonControl();
+            thumbButton.image.Source = new BitmapImage(new Uri(slide.fileName));
+            thumbButton.button.Click += slideClick;
+            slide.thumb = thumbButton.button;
+
+            Border border = new Border
+            {
+                BorderBrush = Brushes.LightBlue,
+                Background = Brushes.Transparent,
+                Margin = new Thickness(2, 2, 2, 2),
+                BorderThickness = new Thickness(5, 5, 5, 5)
+            };
+            border.Child = thumbButton;
+            slidePanel.Children.Add(border);
+        }
+
         public void initializeUI()
         {
+            Cursor = Cursors.Wait;
             slidePanel.Children.Clear();
 
             for (int i = 0; i < slides.Count; i++)
             {
                 Slide slide = slides[i];
-
-                ThumbButtonControl thumbButton = new ThumbButtonControl();
-                thumbButton.image.Source = new BitmapImage(new Uri(slide.fileName));
-                thumbButton.button.Click += slideClick;
-                slide.thumb = thumbButton.button;
-
-                Border border = new Border
-                {
-                    BorderBrush = Brushes.LightBlue,
-                    Background = Brushes.Transparent,
-                    Margin = new Thickness(2, 2, 2, 2),
-                    BorderThickness = new Thickness(5, 5, 5, 5)
-                };
-                border.Child = thumbButton;
-                slidePanel.Children.Add(border);
+                addSlideControl(slide);
             }
             selectSlide(0);
+            Cursor = Cursors.Arrow;
         }
-
- 
 
 
         private void fileNewClick(object sender, RoutedEventArgs e) { MessageBox.Show("File New"); }
@@ -336,8 +344,28 @@ namespace KB30
                 saveIt(currentFileName);
             }
         }
-        private void addSlideClick(object sender, RoutedEventArgs e) { MessageBox.Show("Add Slide"); }
-        private void addKeyframeClick(object sender, RoutedEventArgs e) { MessageBox.Show("Add Keyframe"); }
+        private void addSlideClick(object sender, RoutedEventArgs e) {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "JSON files (*.jpg)|*.jpg|All files (*.*)|*.*";
+            if (openFileDialog.ShowDialog() == true)
+            {
+                Slide newSlide = new Slide(openFileDialog.FileName);
+                newSlide.keys.Add(new KF(1, 0.5, 0.5, 0));
+                newSlide.keys.Add(new KF(2, 0.5, 0.5, DEFAULT_DURATION));
+                slides.Add(newSlide);
+                addSlideControl(newSlide);
+                selectSlide(slides.Count - 1);
+            }
+        }
+
+        private void addKeyframeClick(object sender, RoutedEventArgs e) {
+            Slide currentSlide = slides[currentSlideIndex];
+            KF currentKey = currentSlide.keys[currentKeyframeIndex];
+            KF newKey = new KF(currentKey.zoomFactor, currentKey.x, currentKey.y, DEFAULT_DURATION);
+            slides[currentSlideIndex].keys.Add(newKey);
+            addKeyframeControl(newKey);
+            selectKeyframe(newKey, currentSlide.keys.Count-1);
+        }
         private void playClick(object sender, RoutedEventArgs e) { MessageBox.Show("Play it again, Sam"); }
 
     }
