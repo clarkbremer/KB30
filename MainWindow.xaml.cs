@@ -106,9 +106,9 @@ namespace KB30
  
         public void selectKeyframe(KF key, int keyFrameIndex)
         {
-            (keyframePanel.Children[currentKeyframeIndex] as Border).BorderBrush = Brushes.LightBlue;
             KF oldKey = slides[currentSlideIndex].keys[currentKeyframeIndex];
             KeyframeControl oldKFControl = oldKey.kfControl;
+            oldKFControl.DeSelect();
 
             BindingOperations.ClearBinding(oldKFControl.xTb, TextBox.TextProperty);
             BindingOperations.ClearBinding(oldKFControl.yTb, TextBox.TextProperty);
@@ -118,9 +118,6 @@ namespace KB30
             oldKFControl.xTb.Text = oldKey.x.ToString();
             oldKFControl.yTb.Text = oldKey.y.ToString();
             oldKFControl.zoomTb.Text = oldKey.zoomFactor.ToString();
-
-            (keyframePanel.Children[keyFrameIndex] as Border).BorderBrush = Brushes.Blue;
-           
 
             currentKeyframeIndex = keyFrameIndex;
 
@@ -132,6 +129,7 @@ namespace KB30
             imageCropper.UpdateLayout();
 
             KeyframeControl kfControl = key.kfControl;
+            kfControl.Select();
             
             Binding xBinding = new Binding("cropX")
             {
@@ -182,11 +180,9 @@ namespace KB30
             }
         }
     
-        private void keyFrameClick(object sender, RoutedEventArgs e)
+        private void keyFrameClick(object sender, RoutedEventArgs e, KF key)
         {
             List<KF> keys = slides[currentSlideIndex].keys;
-            Button btn = e.Source as Button;
-            KF key = keys.Find(k => k.kfControl == btn.Parent);
             int index = keys.IndexOf(key, 0);
             selectKeyframe(key, index);
         }
@@ -194,21 +190,12 @@ namespace KB30
 
         public void addKeyframeControl(KF key)
         {
-            Border border = new Border
-            {
-                Background = Brushes.Transparent,
-                BorderBrush = Brushes.LightBlue,
-                Margin = new Thickness(2, 2, 2, 2),
-                BorderThickness = new Thickness(5, 5, 5, 5),
-                VerticalAlignment = System.Windows.VerticalAlignment.Center
-            };
-            keyframePanel.Children.Add(border);
-
             KeyframeControl kfControl = new KeyframeControl();
+            kfControl.DeSelect();
             key.kfControl = kfControl;
 
             kfControl.Margin = new Thickness(2, 2, 2, 2);
-            kfControl.button.Click += keyFrameClick;
+            kfControl.button.Click += delegate (object sender, RoutedEventArgs e) { keyFrameClick(sender, e, key); };
 
             kfControl.xTb.Text = key.x.ToString();
             kfControl.yTb.Text = key.y.ToString();
@@ -221,8 +208,7 @@ namespace KB30
             kfControl.durTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
 
             kfControl.CMDelete.Click += delegate (object sender, RoutedEventArgs e) { deleteKeyframeClick(sender, e, key); };
-
-            border.Child = kfControl;
+            keyframePanel.Children.Add(kfControl);
         }
         public void initializeKeysUI(Slide slide)
         {
@@ -376,8 +362,7 @@ namespace KB30
             if (keys.Count > 1)
             {
                 KeyframeControl kfc = key.kfControl;
-                Border border = kfc.Parent as Border;
-                keyframePanel.Children.Remove(border);
+                keyframePanel.Children.Remove(kfc);
                 keys.Remove(key);
                 if (currentKeyframeIndex >= keys.Count)
                 {

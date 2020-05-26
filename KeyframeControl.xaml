@@ -6,32 +6,33 @@
              xmlns:local="clr-namespace:KB30"
              mc:Ignorable="d" 
              d:DesignHeight="80" d:DesignWidth="100">
-    <Button x:Name="button">
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*" />
-                <ColumnDefinition Width="1*" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="1*" />
-                <RowDefinition Height="1*" />
-                <RowDefinition Height="1*" />
-                <RowDefinition Height="1*" />
-            </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Duration: "/>
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="X: "/>
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Y: "/>
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="Zoom: "/>
-            <TextBox Grid.Row="0" Grid.Column="1" Name="durTb" Text="99"/>
-            <TextBox Grid.Row="1" Grid.Column="1" Name="xTb" Text="99" IsReadOnly="True"/>
-            <TextBox Grid.Row="2" Grid.Column="1" Name="yTb" Text="99" IsReadOnly="True"/>
-            <TextBox Grid.Row="3" Grid.Column="1" Name="zoomTb" Text="99" IsReadOnly="True"/>
-        </Grid>
-        <Button.ContextMenu>
-            <ContextMenu Name="KeyframeContextMenu">
-                <MenuItem Name="CMDelete" Header="Delete Keyframe"></MenuItem>
-            </ContextMenu>
-        </Button.ContextMenu>
-    </Button>
-
+    <Border x:Name="SelectBorder" Background="Transparent" BorderBrush="Red" Margin="2" BorderThickness="5" VerticalAlignment="Center">
+        <Button x:Name="button">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*" />
+                    <RowDefinition Height="1*" />
+                    <RowDefinition Height="1*" />
+                    <RowDefinition Height="1*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Duration: "/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="X: "/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Y: "/>
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Zoom: "/>
+                <TextBox Grid.Row="0" Grid.Column="1" Name="durTb" Text="99"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Name="xTb" Text="99" IsReadOnly="True"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Name="yTb" Text="99" IsReadOnly="True"/>
+                <TextBox Grid.Row="3" Grid.Column="1" Name="zoomTb" Text="99" IsReadOnly="True"/>
+            </Grid>
+            <Button.ContextMenu>
+                <ContextMenu Name="KeyframeContextMenu">
+                    <MenuItem Name="CMDelete" Header="Delete Keyframe"></MenuItem>
+                </ContextMenu>
+            </Button.ContextMenu>
+        </Button>
+    </Border>
 </UserControl>
