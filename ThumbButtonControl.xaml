@@ -11,6 +11,11 @@
             <Grid>
                 <Image Name="image" />
             </Grid>
+            <Button.ContextMenu>
+                <ContextMenu Name="ThumbContextMenu">
+                    <MenuItem Name="CMDelete" Header="Delete Slide"></MenuItem>
+                </ContextMenu>
+            </Button.ContextMenu>
         </Button>
     </Border>
 </UserControl>

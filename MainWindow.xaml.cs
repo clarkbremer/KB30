@@ -25,9 +25,9 @@ using Newtonsoft.Json;
  *  Display current image file name
  *  Drag and Drop slides and keys to re-order
  *  Progress bar while loading images
+ *  Remane "thumb" to "slide"
  *  
  *  Bugs:
- *  - First key values "stick" when selecting new slide.
  *  - Resize window -> resize preview image -> cropper control doesn't resize.
  *   
  */
@@ -254,6 +254,27 @@ namespace KB30
         }
 
 
+        private void deleteSlideClick(object sender, RoutedEventArgs e, Slide slide)
+        {
+            if(slides.Count == 1)
+            {
+                MessageBox.Show("At least one slide is required");
+                return;
+            }
+
+            if (slides.IndexOf(slide) == 0)
+            {
+                selectSlide(1);
+                currentSlideIndex = 0;
+            }
+            else
+            {
+                selectSlide(0);
+            }
+            slidePanel.Children.Remove(slide.thumb);
+            slides.Remove(slide);
+        }
+            
         private void slideClick(object sender, RoutedEventArgs e, Slide slide)
         {
             int index = slides.IndexOf(slide, 0);
@@ -265,6 +286,7 @@ namespace KB30
             ThumbButtonControl thumbButton = new ThumbButtonControl();
             thumbButton.image.Source = new BitmapImage(new Uri(slide.fileName));
             thumbButton.button.Click += delegate (object sender, RoutedEventArgs e) { slideClick(sender, e, slide); };
+            thumbButton.CMDelete.Click += delegate (object sender, RoutedEventArgs e) { deleteSlideClick(sender, e, slide); };
             slide.thumb = thumbButton;
             slidePanel.Children.Add(thumbButton);
             thumbButton.DeSelect();
