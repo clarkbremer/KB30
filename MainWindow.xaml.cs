@@ -20,12 +20,14 @@ using Newtonsoft.Json;
 
 /*
  * To DO:  
- *  New Slide
- *  New Keyframe
  *  Animate Window
- *  Delete Slide
+ *  Delete Slide (right click -> context menu -> delete?)
  *  Delete Key
  *  Drag and Drop slides and keys to re-order
+ *  Progress bar while loading images
+ *  
+ *  Bugs:
+ *   - Resize window -> resize preview image -> cropper control doesn't resize.
  */
 namespace KB30
 {
@@ -218,6 +220,8 @@ namespace KB30
             kfControl.zoomTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
             kfControl.durTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
 
+            kfControl.CMDelete.Click += delegate (object sender, RoutedEventArgs e) { deleteKeyframeClick(sender, e, key); };
+
             border.Child = kfControl;
         }
         public void initializeKeysUI(Slide slide)
@@ -366,6 +370,26 @@ namespace KB30
             addKeyframeControl(newKey);
             selectKeyframe(newKey, currentSlide.keys.Count-1);
         }
+
+        private void deleteKeyframeClick(object sender, RoutedEventArgs e, KF key) {
+            List<KF> keys = slides[currentSlideIndex].keys;
+            if (keys.Count > 1)
+            {
+                KeyframeControl kfc = key.kfControl;
+                Border border = kfc.Parent as Border;
+                keyframePanel.Children.Remove(border);
+                keys.Remove(key);
+                if (currentKeyframeIndex >= keys.Count)
+                {
+                    currentKeyframeIndex = 0;
+                }
+            }
+            else
+            {
+                MessageBox.Show("A minimum of one keyframe is required.");
+            }
+        }
+
         private void playClick(object sender, RoutedEventArgs e) { MessageBox.Show("Play it again, Sam"); }
 
     }

@@ -27,6 +27,11 @@
             <TextBox Grid.Row="2" Grid.Column="1" Name="yTb" Text="99" IsReadOnly="True"/>
             <TextBox Grid.Row="3" Grid.Column="1" Name="zoomTb" Text="99" IsReadOnly="True"/>
         </Grid>
+        <Button.ContextMenu>
+            <ContextMenu Name="KeyframeContextMenu">
+                <MenuItem Name="CMDelete" Header="Delete Keyframe"></MenuItem>
+            </ContextMenu>
+        </Button.ContextMenu>
     </Button>
 
 </UserControl>
