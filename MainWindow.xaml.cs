@@ -105,21 +105,31 @@ namespace KB30
             public List<Slide> slides { get; set; }
         }
 
+        private void unBindKFC(KeyframeControl kfc, KF key)
+        {
+            if(kfc == null)
+            {
+                return;
+            }
+            BindingOperations.ClearBinding(kfc.xTb, TextBox.TextProperty);
+            BindingOperations.ClearBinding(kfc.yTb, TextBox.TextProperty);
+            BindingOperations.ClearBinding(kfc.zoomTb, TextBox.TextProperty);
+
+            // because clearing the binding clears the targets
+            kfc.xTb.Text = key.x.ToString();
+            kfc.yTb.Text = key.y.ToString();
+            kfc.zoomTb.Text = key.zoomFactor.ToString();
+        }
  
+
         public void selectKeyframe(KF key, int keyFrameIndex)
         {
             KF oldKey = slides[currentSlideIndex].keys[currentKeyframeIndex];
             KeyframeControl oldKFControl = oldKey.kfControl;
+
+            unBindKFC(oldKFControl, oldKey);
+
             oldKFControl.DeSelect();
-
-            BindingOperations.ClearBinding(oldKFControl.xTb, TextBox.TextProperty);
-            BindingOperations.ClearBinding(oldKFControl.yTb, TextBox.TextProperty);
-            BindingOperations.ClearBinding(oldKFControl.zoomTb, TextBox.TextProperty);
-
-            // because clearing the binding clears the targets
-            oldKFControl.xTb.Text = oldKey.x.ToString();
-            oldKFControl.yTb.Text = oldKey.y.ToString();
-            oldKFControl.zoomTb.Text = oldKey.zoomFactor.ToString();
 
             currentKeyframeIndex = keyFrameIndex;
 
@@ -229,14 +239,18 @@ namespace KB30
 
         public void selectSlide(int slideIndex)
         {
+            (slidePanel.Children[currentSlideIndex] as ThumbButtonControl).DeSelect();
+            KF oldKey = slides[currentSlideIndex].keys[currentKeyframeIndex];
+            KeyframeControl oldKFControl = oldKey.kfControl;
+            unBindKFC(oldKFControl, oldKey);
+
+            currentSlideIndex = slideIndex;
             Uri uri = new Uri(slides[slideIndex].fileName);
             var bitmap = new BitmapImage(uri);
             imageCropper.image.Source = bitmap;
-            (slidePanel.Children[currentSlideIndex] as ThumbButtonControl).DeSelect();
-            (slidePanel.Children[slideIndex] as ThumbButtonControl).Select();
-            currentSlideIndex = slideIndex;
+            (slidePanel.Children[currentSlideIndex] as ThumbButtonControl).Select();
             currentKeyframeIndex = 0;
-            initializeKeysUI(slides[slideIndex]);
+            initializeKeysUI(slides[currentSlideIndex]);
         }
 
 
