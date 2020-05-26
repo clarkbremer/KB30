@@ -94,7 +94,7 @@ namespace KB30
             }
 
             [JsonIgnore]
-            public ThumbButtonControl thumb { get; set; }
+            public SlideControl slideControl { get; set; }
         }
 
         public List<Slide> slides = new List<Slide>();
@@ -239,7 +239,7 @@ namespace KB30
 
         public void selectSlide(int slideIndex)
         {
-            (slidePanel.Children[currentSlideIndex] as ThumbButtonControl).DeSelect();
+            (slidePanel.Children[currentSlideIndex] as SlideControl).DeSelect();
             KF oldKey = slides[currentSlideIndex].keys[currentKeyframeIndex];
             KeyframeControl oldKFControl = oldKey.kfControl;
             unBindKFC(oldKFControl, oldKey);
@@ -248,7 +248,7 @@ namespace KB30
             Uri uri = new Uri(slides[slideIndex].fileName);
             var bitmap = new BitmapImage(uri);
             imageCropper.image.Source = bitmap;
-            (slidePanel.Children[currentSlideIndex] as ThumbButtonControl).Select();
+            (slidePanel.Children[currentSlideIndex] as SlideControl).Select();
             currentKeyframeIndex = 0;
             initializeKeysUI(slides[currentSlideIndex]);
         }
@@ -271,7 +271,7 @@ namespace KB30
             {
                 selectSlide(0);
             }
-            slidePanel.Children.Remove(slide.thumb);
+            slidePanel.Children.Remove(slide.slideControl);
             slides.Remove(slide);
         }
             
@@ -283,13 +283,13 @@ namespace KB30
 
         public void addSlideControl(Slide slide)
         {
-            ThumbButtonControl thumbButton = new ThumbButtonControl();
-            thumbButton.image.Source = new BitmapImage(new Uri(slide.fileName));
-            thumbButton.button.Click += delegate (object sender, RoutedEventArgs e) { slideClick(sender, e, slide); };
-            thumbButton.CMDelete.Click += delegate (object sender, RoutedEventArgs e) { deleteSlideClick(sender, e, slide); };
-            slide.thumb = thumbButton;
-            slidePanel.Children.Add(thumbButton);
-            thumbButton.DeSelect();
+            SlideControl slideControl = new SlideControl();
+            slideControl.image.Source = new BitmapImage(new Uri(slide.fileName));
+            slideControl.button.Click += delegate (object sender, RoutedEventArgs e) { slideClick(sender, e, slide); };
+            slideControl.CMDelete.Click += delegate (object sender, RoutedEventArgs e) { deleteSlideClick(sender, e, slide); };
+            slide.slideControl = slideControl;
+            slidePanel.Children.Add(slideControl);
+            slideControl.DeSelect();
         }
 
         public void initializeUI()

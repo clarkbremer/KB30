@@ -14,11 +14,11 @@ using System.Windows.Shapes;
 namespace KB30
 {
     /// <summary>
-    /// Interaction logic for ThumbButtonControl.xaml
+    /// Interaction logic for SlideControl.xaml
     /// </summary>
-    public partial class ThumbButtonControl : UserControl
+    public partial class SlideControl : UserControl
     {
-        public ThumbButtonControl()
+        public SlideControl()
         {
             InitializeComponent();
         }
