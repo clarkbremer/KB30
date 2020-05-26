@@ -6,9 +6,11 @@
              xmlns:local="clr-namespace:KB30"
              mc:Ignorable="d" 
              d:DesignHeight="150" d:DesignWidth="200">
-    <Grid>
+    <Border x:Name="SelectBorder" Background="Transparent" BorderBrush="Red" Margin="2" BorderThickness="5" VerticalAlignment="Center" HorizontalAlignment="Center">
         <Button Name="button">
-            <Image Name="image" />
+            <Grid>
+                <Image Name="image" />
+            </Grid>
         </Button>
-    </Grid>
+    </Border>
 </UserControl>

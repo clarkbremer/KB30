@@ -22,5 +22,13 @@ namespace KB30
         {
             InitializeComponent();
         }
+        public void Select()
+        {
+            SelectBorder.BorderBrush = Brushes.Blue;
+        }
+        public void DeSelect()
+        {
+            SelectBorder.BorderBrush = Brushes.LightBlue;
+        }
     }
 }

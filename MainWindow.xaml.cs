@@ -22,12 +22,14 @@ using Newtonsoft.Json;
  * To DO:  
  *  Animate Window
  *  Delete Slide (right click -> context menu -> delete?)
- *  Delete Key
+ *  Display current image file name
  *  Drag and Drop slides and keys to re-order
  *  Progress bar while loading images
  *  
  *  Bugs:
- *   - Resize window -> resize preview image -> cropper control doesn't resize.
+ *  - First key values "stick" when selecting new slide.
+ *  - Resize window -> resize preview image -> cropper control doesn't resize.
+ *   
  */
 namespace KB30
 {
@@ -92,7 +94,7 @@ namespace KB30
             }
 
             [JsonIgnore]
-            public Button thumb { get; set; }
+            public ThumbButtonControl thumb { get; set; }
         }
 
         public List<Slide> slides = new List<Slide>();
@@ -193,6 +195,7 @@ namespace KB30
             KeyframeControl kfControl = new KeyframeControl();
             kfControl.DeSelect();
             key.kfControl = kfControl;
+            keyframePanel.Children.Add(kfControl);
 
             kfControl.Margin = new Thickness(2, 2, 2, 2);
             kfControl.button.Click += delegate (object sender, RoutedEventArgs e) { keyFrameClick(sender, e, key); };
@@ -208,8 +211,8 @@ namespace KB30
             kfControl.durTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
 
             kfControl.CMDelete.Click += delegate (object sender, RoutedEventArgs e) { deleteKeyframeClick(sender, e, key); };
-            keyframePanel.Children.Add(kfControl);
         }
+
         public void initializeKeysUI(Slide slide)
         {
             keyframePanel.Children.Clear();
@@ -229,20 +232,17 @@ namespace KB30
             Uri uri = new Uri(slides[slideIndex].fileName);
             var bitmap = new BitmapImage(uri);
             imageCropper.image.Source = bitmap;
-            (slidePanel.Children[currentSlideIndex] as Border).BorderBrush = Brushes.LightBlue;
-            (slidePanel.Children[slideIndex] as Border).BorderBrush = Brushes.Blue;
+            (slidePanel.Children[currentSlideIndex] as ThumbButtonControl).DeSelect();
+            (slidePanel.Children[slideIndex] as ThumbButtonControl).Select();
             currentSlideIndex = slideIndex;
             currentKeyframeIndex = 0;
             initializeKeysUI(slides[slideIndex]);
         }
 
 
-        private void slideClick(object sender, RoutedEventArgs e)
+        private void slideClick(object sender, RoutedEventArgs e, Slide slide)
         {
-            Button btn = e.Source as Button;
-            Slide slide = slides.Find(s => s.thumb == btn);
             int index = slides.IndexOf(slide, 0);
-
             selectSlide(index);
         }
 
@@ -250,18 +250,10 @@ namespace KB30
         {
             ThumbButtonControl thumbButton = new ThumbButtonControl();
             thumbButton.image.Source = new BitmapImage(new Uri(slide.fileName));
-            thumbButton.button.Click += slideClick;
-            slide.thumb = thumbButton.button;
-
-            Border border = new Border
-            {
-                BorderBrush = Brushes.LightBlue,
-                Background = Brushes.Transparent,
-                Margin = new Thickness(2, 2, 2, 2),
-                BorderThickness = new Thickness(5, 5, 5, 5)
-            };
-            border.Child = thumbButton;
-            slidePanel.Children.Add(border);
+            thumbButton.button.Click += delegate (object sender, RoutedEventArgs e) { slideClick(sender, e, slide); };
+            slide.thumb = thumbButton;
+            slidePanel.Children.Add(thumbButton);
+            thumbButton.DeSelect();
         }
 
         public void initializeUI()
