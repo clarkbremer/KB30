@@ -21,11 +21,9 @@ using Newtonsoft.Json;
 /*
  * To DO:  
  *  Animate Window
- *  Delete Slide (right click -> context menu -> delete?)
  *  Display current image file name
  *  Drag and Drop slides and keys to re-order
  *  Progress bar while loading images
- *  Remane "thumb" to "slide"
  *  
  *  Bugs:
  *  - Resize window -> resize preview image -> cropper control doesn't resize.
@@ -403,7 +401,9 @@ namespace KB30
             }
         }
 
-        private void playClick(object sender, RoutedEventArgs e) { MessageBox.Show("Play it again, Sam"); }
-
+        private void playClick(object sender, RoutedEventArgs e) {
+            AnimationWindow animationWindow = new AnimationWindow();
+            animationWindow.Show();
+        }
     }
 }
