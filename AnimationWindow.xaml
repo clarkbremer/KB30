@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:KB30"
         mc:Ignorable="d"
-        Title="AnimationWindow" Height="450" Width="800"
+        Title="AnimationWindow" Height="900" Width="1600"
         Name="animationWindow" KeyDown="KeyHandler" StateChanged="WindowStateChanged">
     <Grid>
         <Border x:Name="frame1" ClipToBounds="True" Background="Gray">

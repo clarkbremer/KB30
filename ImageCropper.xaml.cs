@@ -77,7 +77,7 @@ namespace KB30
                 double ih = image.ActualHeight;
                 double z;
 
-                if ((iw * 9) > (ih * 16))
+                if ((iw * 9) < (ih * 16))
                 {
                     z = Math.Round((image.ActualHeight / cropper.ActualHeight), 3);
                 }
@@ -92,7 +92,7 @@ namespace KB30
                 double iw = image.ActualWidth;
                 double ih = image.ActualHeight;
 
-                if((iw * 9) > (ih * 16))
+                if((iw * 9) < (ih * 16))
                 {
                     cropper.Height = image.ActualHeight / value;
                     cropper.Width = cropper.Height * 16 / 9;
