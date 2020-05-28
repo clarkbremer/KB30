@@ -16,6 +16,8 @@ using System.IO;
 using Microsoft.Win32;
 using System.ComponentModel;
 using Newtonsoft.Json;
+using Microsoft.VisualBasic.CompilerServices;
+using System.Configuration;
 
 
 /*
@@ -39,20 +41,19 @@ namespace KB30
         public int currentSlideIndex = 0;
         public int currentKeyframeIndex = 0;
         private String currentFileName = "";
+        public List<Slide> slides = new List<Slide>();
+        public Slide clipboardSlide = null;
 
         public MainWindow()
         {
             InitializeComponent();
         }
 
-        public List<Slide> slides = new List<Slide>();
-
         public class Config
         {
             public string version { get; set; }
             public List<Slide> slides { get; set; }
         }
-
         
         /*********
          *  Slides 
@@ -78,7 +79,9 @@ namespace KB30
             slideControl.image.Source = bmp;
             slideControl.caption.Text = System.IO.Path.GetFileName(slide.fileName) + " (" + bmp.PixelWidth + " x " + bmp.PixelHeight + ")";
             slideControl.button.Click += delegate (object sender, RoutedEventArgs e) { slideClick(sender, e, slide); };
-            slideControl.CMDelete.Click += delegate (object sender, RoutedEventArgs e) { deleteSlideClick(sender, e, slide); };
+            slideControl.CMCut.Click += delegate (object sender, RoutedEventArgs e) { cutSlideClick(sender, e, slide); };
+            slideControl.CMPaste.Click += delegate (object sender, RoutedEventArgs e) { pasteSlideClick(sender, e, slide); };
+            slideControl.SlideContextMenu.Opened += delegate (object sender, RoutedEventArgs e) { slideContextMenuOpened(sender, e, slide); };
             slide.slideControl = slideControl;
             slidePanel.Children.Add(slideControl);
             slideControl.DeSelect();
@@ -120,27 +123,57 @@ namespace KB30
             }
         }
 
-        private void deleteSlideClick(object sender, RoutedEventArgs e, Slide slide)
+        private void cutSlideClick(object sender, RoutedEventArgs e, Slide slide)
         {
             if (slides.Count == 1)
             {
                 MessageBox.Show("At least one slide is required");
                 return;
             }
+            var victimIndex = slides.IndexOf(slide);
 
-            if (slides.IndexOf(slide) == 0)
+            if (currentSlideIndex == victimIndex)
             {
-                selectSlide(1);
-                currentSlideIndex = 0;
+                if (currentSlideIndex == (slides.Count - 1))
+                {
+                    selectSlide(currentSlideIndex - 1);
+                }
+                else
+                {
+                    selectSlide(currentSlideIndex + 1);
+                }
+            }
+
+            slidePanel.Children.Remove(slide.slideControl);
+            clipboardSlide = slide;
+            slides.Remove(slide);
+
+            if (currentSlideIndex > victimIndex) { currentSlideIndex--; }
+        }
+
+        private void pasteSlideClick(object sender, RoutedEventArgs e, Slide slide)
+        {
+            var insertIndex = slides.IndexOf(slide);
+            slides.Insert(insertIndex, clipboardSlide);
+            slidePanel.Children.Insert(insertIndex, clipboardSlide.slideControl);
+            if (currentSlideIndex >= insertIndex)
+            {
+                currentSlideIndex++;
+            }
+            clipboardSlide = null;
+        }
+
+        private void slideContextMenuOpened(object sender, RoutedEventArgs e, Slide slide)
+        {
+            if(clipboardSlide == null)
+            {
+                slide.slideControl.CMPaste.IsEnabled = false;
             }
             else
             {
-                selectSlide(0);
+                slide.slideControl.CMPaste.IsEnabled = true;
             }
-            slidePanel.Children.Remove(slide.slideControl);
-            slides.Remove(slide);
         }
-
 
         /*********
          *  Keyframes

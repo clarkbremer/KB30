@@ -30,5 +30,7 @@ namespace KB30
         {
             SelectBorder.BorderBrush = Brushes.LightBlue;
         }
+
+  
     }
 }
