@@ -103,6 +103,7 @@ namespace KB30
                     cropper.Height = cropper.Width * 9 / 16;
 
                 }
+                cropper.Visibility = Visibility.Visible;
             }
         }
 

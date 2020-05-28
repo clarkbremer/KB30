@@ -10,6 +10,7 @@
         <Button Name="button">
             <Grid>
                 <Image Name="image" />
+                <TextBlock x:Name="caption" Background="White" Text="Filename and Size" HorizontalAlignment="Center" VerticalAlignment="Bottom"></TextBlock>
             </Grid>
             <Button.ContextMenu>
                 <ContextMenu Name="SlideContextMenu">

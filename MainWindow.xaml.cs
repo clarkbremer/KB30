@@ -20,8 +20,7 @@ using Newtonsoft.Json;
 
 /*
  * To DO:  
- *  Animate Window
- *  Display current image file name
+ *  rename config files from .json to .kb30
  *  Drag and Drop slides and keys to re-order
  *  Progress bar while loading images
  *  
@@ -36,7 +35,7 @@ namespace KB30
     /// </summary>
     public partial class MainWindow : Window
     {
-        const double DEFAULT_DURATION = 5.0;
+        const double DEFAULT_DURATION = 10.0;
         public int currentSlideIndex = 0;
         public int currentKeyframeIndex = 0;
         private String currentFileName = "";
@@ -147,7 +146,6 @@ namespace KB30
             selectKeyframe(key, index);
         }
 
-
         public void addKeyframeControl(KF key)
         {
             KeyframeControl kfControl = new KeyframeControl();
@@ -201,7 +199,6 @@ namespace KB30
             initializeKeysUI(slides[currentSlideIndex]);
         }
 
-
         private void deleteSlideClick(object sender, RoutedEventArgs e, Slide slide)
         {
             if(slides.Count == 1)
@@ -229,10 +226,26 @@ namespace KB30
             selectSlide(index);
         }
 
+        private string short_name(string long_name)
+        {
+            if (long_name.Length > 24)
+            { 
+                var sections = long_name.Split('/');
+                var l = sections.Length;
+                return sections[l-2] + "\\" + sections[l-1];
+            }
+            else
+            {
+                return long_name;
+            }
+        }
+
         public void addSlideControl(Slide slide)
         {
             SlideControl slideControl = new SlideControl();
-            slideControl.image.Source = new BitmapImage(new Uri(slide.fileName));
+            BitmapImage bmp = new BitmapImage(new Uri(slide.fileName));
+            slideControl.image.Source = bmp;
+            slideControl.caption.Text = System.IO.Path.GetFileName(slide.fileName) + " (" + bmp.PixelWidth + " x " + bmp.PixelHeight + ")";
             slideControl.button.Click += delegate (object sender, RoutedEventArgs e) { slideClick(sender, e, slide); };
             slideControl.CMDelete.Click += delegate (object sender, RoutedEventArgs e) { deleteSlideClick(sender, e, slide); };
             slide.slideControl = slideControl;
@@ -254,8 +267,16 @@ namespace KB30
             Cursor = Cursors.Arrow;
         }
 
-
-        private void fileNewClick(object sender, RoutedEventArgs e) { MessageBox.Show("File New"); }
+        private void fileNewClick(object sender, RoutedEventArgs e) {
+            slides.Clear();
+            keyframePanel.Children.Clear();
+            slidePanel.Children.Clear();
+            imageCropper.image.Source = null;
+            imageCropper.cropper.Visibility = Visibility.Collapsed;
+            currentSlideIndex = 0;
+            currentKeyframeIndex = 0;
+            currentFileName = "";
+        }
 
         private void fileOpenClick(object sender, RoutedEventArgs e) {
             Config config = new Config();
@@ -286,11 +307,10 @@ namespace KB30
             jsonString = JsonConvert.SerializeObject(config, Formatting.Indented);
 
             File.WriteAllText(filename, jsonString);
+            currentFileName = filename;
         }
 
         private void fileSaveAsClick(object sender, RoutedEventArgs e) {
- 
-
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*";
             if (saveFileDialog.ShowDialog() == true)
@@ -298,7 +318,6 @@ namespace KB30
                 saveIt(saveFileDialog.FileName);
             }
         }
-
 
         private void fileSaveClick(object sender, RoutedEventArgs e) { 
             if(currentFileName == "")
@@ -310,14 +329,14 @@ namespace KB30
                 saveIt(currentFileName);
             }
         }
+
         private void addSlideClick(object sender, RoutedEventArgs e) {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "JSON files (*.jpg)|*.jpg|All files (*.*)|*.*";
             if (openFileDialog.ShowDialog() == true)
             {
                 Slide newSlide = new Slide(openFileDialog.FileName);
-                newSlide.keys.Add(new KF(1, 0.5, 0.5, 0));
-                newSlide.keys.Add(new KF(2, 0.5, 0.5, DEFAULT_DURATION));
+                newSlide.keys.Add(new KF(4.0, 0.5, 0.5, 0));
                 slides.Add(newSlide);
                 addSlideControl(newSlide);
                 selectSlide(slides.Count - 1);
@@ -325,6 +344,7 @@ namespace KB30
         }
 
         private void addKeyframeClick(object sender, RoutedEventArgs e) {
+            if (slides.Count == 0) { return; }
             Slide currentSlide = slides[currentSlideIndex];
             KF currentKey = currentSlide.keys[currentKeyframeIndex];
             KF newKey = new KF(currentKey.zoomFactor, currentKey.x, currentKey.y, DEFAULT_DURATION);
@@ -340,10 +360,7 @@ namespace KB30
                 KeyframeControl kfc = key.kfControl;
                 keyframePanel.Children.Remove(kfc);
                 keys.Remove(key);
-                if (currentKeyframeIndex >= keys.Count)
-                {
-                    currentKeyframeIndex = 0;
-                }
+                if (currentKeyframeIndex >= keys.Count) { currentKeyframeIndex = 0; }
             }
             else
             {
