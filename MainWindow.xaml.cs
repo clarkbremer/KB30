@@ -20,12 +20,11 @@ using Newtonsoft.Json;
 
 /*
  * To DO:  
- *  rename config files from .json to .kb30
  *  Drag and Drop slides and keys to re-order
  *  Progress bar while loading images
  *  
  *  Bugs:
- *  - Resize window -> resize preview image -> cropper control doesn't resize.
+ *  - Resize window -> resize preview image -> cropper control doesn't resize.  (touch current keyframe control fixes it)
  *   
  */
 namespace KB30
@@ -35,6 +34,7 @@ namespace KB30
     /// </summary>
     public partial class MainWindow : Window
     {
+        const double CONFIG_VERSION = 1.0;
         const double DEFAULT_DURATION = 10.0;
         public int currentSlideIndex = 0;
         public int currentKeyframeIndex = 0;
@@ -283,13 +283,17 @@ namespace KB30
             string jsonString;
 
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*";
+            openFileDialog.Filter = "KB30 files (*.kb30)|*.kb30|All files (*.*)|*.*";
             if (openFileDialog.ShowDialog() == true)
             {
                 currentFileName = openFileDialog.FileName;
                 jsonString = File.ReadAllText(currentFileName);
                 config = JsonConvert.DeserializeObject<Config>(jsonString);
-                // config = JsonSerializer.Deserialize<Config>(jsonString);
+                if (Convert.ToDouble(config.version) > CONFIG_VERSION)
+                {
+                    MessageBox.Show("Congif File version is newer than this version of the program.");
+                    return;
+                }
                 slides = config.slides;
                 initializeUI();
             }
@@ -301,7 +305,7 @@ namespace KB30
 
             Config config = new Config();
 
-            config.version = "0.1";
+            config.version = CONFIG_VERSION.ToString();
             config.slides = slides;
 
             jsonString = JsonConvert.SerializeObject(config, Formatting.Indented);
@@ -312,7 +316,7 @@ namespace KB30
 
         private void fileSaveAsClick(object sender, RoutedEventArgs e) {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*";
+            saveFileDialog.Filter = "KB30 files (*.kb30)|*.kb30|All files (*.*)|*.*";
             if (saveFileDialog.ShowDialog() == true)
             {
                 saveIt(saveFileDialog.FileName);
@@ -332,7 +336,7 @@ namespace KB30
 
         private void addSlideClick(object sender, RoutedEventArgs e) {
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "JSON files (*.jpg)|*.jpg|All files (*.*)|*.*";
+            openFileDialog.Filter = "Image files (*.jpg)|*.jpg|All files (*.*)|*.*";
             if (openFileDialog.ShowDialog() == true)
             {
                 Slide newSlide = new Slide(openFileDialog.FileName);
