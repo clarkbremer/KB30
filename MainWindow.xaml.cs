@@ -53,9 +53,138 @@ namespace KB30
             public List<Slide> slides { get; set; }
         }
 
+        
+        /*********
+         *  Slides 
+         */
+        public void initializeSlidesUI()
+        {
+            Cursor = Cursors.Wait;
+            slidePanel.Children.Clear();
+
+            for (int i = 0; i < slides.Count; i++)
+            {
+                Slide slide = slides[i];
+                addSlideControl(slide);
+            }
+            selectSlide(0);
+            Cursor = Cursors.Arrow;
+        }
+
+        public void addSlideControl(Slide slide)
+        {
+            SlideControl slideControl = new SlideControl();
+            BitmapImage bmp = new BitmapImage(new Uri(slide.fileName));
+            slideControl.image.Source = bmp;
+            slideControl.caption.Text = System.IO.Path.GetFileName(slide.fileName) + " (" + bmp.PixelWidth + " x " + bmp.PixelHeight + ")";
+            slideControl.button.Click += delegate (object sender, RoutedEventArgs e) { slideClick(sender, e, slide); };
+            slideControl.CMDelete.Click += delegate (object sender, RoutedEventArgs e) { deleteSlideClick(sender, e, slide); };
+            slide.slideControl = slideControl;
+            slidePanel.Children.Add(slideControl);
+            slideControl.DeSelect();
+        }
+
+        public void selectSlide(int slideIndex)
+        {
+            (slidePanel.Children[currentSlideIndex] as SlideControl).DeSelect();
+            KF oldKey = slides[currentSlideIndex].keys[currentKeyframeIndex];
+            KeyframeControl oldKFControl = oldKey.kfControl;
+            unBindKFC(oldKFControl, oldKey);
+
+            currentSlideIndex = slideIndex;
+            Uri uri = new Uri(slides[slideIndex].fileName);
+            var bitmap = new BitmapImage(uri);
+            imageCropper.image.Source = bitmap;
+            (slidePanel.Children[currentSlideIndex] as SlideControl).Select();
+            currentKeyframeIndex = 0;
+            initializeKeysUI(slides[currentSlideIndex]);
+        }
+
+        private void slideClick(object sender, RoutedEventArgs e, Slide slide)
+        {
+            int index = slides.IndexOf(slide, 0);
+            selectSlide(index);
+        }
+
+        private void addSlideClick(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Image files (*.jpg)|*.jpg|All files (*.*)|*.*";
+            if (openFileDialog.ShowDialog() == true)
+            {
+                Slide newSlide = new Slide(openFileDialog.FileName);
+                newSlide.keys.Add(new KF(4.0, 0.5, 0.5, 0));
+                slides.Add(newSlide);
+                addSlideControl(newSlide);
+                selectSlide(slides.Count - 1);
+            }
+        }
+
+        private void deleteSlideClick(object sender, RoutedEventArgs e, Slide slide)
+        {
+            if (slides.Count == 1)
+            {
+                MessageBox.Show("At least one slide is required");
+                return;
+            }
+
+            if (slides.IndexOf(slide) == 0)
+            {
+                selectSlide(1);
+                currentSlideIndex = 0;
+            }
+            else
+            {
+                selectSlide(0);
+            }
+            slidePanel.Children.Remove(slide.slideControl);
+            slides.Remove(slide);
+        }
+
+
+        /*********
+         *  Keyframes
+         */
+
+        public void initializeKeysUI(Slide slide)
+        {
+            keyframePanel.Children.Clear();
+            List<KF> keys = slide.keys;
+            for (int i = 0; i < keys.Count; i++)
+            {
+                KF key = keys[i];
+                addKeyframeControl(key);
+            }
+
+            selectKeyframe(keys[0], 0);
+        }
+
+        public void addKeyframeControl(KF key)
+        {
+            KeyframeControl kfControl = new KeyframeControl();
+            kfControl.DeSelect();
+            key.kfControl = kfControl;
+            keyframePanel.Children.Add(kfControl);
+
+            kfControl.Margin = new Thickness(2, 2, 2, 2);
+            kfControl.button.Click += delegate (object sender, RoutedEventArgs e) { keyFrameClick(sender, e, key); };
+
+            kfControl.xTb.Text = key.x.ToString();
+            kfControl.yTb.Text = key.y.ToString();
+            kfControl.zoomTb.Text = key.zoomFactor.ToString();
+            kfControl.durTb.Text = key.duration.ToString();
+
+            kfControl.xTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
+            kfControl.yTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
+            kfControl.zoomTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
+            kfControl.durTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
+
+            kfControl.CMDelete.Click += delegate (object sender, RoutedEventArgs e) { deleteKeyframeClick(sender, e, key); };
+        }
+
         private void unBindKFC(KeyframeControl kfc, KF key)
         {
-            if(kfc == null)
+            if (kfc == null)
             {
                 return;
             }
@@ -89,7 +218,7 @@ namespace KB30
 
             KeyframeControl kfControl = key.kfControl;
             kfControl.Select();
-            
+
             Binding xBinding = new Binding("cropX")
             {
                 Source = imageCropper,
@@ -110,15 +239,16 @@ namespace KB30
                 Mode = BindingMode.OneWay
             };
             kfControl.zoomTb.SetBinding(TextBox.TextProperty, zoomBinding);
-            
+
         }
 
         private void kfControlChangeEvent(object sender, TextChangedEventArgs e, KF key)
         {
             Double maybe;
             TextBox tb = (e.Source as TextBox);
-            if (Double.TryParse(tb.Text, out maybe)){
-                if(!Double.IsNaN(maybe))
+            if (Double.TryParse(tb.Text, out maybe))
+            {
+                if (!Double.IsNaN(maybe))
                 {
                     switch (tb.Name)
                     {
@@ -138,7 +268,7 @@ namespace KB30
                 }
             }
         }
-    
+
         private void keyFrameClick(object sender, RoutedEventArgs e, KF key)
         {
             List<KF> keys = slides[currentSlideIndex].keys;
@@ -146,128 +276,50 @@ namespace KB30
             selectKeyframe(key, index);
         }
 
-        public void addKeyframeControl(KF key)
+        private void addKeyframeClick(object sender, RoutedEventArgs e)
         {
-            KeyframeControl kfControl = new KeyframeControl();
-            kfControl.DeSelect();
-            key.kfControl = kfControl;
-            keyframePanel.Children.Add(kfControl);
-
-            kfControl.Margin = new Thickness(2, 2, 2, 2);
-            kfControl.button.Click += delegate (object sender, RoutedEventArgs e) { keyFrameClick(sender, e, key); };
-
-            kfControl.xTb.Text = key.x.ToString();
-            kfControl.yTb.Text = key.y.ToString();
-            kfControl.zoomTb.Text = key.zoomFactor.ToString();
-            kfControl.durTb.Text = key.duration.ToString();
-
-            kfControl.xTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
-            kfControl.yTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
-            kfControl.zoomTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
-            kfControl.durTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
-
-            kfControl.CMDelete.Click += delegate (object sender, RoutedEventArgs e) { deleteKeyframeClick(sender, e, key); };
+            if (slides.Count == 0) { return; }
+            Slide currentSlide = slides[currentSlideIndex];
+            KF currentKey = currentSlide.keys[currentKeyframeIndex];
+            KF newKey = new KF(currentKey.zoomFactor, currentKey.x, currentKey.y, DEFAULT_DURATION);
+            slides[currentSlideIndex].keys.Add(newKey);
+            addKeyframeControl(newKey);
+            selectKeyframe(newKey, currentSlide.keys.Count - 1);
         }
 
-        public void initializeKeysUI(Slide slide)
+        private void deleteKeyframeClick(object sender, RoutedEventArgs e, KF key)
         {
-            keyframePanel.Children.Clear();
-            List<KF> keys = slide.keys;
-            for (int i = 0; i < keys.Count; i++)
+            List<KF> keys = slides[currentSlideIndex].keys;
+            if (keys.Count > 1)
             {
-                KF key = keys[i];
-                addKeyframeControl(key);
-            }
-
-            selectKeyframe(keys[0], 0);
-        }
-
-
-        public void selectSlide(int slideIndex)
-        {
-            (slidePanel.Children[currentSlideIndex] as SlideControl).DeSelect();
-            KF oldKey = slides[currentSlideIndex].keys[currentKeyframeIndex];
-            KeyframeControl oldKFControl = oldKey.kfControl;
-            unBindKFC(oldKFControl, oldKey);
-
-            currentSlideIndex = slideIndex;
-            Uri uri = new Uri(slides[slideIndex].fileName);
-            var bitmap = new BitmapImage(uri);
-            imageCropper.image.Source = bitmap;
-            (slidePanel.Children[currentSlideIndex] as SlideControl).Select();
-            currentKeyframeIndex = 0;
-            initializeKeysUI(slides[currentSlideIndex]);
-        }
-
-        private void deleteSlideClick(object sender, RoutedEventArgs e, Slide slide)
-        {
-            if(slides.Count == 1)
-            {
-                MessageBox.Show("At least one slide is required");
-                return;
-            }
-
-            if (slides.IndexOf(slide) == 0)
-            {
-                selectSlide(1);
-                currentSlideIndex = 0;
+                KeyframeControl kfc = key.kfControl;
+                keyframePanel.Children.Remove(kfc);
+                keys.Remove(key);
+                if (currentKeyframeIndex >= keys.Count) { currentKeyframeIndex = 0; }
             }
             else
             {
-                selectSlide(0);
-            }
-            slidePanel.Children.Remove(slide.slideControl);
-            slides.Remove(slide);
-        }
-            
-        private void slideClick(object sender, RoutedEventArgs e, Slide slide)
-        {
-            int index = slides.IndexOf(slide, 0);
-            selectSlide(index);
-        }
-
-        private string short_name(string long_name)
-        {
-            if (long_name.Length > 24)
-            { 
-                var sections = long_name.Split('/');
-                var l = sections.Length;
-                return sections[l-2] + "\\" + sections[l-1];
-            }
-            else
-            {
-                return long_name;
+                MessageBox.Show("A minimum of one keyframe is required.");
             }
         }
 
-        public void addSlideControl(Slide slide)
+
+        /************
+         *  Animate!
+         */
+        private void playClick(object sender, RoutedEventArgs e)
         {
-            SlideControl slideControl = new SlideControl();
-            BitmapImage bmp = new BitmapImage(new Uri(slide.fileName));
-            slideControl.image.Source = bmp;
-            slideControl.caption.Text = System.IO.Path.GetFileName(slide.fileName) + " (" + bmp.PixelWidth + " x " + bmp.PixelHeight + ")";
-            slideControl.button.Click += delegate (object sender, RoutedEventArgs e) { slideClick(sender, e, slide); };
-            slideControl.CMDelete.Click += delegate (object sender, RoutedEventArgs e) { deleteSlideClick(sender, e, slide); };
-            slide.slideControl = slideControl;
-            slidePanel.Children.Add(slideControl);
-            slideControl.DeSelect();
+            AnimationWindow animationWindow = new AnimationWindow();
+            animationWindow.Show();
+            animationWindow.animate(slides);
         }
 
-        public void initializeUI()
+
+        /************
+         *  File Menu
+         */
+        private void fileNewClick(object sender, RoutedEventArgs e)
         {
-            Cursor = Cursors.Wait;
-            slidePanel.Children.Clear();
-
-            for (int i = 0; i < slides.Count; i++)
-            {
-                Slide slide = slides[i];
-                addSlideControl(slide);
-            }
-            selectSlide(0);
-            Cursor = Cursors.Arrow;
-        }
-
-        private void fileNewClick(object sender, RoutedEventArgs e) {
             slides.Clear();
             keyframePanel.Children.Clear();
             slidePanel.Children.Clear();
@@ -278,7 +330,8 @@ namespace KB30
             currentFileName = "";
         }
 
-        private void fileOpenClick(object sender, RoutedEventArgs e) {
+        private void fileOpenClick(object sender, RoutedEventArgs e)
+        {
             Config config = new Config();
             string jsonString;
 
@@ -295,7 +348,7 @@ namespace KB30
                     return;
                 }
                 slides = config.slides;
-                initializeUI();
+                initializeSlidesUI();
             }
         }
 
@@ -314,7 +367,8 @@ namespace KB30
             currentFileName = filename;
         }
 
-        private void fileSaveAsClick(object sender, RoutedEventArgs e) {
+        private void fileSaveAsClick(object sender, RoutedEventArgs e)
+        {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "KB30 files (*.kb30)|*.kb30|All files (*.*)|*.*";
             if (saveFileDialog.ShowDialog() == true)
@@ -323,8 +377,9 @@ namespace KB30
             }
         }
 
-        private void fileSaveClick(object sender, RoutedEventArgs e) { 
-            if(currentFileName == "")
+        private void fileSaveClick(object sender, RoutedEventArgs e)
+        {
+            if (currentFileName == "")
             {
                 fileSaveAsClick(sender, e);
             }
@@ -333,49 +388,6 @@ namespace KB30
                 saveIt(currentFileName);
             }
         }
-
-        private void addSlideClick(object sender, RoutedEventArgs e) {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Image files (*.jpg)|*.jpg|All files (*.*)|*.*";
-            if (openFileDialog.ShowDialog() == true)
-            {
-                Slide newSlide = new Slide(openFileDialog.FileName);
-                newSlide.keys.Add(new KF(4.0, 0.5, 0.5, 0));
-                slides.Add(newSlide);
-                addSlideControl(newSlide);
-                selectSlide(slides.Count - 1);
-            }
-        }
-
-        private void addKeyframeClick(object sender, RoutedEventArgs e) {
-            if (slides.Count == 0) { return; }
-            Slide currentSlide = slides[currentSlideIndex];
-            KF currentKey = currentSlide.keys[currentKeyframeIndex];
-            KF newKey = new KF(currentKey.zoomFactor, currentKey.x, currentKey.y, DEFAULT_DURATION);
-            slides[currentSlideIndex].keys.Add(newKey);
-            addKeyframeControl(newKey);
-            selectKeyframe(newKey, currentSlide.keys.Count-1);
-        }
-
-        private void deleteKeyframeClick(object sender, RoutedEventArgs e, KF key) {
-            List<KF> keys = slides[currentSlideIndex].keys;
-            if (keys.Count > 1)
-            {
-                KeyframeControl kfc = key.kfControl;
-                keyframePanel.Children.Remove(kfc);
-                keys.Remove(key);
-                if (currentKeyframeIndex >= keys.Count) { currentKeyframeIndex = 0; }
-            }
-            else
-            {
-                MessageBox.Show("A minimum of one keyframe is required.");
-            }
-        }
-
-        private void playClick(object sender, RoutedEventArgs e) {
-            AnimationWindow animationWindow = new AnimationWindow();
-            animationWindow.Show();
-            animationWindow.animate(slides);
-        }
     }
 }
+
