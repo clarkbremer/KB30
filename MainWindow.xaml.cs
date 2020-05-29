@@ -112,14 +112,19 @@ namespace KB30
         private void addSlideClick(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Image files (*.jpg)|*.jpg|All files (*.*)|*.*";
+            openFileDialog.Title = "Select image file(s)";
+            openFileDialog.Multiselect = true;
+            openFileDialog.Filter = "Images (*.BMP;*.JPG;*.GIF)|*.BMP;*.JPG;*.GIF|All files (*.*)|*.*";
             if (openFileDialog.ShowDialog() == true)
             {
-                Slide newSlide = new Slide(openFileDialog.FileName);
-                newSlide.keys.Add(new KF(4.0, 0.5, 0.5, 0));
-                slides.Add(newSlide);
-                addSlideControl(newSlide);
-                selectSlide(slides.Count - 1);
+                foreach (String fname in openFileDialog.FileNames)
+                {
+                    Slide newSlide = new Slide(fname);
+                    newSlide.keys.Add(new KF(4.0, 0.5, 0.5, 0));
+                    slides.Add(newSlide);
+                    addSlideControl(newSlide);
+                    selectSlide(slides.Count - 1);
+                }
             }
         }
 
@@ -340,13 +345,29 @@ namespace KB30
         /************
          *  Animate!
          */
-        private void playClick(object sender, RoutedEventArgs e)
+
+        private void playIt()
         {
             AnimationWindow animationWindow = new AnimationWindow();
             animationWindow.Show();
             animationWindow.animate(slides);
         }
+        private void playClick(object sender, RoutedEventArgs e)
+        {
+            playIt();
+        }
 
+
+        private void mainWindowLoaded(object sender, RoutedEventArgs e)
+        {
+            var allArgs = Environment.GetCommandLineArgs();
+            if (allArgs.Length > 1)
+            {
+                var immediateFileName = allArgs[1];
+                loadIt(immediateFileName);
+                playIt();
+            }
+        }
 
         /************
          *  File Menu
@@ -363,25 +384,30 @@ namespace KB30
             currentFileName = "";
         }
 
-        private void fileOpenClick(object sender, RoutedEventArgs e)
+        private void loadIt(string filename)
         {
             Config config = new Config();
             string jsonString;
 
+            currentFileName = filename;
+            jsonString = File.ReadAllText(currentFileName);
+            config = JsonConvert.DeserializeObject<Config>(jsonString);
+            if (Convert.ToDouble(config.version) > CONFIG_VERSION)
+            {
+                MessageBox.Show("Congif File version is newer than this version of the program.");
+                return;
+            }
+            slides = config.slides;
+            initializeSlidesUI();
+        }
+
+        private void fileOpenClick(object sender, RoutedEventArgs e)
+        {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "KB30 files (*.kb30)|*.kb30|All files (*.*)|*.*";
             if (openFileDialog.ShowDialog() == true)
             {
-                currentFileName = openFileDialog.FileName;
-                jsonString = File.ReadAllText(currentFileName);
-                config = JsonConvert.DeserializeObject<Config>(jsonString);
-                if (Convert.ToDouble(config.version) > CONFIG_VERSION)
-                {
-                    MessageBox.Show("Congif File version is newer than this version of the program.");
-                    return;
-                }
-                slides = config.slides;
-                initializeSlidesUI();
+                loadIt(openFileDialog.FileName);
             }
         }
 
