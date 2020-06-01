@@ -70,7 +70,7 @@ namespace KB30
                 Slide slide = slides[i];
                 addSlideControl(slide);
             }
-            selectSlide(0);
+            selectSlide(0, false);
             Cursor = Cursors.Arrow;
         }
 
@@ -90,13 +90,14 @@ namespace KB30
             slideControl.DeSelect();
         }
 
-        public void selectSlide(int slideIndex)
+        public void selectSlide(int slideIndex, Boolean deselectOld = true)
         {
             (slidePanel.Children[currentSlideIndex] as SlideControl).DeSelect();
-            KF oldKey = slides[currentSlideIndex].keys[currentKeyframeIndex];
-            KeyframeControl oldKFControl = oldKey.kfControl;
-            unBindKFC(oldKFControl, oldKey);
-
+            if (deselectOld) { 
+                KF oldKey = slides[currentSlideIndex].keys[currentKeyframeIndex];
+                KeyframeControl oldKFControl = oldKey.kfControl;
+                unBindKFC(oldKFControl, oldKey);
+            }
             currentSlideIndex = slideIndex;
             Uri uri = new Uri(slides[slideIndex].fileName);
             var bitmap = new BitmapImage(uri);
