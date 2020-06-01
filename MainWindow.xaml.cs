@@ -83,6 +83,7 @@ namespace KB30
             slideControl.button.Click += delegate (object sender, RoutedEventArgs e) { slideClick(sender, e, slide); };
             slideControl.CMCut.Click += delegate (object sender, RoutedEventArgs e) { cutSlideClick(sender, e, slide); };
             slideControl.CMPaste.Click += delegate (object sender, RoutedEventArgs e) { pasteSlideClick(sender, e, slide); };
+            slideControl.CMPlayFromHere.Click += delegate (object sender, RoutedEventArgs e) { playFromHereClick(sender, e, slide); };
             slideControl.SlideContextMenu.Opened += delegate (object sender, RoutedEventArgs e) { slideContextMenuOpened(sender, e, slide); };
             slide.slideControl = slideControl;
             slidePanel.Children.Add(slideControl);
@@ -168,6 +169,10 @@ namespace KB30
                 currentSlideIndex++;
             }
             clipboardSlide = null;
+        }
+        private void playFromHereClick(object sender, RoutedEventArgs e, Slide slide)
+        {
+            playIt(slides.IndexOf(slide));
         }
 
         private void slideContextMenuOpened(object sender, RoutedEventArgs e, Slide slide)
@@ -347,11 +352,11 @@ namespace KB30
          *  Animate!
          */
 
-        private void playIt()
+        private void playIt(int start=0)
         {
             AnimationWindow animationWindow = new AnimationWindow();
             animationWindow.Show();
-            animationWindow.animate(slides);
+            animationWindow.animate(slides, start);
         }
         private void playClick(object sender, RoutedEventArgs e)
         {

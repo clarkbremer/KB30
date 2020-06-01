@@ -37,20 +37,14 @@ namespace KB30
             Loaded += animationWindowLoaded;
         }
 
-        public void animate(List<Slide> _slides)
+        public void animate(List<Slide> _slides, int start = 0)
         {
-
             slides = _slides;
             currentImage = image1;
             otherImage = image2;
-            currentSlideIndex = 0;
-            if (slides.Count == 1)
-            {
-                nextSlideIndex = 0;
-            } else
-            {
-                nextSlideIndex = 1;
-            }
+            currentSlideIndex = start;
+            nextSlideIndex = currentSlideIndex + 1;
+            if (nextSlideIndex >= slides.Count) { nextSlideIndex = 0; }
 
             Uri uri = new Uri(slides[currentSlideIndex].fileName);
             var bitmap = new BitmapImage(uri);
