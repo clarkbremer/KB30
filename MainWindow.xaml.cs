@@ -22,11 +22,8 @@ using System.Configuration;
 
 /*
  * To DO:  
- *  Detect file changed and prompt to save before exit (compare json)
- *  Check file valid before save:  min 2 slides, min 2 KF pre slide.
  *  Drag and Drop slides and keys to re-order
  *  Progress bar while loading images
- *  Preview animation on current slide only
  *  
  *  
  *  Bugs:
@@ -358,11 +355,22 @@ namespace KB30
         }
         private void playClick(object sender, RoutedEventArgs e)
         {
-            if (configValid()) { 
+            if (configValid())
+            {
                 playIt();
             }
         }
-
+        private void playSlideClick(object sender, RoutedEventArgs e)
+        {
+            if (configValid())
+            {
+                List<Slide> oneSlide = new List<Slide>();
+                oneSlide.Add(slides[currentSlideIndex]);
+                AnimationWindow animationWindow = new AnimationWindow();
+                animationWindow.Show();
+                animationWindow.animate(oneSlide);
+            }
+        }
 
         private void mainWindowLoaded(object sender, RoutedEventArgs e)
         {
@@ -447,9 +455,9 @@ namespace KB30
 
         private Boolean configValid()
         {
-            if (slides.Count <= 1)
+            if (slides.Count <= 0)
             {
-                MessageBox.Show("Must have at least 2 slides.");
+                MessageBox.Show("Must have at least 1 slide.");
                 return false;
             }
             for (int s = 0; s < slides.Count; s++)

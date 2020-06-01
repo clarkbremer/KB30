@@ -44,13 +44,19 @@ namespace KB30
             currentImage = image1;
             otherImage = image2;
             currentSlideIndex = 0;
-            nextSlideIndex = 1;
+            if (slides.Count == 1)
+            {
+                nextSlideIndex = 0;
+            } else
+            {
+                nextSlideIndex = 1;
+            }
 
-            Uri uri = new Uri(slides[0].fileName);
+            Uri uri = new Uri(slides[currentSlideIndex].fileName);
             var bitmap = new BitmapImage(uri);
             currentImage.Source = bitmap;
-
-            uri = new Uri(slides[1].fileName);
+            
+            uri = new Uri(slides[nextSlideIndex].fileName);
             bitmap = new BitmapImage(uri);
             otherImage.Source = bitmap;
 
