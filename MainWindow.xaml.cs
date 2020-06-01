@@ -22,8 +22,12 @@ using System.Configuration;
 
 /*
  * To DO:  
+ *  Detect file changed and prompt to save before exit (compare json)
+ *  Check file valid before save:  min 2 slides, min 2 KF pre slide.
  *  Drag and Drop slides and keys to re-order
  *  Progress bar while loading images
+ *  Preview animation on current slide only
+ *  
  *  
  *  Bugs:
  *  - Resize window -> resize preview image -> cropper control doesn't resize.  (touch current keyframe control fixes it)
@@ -40,9 +44,10 @@ namespace KB30
         const double DEFAULT_DURATION = 10.0;
         public int currentSlideIndex = 0;
         public int currentKeyframeIndex = 0;
-        private String currentFileName = "";
+        private String currentFileName = "untitled";
         public List<Slide> slides = new List<Slide>();
         public Slide clipboardSlide = null;
+        private String initialConfig;
 
         public MainWindow()
         {
@@ -277,7 +282,6 @@ namespace KB30
                 Mode = BindingMode.OneWay
             };
             kfControl.zoomTb.SetBinding(TextBox.TextProperty, zoomBinding);
-
         }
 
         private void kfControlChangeEvent(object sender, TextChangedEventArgs e, KF key)
@@ -354,12 +358,15 @@ namespace KB30
         }
         private void playClick(object sender, RoutedEventArgs e)
         {
-            playIt();
+            if (configValid()) { 
+                playIt();
+            }
         }
 
 
         private void mainWindowLoaded(object sender, RoutedEventArgs e)
         {
+            initialConfig = serializeCurrentConfig();
             var allArgs = Environment.GetCommandLineArgs();
             if (allArgs.Length > 1)
             {
@@ -374,14 +381,18 @@ namespace KB30
          */
         private void fileNewClick(object sender, RoutedEventArgs e)
         {
-            slides.Clear();
-            keyframePanel.Children.Clear();
-            slidePanel.Children.Clear();
-            imageCropper.image.Source = null;
-            imageCropper.cropper.Visibility = Visibility.Collapsed;
-            currentSlideIndex = 0;
-            currentKeyframeIndex = 0;
-            currentFileName = "";
+            if (saveIfDirty())
+            {
+                slides.Clear();
+                keyframePanel.Children.Clear();
+                slidePanel.Children.Clear();
+                imageCropper.image.Source = null;
+                imageCropper.cropper.Visibility = Visibility.Collapsed;
+                currentSlideIndex = 0;
+                currentKeyframeIndex = 0;
+                currentFileName = "untitled";
+                initialConfig = serializeCurrentConfig();
+            }
         }
 
         private void loadIt(string filename)
@@ -389,41 +400,90 @@ namespace KB30
             Config config = new Config();
             string jsonString;
 
-            currentFileName = filename;
-            jsonString = File.ReadAllText(currentFileName);
+            jsonString = File.ReadAllText(filename);
             config = JsonConvert.DeserializeObject<Config>(jsonString);
             if (Convert.ToDouble(config.version) > CONFIG_VERSION)
             {
                 MessageBox.Show("Congif File version is newer than this version of the program.");
                 return;
             }
+            initialConfig = jsonString;
+            currentFileName = filename;
+            this.Title = "KB30 - " + currentFileName;
             slides = config.slides;
             initializeSlidesUI();
         }
 
         private void fileOpenClick(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "KB30 files (*.kb30)|*.kb30|All files (*.*)|*.*";
-            if (openFileDialog.ShowDialog() == true)
+            if (saveIfDirty())
             {
-                loadIt(openFileDialog.FileName);
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.Filter = "KB30 files (*.kb30)|*.kb30|All files (*.*)|*.*";
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    loadIt(openFileDialog.FileName);
+                }
             }
         }
 
-        private void saveIt(String filename)
+        private Boolean saveIfDirty()
+        {
+            if (serializeCurrentConfig() != initialConfig)
+            {
+                MessageBoxResult result = MessageBox.Show("Save changes to " + currentFileName + "?", "KB30", MessageBoxButton.YesNoCancel);
+                switch (result)
+                {
+                    case MessageBoxResult.Yes:
+                        return saveIt(currentFileName);
+                    case MessageBoxResult.No:
+                        return true;
+                    case MessageBoxResult.Cancel:
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        private Boolean configValid()
+        {
+            if (slides.Count <= 1)
+            {
+                MessageBox.Show("Must have at least 2 slides.");
+                return false;
+            }
+            for (int s = 0; s < slides.Count; s++)
+            {
+                Slide slide = slides[s];
+                if (slide.keys.Count <= 1)
+                {
+                    MessageBox.Show("Slide " + s.ToString() + " must have more than 1 keyframe.");
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private String serializeCurrentConfig()
         {
             string jsonString;
-
             Config config = new Config();
 
             config.version = CONFIG_VERSION.ToString();
             config.slides = slides;
 
-            jsonString = JsonConvert.SerializeObject(config, Formatting.Indented);
+            return JsonConvert.SerializeObject(config, Formatting.Indented);
+        }
 
-            File.WriteAllText(filename, jsonString);
-            currentFileName = filename;
+        private Boolean saveIt(String filename)
+        {
+            if (configValid())
+            {
+                File.WriteAllText(filename, serializeCurrentConfig());
+                currentFileName = filename;
+                return true;
+            }
+            return false;
         }
 
         private void fileSaveAsClick(object sender, RoutedEventArgs e)
@@ -433,18 +493,27 @@ namespace KB30
             if (saveFileDialog.ShowDialog() == true)
             {
                 saveIt(saveFileDialog.FileName);
+                currentFileName = saveFileDialog.FileName;
             }
         }
 
         private void fileSaveClick(object sender, RoutedEventArgs e)
         {
-            if (currentFileName == "")
+            if (currentFileName == "" || currentFileName == "untitled")
             {
                 fileSaveAsClick(sender, e);
             }
             else
             {
                 saveIt(currentFileName);
+            }
+        }
+
+        private void mainWindowClosing(object sender, CancelEventArgs e)
+        {
+            if (saveIfDirty() == false)
+            {
+                e.Cancel = true;
             }
         }
     }

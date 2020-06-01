@@ -151,8 +151,6 @@ namespace KB30
             {
                 partialDuration += TimeSpan.FromSeconds(key.duration);
                 KeyTime kt = KeyTime.FromTimeSpan(partialDuration);
-                //                animZoom.KeyFrames.Add(new EasingDoubleKeyFrame(key.zoomFactor, kt, easeInOut));
-                //                animCtrX.KeyFrames.Add(new EasingDoubleKeyFrame(key.x * iw, kt, easeInOut));
                 animZoom.KeyFrames.Add(new EasingDoubleKeyFrame(key.zoomFactor, kt, easeInOut));
                 animCtrX.KeyFrames.Add(new EasingDoubleKeyFrame(iw / 2, kt, easeInOut));
                 animCtrY.KeyFrames.Add(new EasingDoubleKeyFrame(ih / 2, kt, easeInOut));
