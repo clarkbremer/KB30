@@ -21,6 +21,7 @@ namespace KB30
     public partial class AnimationWindow : Window
     {
         public List<Slide> slides = new List<Slide>();
+        public MediaPlayer mediaPlayer = new MediaPlayer();
 
         Image currentImage;
         Image otherImage;
@@ -35,9 +36,15 @@ namespace KB30
         {
             InitializeComponent();
             Loaded += animationWindowLoaded;
+            Closed += animationWindowClosed;
         }
 
-        public void animate(List<Slide> _slides, int start = 0)
+        private void animationWindowClosed(object sender, EventArgs e)
+        {
+            mediaPlayer.Close();
+        }
+
+        public void animate(List<Slide> _slides, int start = 0, String soundtrack = "")
         {
             slides = _slides;
             currentImage = image1;
@@ -58,6 +65,11 @@ namespace KB30
 
             transformImage(currentImage, slides[currentSlideIndex].keys[0]);
             startPanZoom(currentImage, slides[currentSlideIndex].keys);
+            if (soundtrack != "")
+            {
+                mediaPlayer.Open(new Uri(soundtrack));
+                mediaPlayer.Play();
+            }
         }
 
         private void transformImage(Image image, KF kf)
@@ -171,7 +183,6 @@ namespace KB30
         {
             this.ToggleWindow();
         }
-
         private void KeyHandler(object sender, KeyEventArgs e)
         {
             switch (e.Key)

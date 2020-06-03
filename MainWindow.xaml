@@ -27,6 +27,7 @@
                 <MenuItem Header="O_pen"   Click="fileOpenClick"/>
                 <MenuItem Header="_Save"   Click="fileSaveClick"/>
                 <MenuItem Header="Save_As" Click="fileSaveAsClick"/>
+                <MenuItem Header="Soundtrack" Click="soundtrackClick"/>
             </MenuItem>
         </Menu>
         <local:ImageCropper x:Name="imageCropper" Grid.Column="2" Grid.Row="1" Grid.ColumnSpan="2"></local:ImageCropper>

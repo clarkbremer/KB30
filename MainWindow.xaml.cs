@@ -45,6 +45,7 @@ namespace KB30
         public List<Slide> slides = new List<Slide>();
         public Slide clipboardSlide = null;
         private String initialConfig;
+        private String soundtrack = "";
 
         public MainWindow()
         {
@@ -54,6 +55,7 @@ namespace KB30
         public class Config
         {
             public string version { get; set; }
+            public string soundtrack { get; set; }
             public List<Slide> slides { get; set; }
         }
         
@@ -74,10 +76,21 @@ namespace KB30
             Cursor = Cursors.Arrow;
         }
 
-        public void addSlideControl(Slide slide)
+        public Boolean addSlideControl(Slide slide)
         {
+            BitmapImage bmp = new BitmapImage();
             SlideControl slideControl = new SlideControl();
-            BitmapImage bmp = new BitmapImage(new Uri(slide.fileName));
+            try
+            {
+                bmp.BeginInit();
+                bmp.UriSource = new Uri(slide.fileName);
+                bmp.EndInit();
+            }
+            catch(NotSupportedException ex)
+            {
+                MessageBox.Show("Error loading image file: " + slide.fileName, "Call the doctor, I think I'm gonna crash!");
+                return false;
+            }
             slideControl.image.Source = bmp;
             slideControl.caption.Text = System.IO.Path.GetFileName(slide.fileName) + " (" + bmp.PixelWidth + " x " + bmp.PixelHeight + ")";
             slideControl.button.Click += delegate (object sender, RoutedEventArgs e) { slideClick(sender, e, slide); };
@@ -88,6 +101,7 @@ namespace KB30
             slide.slideControl = slideControl;
             slidePanel.Children.Add(slideControl);
             slideControl.DeSelect();
+            return true;
         }
 
         public void selectSlide(int slideIndex, Boolean deselectOld = true)
@@ -125,9 +139,11 @@ namespace KB30
                 {
                     Slide newSlide = new Slide(fname);
                     newSlide.keys.Add(new KF(4.0, 0.5, 0.5, 0));
-                    slides.Add(newSlide);
-                    addSlideControl(newSlide);
-                    selectSlide(slides.Count - 1);
+                    if (addSlideControl(newSlide))
+                    {
+                      slides.Add(newSlide);
+                      selectSlide(slides.Count - 1);
+                    }
                 }
             }
         }
@@ -357,7 +373,7 @@ namespace KB30
         {
             AnimationWindow animationWindow = new AnimationWindow();
             animationWindow.Show();
-            animationWindow.animate(slides, start);
+            animationWindow.animate(slides, start, soundtrack);
         }
         private void playClick(object sender, RoutedEventArgs e)
         {
@@ -390,6 +406,7 @@ namespace KB30
             }
         }
 
+
         /************
          *  File Menu
          */
@@ -418,13 +435,27 @@ namespace KB30
             config = JsonConvert.DeserializeObject<Config>(jsonString);
             if (Convert.ToDouble(config.version) > CONFIG_VERSION)
             {
-                MessageBox.Show("Congif File version is newer than this version of the program.");
+                MessageBox.Show("Config File version is newer than this version of the program.");
                 return;
+            }
+            if (config.soundtrack != null)
+            {
+                soundtrack = config.soundtrack;
+            }
+            slides = config.slides;
+            for (int i = slides.Count - 1; i >= 0; i--)
+            {
+                Uri uri = new Uri(slides[i].fileName);
+
+                if (!File.Exists(slides[i].fileName))
+                {
+                    MessageBox.Show("File Not Found: " + slides[i].fileName, "File Not Found");
+                    slides.RemoveAt(i);
+                }
             }
             initialConfig = jsonString;
             currentFileName = filename;
             this.Title = "KB30 - " + currentFileName;
-            slides = config.slides;
             initializeSlidesUI();
         }
 
@@ -480,10 +511,10 @@ namespace KB30
 
         private String serializeCurrentConfig()
         {
-            string jsonString;
             Config config = new Config();
 
             config.version = CONFIG_VERSION.ToString();
+            config.soundtrack = soundtrack;
             config.slides = slides;
 
             return JsonConvert.SerializeObject(config, Formatting.Indented);
@@ -528,6 +559,16 @@ namespace KB30
             if (saveIfDirty() == false)
             {
                 e.Cancel = true;
+            }
+        }
+
+        private void soundtrackClick(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Sound files (*.mp3)|*.mp3|All files (*.*)|*.*";
+            if (openFileDialog.ShowDialog() == true)
+            {
+                soundtrack = openFileDialog.FileName;
             }
         }
     }
