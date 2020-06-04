@@ -83,7 +83,7 @@ namespace KB30
             try
             {
                 bmp.BeginInit();
-                bmp.UriSource = new Uri(slide.fileName);
+                bmp.UriSource = slide.uri;
                 bmp.EndInit();
             }
             catch(NotSupportedException ex)
@@ -113,8 +113,7 @@ namespace KB30
                 unBindKFC(oldKFControl, oldKey);
             }
             currentSlideIndex = slideIndex;
-            Uri uri = new Uri(slides[slideIndex].fileName);
-            var bitmap = new BitmapImage(uri);
+            var bitmap = new BitmapImage(slides[slideIndex].uri);
             imageCropper.image.Source = bitmap;
             (slidePanel.Children[currentSlideIndex] as SlideControl).Select();
             currentKeyframeIndex = 0;
@@ -400,8 +399,8 @@ namespace KB30
             var allArgs = Environment.GetCommandLineArgs();
             if (allArgs.Length > 1)
             {
-                var immediateFileName = allArgs[1];
-                loadIt(immediateFileName);
+                var filenameArgument = allArgs[1];
+                loadIt(filenameArgument);
                 playIt();
             }
         }
@@ -445,8 +444,6 @@ namespace KB30
             slides = config.slides;
             for (int i = slides.Count - 1; i >= 0; i--)
             {
-                Uri uri = new Uri(slides[i].fileName);
-
                 if (!File.Exists(slides[i].fileName))
                 {
                     MessageBox.Show("File Not Found: " + slides[i].fileName, "File Not Found");

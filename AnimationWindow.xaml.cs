@@ -53,12 +53,10 @@ namespace KB30
             nextSlideIndex = currentSlideIndex + 1;
             if (nextSlideIndex >= slides.Count) { nextSlideIndex = 0; }
 
-            Uri uri = new Uri(slides[currentSlideIndex].fileName);
-            var bitmap = new BitmapImage(uri);
+            var bitmap = new BitmapImage(slides[currentSlideIndex].uri);
             currentImage.Source = bitmap;
             
-            uri = new Uri(slides[nextSlideIndex].fileName);
-            bitmap = new BitmapImage(uri);
+            bitmap = new BitmapImage(slides[nextSlideIndex].uri);
             otherImage.Source = bitmap;
 
             this.UpdateLayout();
@@ -131,8 +129,7 @@ namespace KB30
                 nextSlideIndex = 0;
             }
 
-            Uri uri = new Uri(slides[nextSlideIndex].fileName);
-            var bitmap = new BitmapImage(uri);
+            var bitmap = new BitmapImage(slides[nextSlideIndex].uri);
             otherImage.Source = bitmap;
 
             startPanZoom(currentImage, slides[currentSlideIndex].keys);

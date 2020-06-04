@@ -40,7 +40,19 @@ namespace KB30
 
     public class Slide
     {
-        public string fileName { get; set; }
+        [JsonIgnore]
+        public SlideControl slideControl { get; set; }
+
+        [JsonIgnore]
+        public Uri uri;
+
+        private string _fileName;
+        public string fileName 
+        {  
+            get { return _fileName; }
+            set { _fileName = value;  uri = new Uri(_fileName); }
+        }
+
         public List<KF> keys { get; set; }
         public Slide()
         {
@@ -52,7 +64,6 @@ namespace KB30
             keys = new List<KF>();
         }
 
-        [JsonIgnore]
-        public SlideControl slideControl { get; set; }
+
     }
 }
