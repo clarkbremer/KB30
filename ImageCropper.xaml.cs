@@ -220,6 +220,7 @@ namespace KB30
                 // Get the rectangle's current position.
                 double new_x = Canvas.GetLeft(cropper);
                 double new_y = Canvas.GetTop(cropper);
+                double bottom = Canvas.GetBottom(cropper);
                 double new_width = cropper.Width;
                 double new_height = cropper.Height;
 
@@ -232,47 +233,51 @@ namespace KB30
                         break;
                     case HitType.UL:
                         new_x += offset_x;
-                        new_y += offset_y;
                         new_width -= offset_x;
-                        new_height -= offset_y;
+                        new_height = new_width * 9 / 16;
+                        new_y += offset_x * 9 / 16;
                         break;
                     case HitType.UR:
-                        new_y += offset_y;
+                        new_y -= offset_x * 9 / 16;
                         new_width += offset_x;
-                        new_height -= offset_y;
+                        new_height = new_width * 9 / 16;
                         break;
                     case HitType.LR:
                         new_width += offset_x;
-                        new_height += offset_y;
+                        new_height = new_width * 9 / 16;
                         break;
                     case HitType.LL:
-                        new_x += offset_x;
-                        new_width -= offset_x;
+                        new_x -= offset_y * 16 / 9;
                         new_height += offset_y;
+                        new_width = new_height * 16 / 9;
                         break;
                     case HitType.L:
                         new_x += offset_x;
                         new_width -= offset_x;
+                        new_height = new_width * 9 / 16;
                         break;
                     case HitType.R:
                         new_width += offset_x;
+                        new_height = new_width * 9 / 16;
                         break;
                     case HitType.B:
                         new_height += offset_y;
+                        new_width = new_height * 16 / 9;
                         break;
                     case HitType.T:
                         new_y += offset_y;
                         new_height -= offset_y;
+                        new_width = new_height * 16 / 9;
                         break;
                 }
 
-                // Don't use tiny width or height
-                if ((new_width > 5) && (new_height > 5) )
+                // Don't allow tiny rectangle
+                if ((new_width > 25) && (new_height > 25) )
                 {
                     // Update the rectangle.
                     Canvas.SetLeft(cropper, new_x);
                     Canvas.SetTop(cropper, new_y);
-                    cropper.Width = new_height * 16 / 9;
+                    cropper.Width = new_width;
                     cropper.Height = new_height;
 
                     // Save the mouse's new location.
