@@ -27,6 +27,7 @@ namespace KB30
         Image otherImage;
         int currentSlideIndex;
         int nextSlideIndex;
+        double speedFactor = 1;
 
         private static readonly CubicEase easeOut = new CubicEase() { EasingMode = EasingMode.EaseOut };
         private static readonly CubicEase easeIn = new CubicEase() { EasingMode = EasingMode.EaseIn };
@@ -141,7 +142,7 @@ namespace KB30
             var iw = image.ActualWidth;
             var ih = image.ActualHeight;
 
-            TimeSpan duration = TimeSpan.FromSeconds(keys.Sum(k => k.duration));
+            TimeSpan duration = TimeSpan.FromSeconds(keys.Sum(k => k.duration) / speedFactor);
             TimeSpan partialDuration = TimeSpan.FromSeconds(0);
             var animZoom = new DoubleAnimationUsingKeyFrames();
             animZoom.Duration = duration;
@@ -158,7 +159,7 @@ namespace KB30
 
             keys.ForEach(key =>
             {
-                partialDuration += TimeSpan.FromSeconds(key.duration);
+                partialDuration += TimeSpan.FromSeconds(key.duration / speedFactor);
                 KeyTime kt = KeyTime.FromTimeSpan(partialDuration);
                 animZoom.KeyFrames.Add(new EasingDoubleKeyFrame(key.zoomFactor, kt, easeInOut));
                 animCtrX.KeyFrames.Add(new EasingDoubleKeyFrame(iw / 2, kt, easeInOut));
@@ -197,6 +198,14 @@ namespace KB30
                     {
                         this.Close();
                     }
+                    break;
+
+                case Key.Up:
+                    speedFactor = speedFactor * 1.5;
+                    break;
+
+                case Key.Down:
+                    speedFactor = speedFactor / 1.5;
                     break;
             }
         }
