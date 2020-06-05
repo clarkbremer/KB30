@@ -46,6 +46,7 @@ namespace KB30
         public Slide clipboardSlide = null;
         private String initialConfig;
         private String soundtrack = "";
+        private Boolean playWithArgumentFile = false;
 
         public MainWindow()
         {
@@ -371,6 +372,7 @@ namespace KB30
         private void playIt(int start=0)
         {
             AnimationWindow animationWindow = new AnimationWindow();
+            animationWindow.Closed += animationWindow_Closed;
             animationWindow.Show();
             animationWindow.animate(slides, start, soundtrack);
         }
@@ -393,6 +395,14 @@ namespace KB30
             }
         }
 
+        private void animationWindow_Closed(object sender, EventArgs e)
+        {
+            if (playWithArgumentFile)
+            {
+                this.Close();
+            }
+        }
+
         private void mainWindowLoaded(object sender, RoutedEventArgs e)
         {
             initialConfig = serializeCurrentConfig();
@@ -400,7 +410,7 @@ namespace KB30
             if (allArgs.Length > 1)
             {
                 var filenameArgument = allArgs[1];
-                loadIt(filenameArgument);
+                playWithArgumentFile = true;                loadIt(filenameArgument);
                 playIt();
             }
         }
@@ -453,7 +463,6 @@ namespace KB30
             initialConfig = jsonString;
             currentFileName = filename;
             this.Title = "KB30 - " + currentFileName;
-            initializeSlidesUI();
         }
 
         private void fileOpenClick(object sender, RoutedEventArgs e)
@@ -465,6 +474,7 @@ namespace KB30
                 if (openFileDialog.ShowDialog() == true)
                 {
                     loadIt(openFileDialog.FileName);
+                    initializeSlidesUI();
                 }
             }
         }
