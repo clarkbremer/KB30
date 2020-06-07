@@ -18,12 +18,15 @@ using System.ComponentModel;
 using Newtonsoft.Json;
 using Microsoft.VisualBasic.CompilerServices;
 using System.Configuration;
+using Accessibility;
 
 
 /*
  * To DO:  
  *  Drag and Drop slides and keys to re-order
- *  Progress bar while loading images
+ *  Progress bar while loading images - create textbox at bottom of cropper window - use for caption also
+ *  Pause/Restert animation
+ *  Skip-ahead animation
  *  
  *  
  *  Bugs:
@@ -71,6 +74,7 @@ namespace KB30
             for (int i = 0; i < slides.Count; i++)
             {
                 Slide slide = slides[i];
+                caption.Text = "Loading slide " + (i + 1).ToString() + " of " + (slides.Count + 1).ToString(); 
                 addSlideControl(slide);
             }
             selectSlide(0, false);
@@ -119,6 +123,7 @@ namespace KB30
             (slidePanel.Children[currentSlideIndex] as SlideControl).Select();
             currentKeyframeIndex = 0;
             initializeKeysUI(slides[currentSlideIndex]);
+            caption.Text = slides[currentSlideIndex].fileName;
         }
 
         private void slideClick(object sender, RoutedEventArgs e, Slide slide)
@@ -432,6 +437,7 @@ namespace KB30
                 currentKeyframeIndex = 0;
                 currentFileName = "untitled";
                 initialConfig = serializeCurrentConfig();
+                caption.Text = "Add a slide to get started...";
             }
         }
 
