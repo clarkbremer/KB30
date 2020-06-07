@@ -63,6 +63,37 @@ namespace KB30
             public List<Slide> slides { get; set; }
         }
         
+        public class BackgroundArguments
+        {
+            public BitmapImage bmp { get; set; }
+            public Slide slide { get; set; }
+        }
+
+        private void worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            // run all background tasks here
+            BackgroundArguments args = (BackgroundArguments)e.Argument;
+
+            BitmapImage bmp = new BitmapImage();
+            bmp.BeginInit();
+            bmp.UriSource = args.slide.uri;
+            bmp.EndInit();
+            bmp.Freeze();
+
+            args.bmp = bmp;
+            e.Result = args;
+        }
+
+        private void worker_RunWorkerCompleted(object sender,
+                                                   RunWorkerCompletedEventArgs e)
+        {
+            //update ui once worker complete his work
+            BackgroundArguments args = (BackgroundArguments)e.Result;
+
+            args.slide.slideControl.image.Source = args.bmp;
+            args.slide.slideControl.caption.Text = System.IO.Path.GetFileName(args.slide.fileName) + " (" + args.bmp.PixelWidth + " x " + args.bmp.PixelHeight + ")";
+        }
+
         /*********
          *  Slides 
          */
@@ -83,21 +114,16 @@ namespace KB30
 
         public Boolean addSlideControl(Slide slide)
         {
-            BitmapImage bmp = new BitmapImage();
             SlideControl slideControl = new SlideControl();
-            try
-            {
-                bmp.BeginInit();
-                bmp.UriSource = slide.uri;
-                bmp.EndInit();
-            }
-            catch(NotSupportedException ex)
-            {
-                MessageBox.Show("Error loading image file: " + slide.fileName, "Call the doctor, I think I'm gonna crash!");
-                return false;
-            }
-            slideControl.image.Source = bmp;
-            slideControl.caption.Text = System.IO.Path.GetFileName(slide.fileName) + " (" + bmp.PixelWidth + " x " + bmp.PixelHeight + ")";
+
+            BackgroundArguments bg_args = new BackgroundArguments();
+            bg_args.slide = slide;
+
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.DoWork += worker_DoWork;
+            worker.RunWorkerCompleted += worker_RunWorkerCompleted;
+            worker.RunWorkerAsync(bg_args);
+
             slideControl.button.Click += delegate (object sender, RoutedEventArgs e) { slideClick(sender, e, slide); };
             slideControl.CMCut.Click += delegate (object sender, RoutedEventArgs e) { cutSlideClick(sender, e, slide); };
             slideControl.CMPaste.Click += delegate (object sender, RoutedEventArgs e) { pasteSlideClick(sender, e, slide); };
