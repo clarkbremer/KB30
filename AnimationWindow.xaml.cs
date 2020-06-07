@@ -33,13 +33,6 @@ namespace KB30
         private static readonly CubicEase easeIn = new CubicEase() { EasingMode = EasingMode.EaseIn };
         private static readonly CubicEase easeInOut = new CubicEase() { EasingMode = EasingMode.EaseInOut };
 
-        private DoubleAnimationUsingKeyFrames animZoom = new DoubleAnimationUsingKeyFrames();
-        private DoubleAnimationUsingKeyFrames animCtrX = new DoubleAnimationUsingKeyFrames();
-        private DoubleAnimationUsingKeyFrames animCtrY = new DoubleAnimationUsingKeyFrames();
-        private DoubleAnimationUsingKeyFrames animPanX = new DoubleAnimationUsingKeyFrames();
-        private DoubleAnimationUsingKeyFrames animPanY = new DoubleAnimationUsingKeyFrames();
-
-        private List<DoubleAnimationUsingKeyFrames> mainAnimations = new List<DoubleAnimationUsingKeyFrames>();
         private List<AnimationClock> currentClocks = new List<AnimationClock>();
 
         private Boolean paused = false;
@@ -49,13 +42,6 @@ namespace KB30
             InitializeComponent();
             Loaded += animationWindowLoaded;
             Closed += animationWindowClosed;
-            animPanY.Completed += new EventHandler(endPanZoom);
-            mainAnimations.Add(animZoom);
-            mainAnimations.Add(animCtrX);
-            mainAnimations.Add(animCtrY);
-            mainAnimations.Add(animPanX);
-            mainAnimations.Add(animPanY);
- 
         }
 
         private void animationWindowClosed(object sender, EventArgs e)
@@ -107,7 +93,6 @@ namespace KB30
             tg.Children[0] = tt;
             tg.Children[1] = st;
         }
-
 
         private void endPanZoom(object sender, EventArgs e)
         {
@@ -166,18 +151,24 @@ namespace KB30
             var iw = image.ActualWidth;
             var ih = image.ActualHeight;
 
-            TimeSpan duration = TimeSpan.FromSeconds(keys.Sum(k => k.duration) / speedFactor);
+            TimeSpan duration = TimeSpan.FromSeconds(keys.Sum(k => k.duration));
             TimeSpan partialDuration = TimeSpan.FromSeconds(0);
+            var animZoom = new DoubleAnimationUsingKeyFrames();
+            animZoom.Duration = duration;
+            var animCtrX = new DoubleAnimationUsingKeyFrames();
+            animCtrX.Duration = duration;
+            var animCtrY = new DoubleAnimationUsingKeyFrames();
+            animCtrY.Duration = duration;
+            var animPanX = new DoubleAnimationUsingKeyFrames();
+            animPanX.Duration = duration;
+            var animPanY = new DoubleAnimationUsingKeyFrames();
+            animPanY.Duration = duration;
 
-            mainAnimations.ForEach(a =>
-            { 
-                a.Duration = duration;
-                a.KeyFrames.Clear();
-            });
+            animPanY.Completed += new EventHandler(endPanZoom);
 
             keys.ForEach(key =>
             {
-                partialDuration += TimeSpan.FromSeconds(key.duration / speedFactor);
+                partialDuration += TimeSpan.FromSeconds(key.duration);
                 KeyTime kt = KeyTime.FromTimeSpan(partialDuration);
                 animZoom.KeyFrames.Add(new EasingDoubleKeyFrame(key.zoomFactor, kt, easeInOut));
                 animCtrX.KeyFrames.Add(new EasingDoubleKeyFrame(iw / 2, kt, easeInOut));
@@ -197,6 +188,10 @@ namespace KB30
             currentClocks.Add(cyClock);
             currentClocks.Add(pxClock);
             currentClocks.Add(pyClock);
+            currentClocks.ForEach(c =>
+            {
+                c.Controller.SpeedRatio = speedFactor;
+            });
 
             var tg = (TransformGroup)image.RenderTransform;
             tg.Children[0].ApplyAnimationClock(TranslateTransform.XProperty, pxClock);
@@ -241,6 +236,23 @@ namespace KB30
                 c.Controller.Begin();
             });
         }
+        void speedUp()
+        {
+            speedFactor = speedFactor * 2.0;
+            currentClocks.ForEach(c =>
+            {
+                c.Controller.SpeedRatio = speedFactor;
+            });
+        }
+
+        void speedDown()
+        {
+            speedFactor = speedFactor / 2.0;
+            currentClocks.ForEach(c =>
+            {
+                c.Controller.SpeedRatio = speedFactor;
+            });
+        }
 
 
         void animationWindowLoaded(object sender, RoutedEventArgs e)
@@ -267,11 +279,11 @@ namespace KB30
                     break;
 
                 case Key.Up:
-                    speedFactor = speedFactor * 1.5;
+                    speedUp();
                     break;
 
                 case Key.Down:
-                    speedFactor = speedFactor / 1.5;
+                    speedDown();
                     break;
 
                 case Key.Right:
