@@ -33,11 +33,29 @@ namespace KB30
         private static readonly CubicEase easeIn = new CubicEase() { EasingMode = EasingMode.EaseIn };
         private static readonly CubicEase easeInOut = new CubicEase() { EasingMode = EasingMode.EaseInOut };
 
+        private DoubleAnimationUsingKeyFrames animZoom = new DoubleAnimationUsingKeyFrames();
+        private DoubleAnimationUsingKeyFrames animCtrX = new DoubleAnimationUsingKeyFrames();
+        private DoubleAnimationUsingKeyFrames animCtrY = new DoubleAnimationUsingKeyFrames();
+        private DoubleAnimationUsingKeyFrames animPanX = new DoubleAnimationUsingKeyFrames();
+        private DoubleAnimationUsingKeyFrames animPanY = new DoubleAnimationUsingKeyFrames();
+
+        private List<DoubleAnimationUsingKeyFrames> mainAnimations = new List<DoubleAnimationUsingKeyFrames>();
+        private List<AnimationClock> currentClocks = new List<AnimationClock>();
+
+        private Boolean paused = false;
+
         public AnimationWindow()
         {
             InitializeComponent();
             Loaded += animationWindowLoaded;
             Closed += animationWindowClosed;
+            animPanY.Completed += new EventHandler(endPanZoom);
+            mainAnimations.Add(animZoom);
+            mainAnimations.Add(animCtrX);
+            mainAnimations.Add(animCtrY);
+            mainAnimations.Add(animPanX);
+            mainAnimations.Add(animPanY);
+ 
         }
 
         private void animationWindowClosed(object sender, EventArgs e)
@@ -103,21 +121,27 @@ namespace KB30
             var animFadeIn = new DoubleAnimation(0, 1, duration);
             animFadeIn.Completed += new EventHandler(endFadeOutIn);
 
+            AnimationClock fadeInClock = animFadeIn.CreateClock();
+            AnimationClock fadeOutClock = animFadeOut.CreateClock();
+            currentClocks.Clear();
+            currentClocks.Add(fadeInClock);
+            currentClocks.Add(fadeOutClock);
+
             transformImage(otherImage, slides[nextSlideIndex].keys[0]);
 
             if (currentImage == image1)
             {
                 currentImage = image2;
                 otherImage = image1;
-                frame1.BeginAnimation(OpacityProperty, animFadeOut);
-                frame2.BeginAnimation(OpacityProperty, animFadeIn);
+                frame1.ApplyAnimationClock(OpacityProperty, fadeOutClock);
+                frame2.ApplyAnimationClock(OpacityProperty, fadeInClock);
             }
             else
             {
                 currentImage = image1;
                 otherImage = image2;
-                frame2.BeginAnimation(OpacityProperty, animFadeOut);
-                frame1.BeginAnimation(OpacityProperty, animFadeIn);
+                frame2.ApplyAnimationClock(OpacityProperty, fadeOutClock);
+                frame1.ApplyAnimationClock(OpacityProperty, fadeInClock);
             }
         }
 
@@ -144,18 +168,12 @@ namespace KB30
 
             TimeSpan duration = TimeSpan.FromSeconds(keys.Sum(k => k.duration) / speedFactor);
             TimeSpan partialDuration = TimeSpan.FromSeconds(0);
-            var animZoom = new DoubleAnimationUsingKeyFrames();
-            animZoom.Duration = duration;
-            var animCtrX = new DoubleAnimationUsingKeyFrames();
-            animCtrX.Duration = duration;
-            var animCtrY = new DoubleAnimationUsingKeyFrames();
-            animCtrY.Duration = duration;
-            var animPanX = new DoubleAnimationUsingKeyFrames();
-            animPanX.Duration = duration;
-            var animPanY = new DoubleAnimationUsingKeyFrames();
-            animPanY.Duration = duration;
 
-            animPanY.Completed += new EventHandler(endPanZoom);
+            mainAnimations.ForEach(a =>
+            { 
+                a.Duration = duration;
+                a.KeyFrames.Clear();
+            });
 
             keys.ForEach(key =>
             {
@@ -168,14 +186,62 @@ namespace KB30
                 animPanY.KeyFrames.Add(new EasingDoubleKeyFrame((0.5 - key.y) * ih, kt, easeInOut));
             });
 
+            AnimationClock zClock = animZoom.CreateClock();
+            AnimationClock cxClock = animCtrX.CreateClock();
+            AnimationClock cyClock = animCtrY.CreateClock();
+            AnimationClock pxClock = animPanX.CreateClock();
+            AnimationClock pyClock = animPanY.CreateClock();
+            currentClocks.Clear();
+            currentClocks.Add(zClock);
+            currentClocks.Add(cxClock);
+            currentClocks.Add(cyClock);
+            currentClocks.Add(pxClock);
+            currentClocks.Add(pyClock);
+
             var tg = (TransformGroup)image.RenderTransform;
-            tg.Children[0].BeginAnimation(TranslateTransform.XProperty, animPanX);
-            tg.Children[0].BeginAnimation(TranslateTransform.YProperty, animPanY);
-            tg.Children[1].BeginAnimation(ScaleTransform.ScaleXProperty, animZoom);
-            tg.Children[1].BeginAnimation(ScaleTransform.ScaleYProperty, animZoom);
-            tg.Children[1].BeginAnimation(ScaleTransform.CenterXProperty, animCtrX);
-            tg.Children[1].BeginAnimation(ScaleTransform.CenterYProperty, animCtrY);
+            tg.Children[0].ApplyAnimationClock(TranslateTransform.XProperty, pxClock);
+            tg.Children[0].ApplyAnimationClock(TranslateTransform.YProperty, pyClock);
+            tg.Children[1].ApplyAnimationClock(ScaleTransform.ScaleXProperty, zClock);
+            tg.Children[1].ApplyAnimationClock(ScaleTransform.ScaleYProperty, zClock);
+            tg.Children[1].ApplyAnimationClock(ScaleTransform.CenterXProperty, cxClock);
+            tg.Children[1].ApplyAnimationClock(ScaleTransform.CenterYProperty, cyClock);
         }
+
+        void togglePauseAnimation()
+        {
+            if (paused)
+            {
+                currentClocks.ForEach(c =>
+                {
+                    c.Controller.Resume();
+                });
+                paused = false;
+            }
+            else
+            {
+                currentClocks.ForEach(c =>
+                {
+                    c.Controller.Pause();
+                });
+                paused = true;
+            }
+        }
+
+        void skipAhead()
+        {
+            currentClocks.ForEach(c =>
+            {
+                c.Controller.SkipToFill();
+            });
+        }
+        void skipBack()
+        {
+            currentClocks.ForEach(c =>
+            {
+                c.Controller.Begin();
+            });
+        }
+
 
         void animationWindowLoaded(object sender, RoutedEventArgs e)
         {
@@ -206,6 +272,18 @@ namespace KB30
 
                 case Key.Down:
                     speedFactor = speedFactor / 1.5;
+                    break;
+
+                case Key.Right:
+                    skipAhead();
+                    break;
+
+                case Key.Left:
+                    skipBack();
+                    break;
+
+                case Key.Space:
+                    togglePauseAnimation();
                     break;
             }
         }
