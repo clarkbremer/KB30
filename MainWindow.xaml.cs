@@ -50,6 +50,7 @@ namespace KB30
         private String initialConfig;
         private String soundtrack = "";
         private Boolean playWithArgumentFile = false;
+        private Boolean uiLoaded = false;
 
         public MainWindow()
         {
@@ -79,6 +80,7 @@ namespace KB30
             }
             selectSlide(0, false);
             Cursor = Cursors.Arrow;
+            uiLoaded = true;
         }
 
         public Boolean addSlideControl(Slide slide)
@@ -405,7 +407,16 @@ namespace KB30
         {
             if (playWithArgumentFile)
             {
-                this.Close();
+                if (((AnimationWindow)sender).initUiOnClose )
+                {
+                    if (uiLoaded == false)
+                    {
+                        initializeSlidesUI();
+                    }
+                } else
+                {
+                    this.Close();
+                }
             }
         }
 
@@ -416,7 +427,8 @@ namespace KB30
             if (allArgs.Length > 1)
             {
                 var filenameArgument = allArgs[1];
-                playWithArgumentFile = true;                loadIt(filenameArgument);
+                playWithArgumentFile = true;                
+                loadIt(filenameArgument);
                 playIt();
             }
         }
@@ -480,6 +492,7 @@ namespace KB30
                 openFileDialog.Filter = "KB30 files (*.kb30)|*.kb30|All files (*.*)|*.*";
                 if (openFileDialog.ShowDialog() == true)
                 {
+                    caption.Text = "Loading Slides...";
                     loadIt(openFileDialog.FileName);
                     initializeSlidesUI();
                 }

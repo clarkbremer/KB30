@@ -36,10 +36,12 @@ namespace KB30
         private List<AnimationClock> currentClocks = new List<AnimationClock>();
 
         private Boolean paused = false;
+        public Boolean initUiOnClose { get; set; }
 
         public AnimationWindow()
         {
             InitializeComponent();
+            initUiOnClose = false ;
             Loaded += animationWindowLoaded;
             Closed += animationWindowClosed;
         }
@@ -209,6 +211,7 @@ namespace KB30
                 currentClocks.ForEach(c =>
                 {
                     c.Controller.Resume();
+                    mediaPlayer.Play();
                 });
                 paused = false;
             }
@@ -217,6 +220,7 @@ namespace KB30
                 currentClocks.ForEach(c =>
                 {
                     c.Controller.Pause();
+                    mediaPlayer.Pause();
                 });
                 paused = true;
             }
@@ -231,6 +235,14 @@ namespace KB30
         }
         void skipBack()
         {
+            if (currentClocks.First().CurrentProgress < 0.1)
+            {
+                currentClocks.ForEach(c =>
+                {
+                    c.Controller.Stop();
+                });
+            }
+            else
             currentClocks.ForEach(c =>
             {
                 c.Controller.Begin();
@@ -274,6 +286,7 @@ namespace KB30
                     }
                     else
                     {
+                        initUiOnClose = false;
                         this.Close();
                     }
                     break;
@@ -296,6 +309,11 @@ namespace KB30
 
                 case Key.Space:
                     togglePauseAnimation();
+                    break;
+
+                case Key.Home:
+                    initUiOnClose = true;
+                    this.Close();
                     break;
             }
         }
