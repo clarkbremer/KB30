@@ -85,8 +85,9 @@ namespace KB30
 
         public Boolean addSlideControl(Slide slide)
         {
-            BitmapImage bmp = new BitmapImage();
             SlideControl slideControl = new SlideControl();
+
+            BitmapImage bmp = new BitmapImage();
             try
             {
                 bmp.BeginInit();
@@ -101,6 +102,7 @@ namespace KB30
             }
             slideControl.image.Source = bmp;
             slideControl.caption.Text = System.IO.Path.GetFileName(slide.fileName) + " (" + bmp.PixelWidth + " x " + bmp.PixelHeight + ")";
+
             slideControl.button.Click += delegate (object sender, RoutedEventArgs e) { slideClick(sender, e, slide); };
             slideControl.CMCut.Click += delegate (object sender, RoutedEventArgs e) { cutSlideClick(sender, e, slide); };
             slideControl.CMPaste.Click += delegate (object sender, RoutedEventArgs e) { pasteSlideClick(sender, e, slide); };
@@ -407,15 +409,16 @@ namespace KB30
         {
             if (playWithArgumentFile)
             {
-                if (((AnimationWindow)sender).initUiOnClose )
+                if (((AnimationWindow)sender).exitOnClose)
+                {
+                    this.Close();
+                }
+                else
                 {
                     if (uiLoaded == false)
                     {
                         initializeSlidesUI();
                     }
-                } else
-                {
-                    this.Close();
                 }
             }
         }

@@ -36,12 +36,12 @@ namespace KB30
         private List<AnimationClock> currentClocks = new List<AnimationClock>();
 
         private Boolean paused = false;
-        public Boolean initUiOnClose { get; set; }
+        public Boolean exitOnClose { get; set; }
 
         public AnimationWindow()
         {
             InitializeComponent();
-            initUiOnClose = false ;
+            exitOnClose = false ;
             Loaded += animationWindowLoaded;
             Closed += animationWindowClosed;
         }
@@ -286,7 +286,7 @@ namespace KB30
                     }
                     else
                     {
-                        initUiOnClose = false;
+                        exitOnClose = true;
                         this.Close();
                     }
                     break;
@@ -312,7 +312,7 @@ namespace KB30
                     break;
 
                 case Key.Home:
-                    initUiOnClose = true;
+                    exitOnClose = false;
                     this.Close();
                     break;
             }
