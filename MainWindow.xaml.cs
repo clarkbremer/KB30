@@ -74,7 +74,7 @@ namespace KB30
             for (int i = 0; i < slides.Count; i++)
             {
                 Slide slide = slides[i];
-                caption.Text = "Loading slide " + (i + 1).ToString() + " of " + (slides.Count + 1).ToString(); 
+                // caption.Text = "Loading slide " + (i + 1).ToString() + " of " + (slides.Count + 1).ToString();   // does not work - need background task
                 addSlideControl(slide);
             }
             selectSlide(0, false);
@@ -89,6 +89,7 @@ namespace KB30
             {
                 bmp.BeginInit();
                 bmp.UriSource = slide.uri;
+                bmp.DecodePixelWidth = 250;
                 bmp.EndInit();
             }
             catch(NotSupportedException ex)
