@@ -30,7 +30,8 @@
             </Grid>
             <Button.ContextMenu>
                 <ContextMenu Name="KeyframeContextMenu">
-                    <MenuItem Name="CMDelete" Header="Delete Keyframe"></MenuItem>
+                    <MenuItem Name="CMCut" Header="Cut Keyframe"></MenuItem>
+                    <MenuItem Name="CMPaste" Header="Paste Keyframe"></MenuItem>
                 </ContextMenu>
             </Button.ContextMenu>
         </Button>

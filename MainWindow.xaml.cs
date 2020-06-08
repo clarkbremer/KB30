@@ -25,7 +25,6 @@ using System.Threading;
 /*
  * To DO:  
  *  Drag and Drop slides and keys to re-order
- *  Cut and paste keyframes
  *  File sometimes looks dirty with no changes
  *  
  *  
@@ -47,6 +46,7 @@ namespace KB30
         private String currentFileName = "untitled";
         public List<Slide> slides = new List<Slide>();
         public Slide clipboardSlide = null;
+        public KF clipboardKey = null;
         private String initialConfig;
         private String soundtrack = "";
         private Boolean playWithArgumentFile = false;
@@ -245,6 +245,7 @@ namespace KB30
             }
             clipboardSlide = null;
         }
+
         private void playFromHereClick(object sender, RoutedEventArgs e, Slide slide)
         {
             playIt(slides.IndexOf(slide));
@@ -299,7 +300,10 @@ namespace KB30
             kfControl.zoomTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
             kfControl.durTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
 
-            kfControl.CMDelete.Click += delegate (object sender, RoutedEventArgs e) { deleteKeyframeClick(sender, e, key); };
+            kfControl.CMCut.Click += delegate (object sender, RoutedEventArgs e) { cutKeyframeClick(sender, e, key); };
+            kfControl.CMPaste.Click += delegate (object sender, RoutedEventArgs e) { pasteKeyframeClick(sender, e, key); };
+            kfControl.KeyframeContextMenu.Opened += delegate (object sender, RoutedEventArgs e) { keyframeContextMenuOpened(sender, e, key); };
+
         }
 
         private void unBindKFC(KeyframeControl kfc, KF key)
@@ -419,6 +423,62 @@ namespace KB30
             else
             {
                 MessageBox.Show("A minimum of one keyframe is required.");
+            }
+        }
+
+        private void cutKeyframeClick(object sender, RoutedEventArgs e, KF key)
+        {
+            List<KF> keys = slides[currentSlideIndex].keys;
+            if (keys.Count == 1)
+            {
+                MessageBox.Show("At least one keyframe is required");
+                return;
+            }
+            var victimIndex = keys.IndexOf(key);
+
+            if (currentKeyframeIndex == victimIndex)
+            {
+                if (currentKeyframeIndex == (keys.Count - 1))
+                {
+                    selectKeyframe(keys[currentKeyframeIndex - 1], currentKeyframeIndex - 1);
+                }
+                else
+                {
+                    selectKeyframe(keys[currentKeyframeIndex + 1], currentKeyframeIndex + 1);
+                }
+            }
+
+            KeyframeControl kfc = key.kfControl;
+            keyframePanel.Children.Remove(kfc);
+            clipboardKey = key;
+            keys.Remove(key);
+
+            if (currentKeyframeIndex > victimIndex) { currentKeyframeIndex--; }
+        }
+
+        private void pasteKeyframeClick(object sender, RoutedEventArgs e, KF key)
+        {
+            List<KF> keys = slides[currentSlideIndex].keys;
+
+            var insertIndex = keys.IndexOf(key);
+            keys.Insert(insertIndex, clipboardKey);
+            keyframePanel.Children.Insert(insertIndex, clipboardKey.kfControl);
+            if (currentKeyframeIndex >= insertIndex)
+            {
+                currentKeyframeIndex++;
+            }
+            clipboardKey = null;
+        }
+
+        private void keyframeContextMenuOpened(object sender, RoutedEventArgs e, KF key)
+        {
+            if (clipboardKey == null)
+            {
+                key.kfControl.CMPaste.IsEnabled = false;
+            }
+            else
+            {
+                key.kfControl.CMPaste.IsEnabled = true;
             }
         }
 
