@@ -255,19 +255,23 @@ namespace KB30
                         new_x += offset_x;
                         new_width -= offset_x;
                         new_height = new_width * 9 / 16;
+                        new_y += (offset_x * 9 / 32);
                         break;
                     case HitType.R:
                         new_width += offset_x;
                         new_height = new_width * 9 / 16;
+                        new_y -= (offset_x * 9 / 32);
                         break;
                     case HitType.B:
                         new_height += offset_y;
                         new_width = new_height * 16 / 9;
+                        new_x -= (offset_y * 16 / 18);
                         break;
                     case HitType.T:
                         new_y += offset_y;
                         new_height -= offset_y;
                         new_width = new_height * 16 / 9;
+                        new_x += (offset_y * 16 / 18);
                         break;
                 }
 

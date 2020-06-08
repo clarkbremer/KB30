@@ -25,9 +25,10 @@ using System.Threading;
 /*
  * To DO:  
  *  Drag and Drop slides and keys to re-order
- *  Progress bar while loading images - create textbox at bottom of cropper window - use for caption also
- *  Pause/Restert animation
- *  Skip-ahead animation
+ *  Allow single keyframe slide
+ *  When resizing cropper from sides and top, split movement in other direction (center)
+ *  Cut and paste keyframes
+ *  File sometimes looks dirty with no changes
  *  
  *  
  *  Bugs:
