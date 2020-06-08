@@ -54,6 +54,13 @@ namespace KB30
         public void animate(List<Slide> _slides, int start = 0, String soundtrack = "")
         {
             slides = _slides;
+
+            foreach (Slide slide in slides) { 
+                if (slide.keys.Count == 1 && slide.keys[0].duration == 0)
+                {
+                    slide.keys[0].duration = 1;
+                }
+            }
             currentImage = image1;
             otherImage = image2;
             currentSlideIndex = start;
@@ -152,6 +159,7 @@ namespace KB30
         {
             var iw = image.ActualWidth;
             var ih = image.ActualHeight;
+
 
             TimeSpan duration = TimeSpan.FromSeconds(keys.Sum(k => k.duration));
             TimeSpan partialDuration = TimeSpan.FromSeconds(0);

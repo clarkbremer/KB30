@@ -25,8 +25,6 @@ using System.Threading;
 /*
  * To DO:  
  *  Drag and Drop slides and keys to re-order
- *  Allow single keyframe slide
- *  When resizing cropper from sides and top, split movement in other direction (center)
  *  Cut and paste keyframes
  *  File sometimes looks dirty with no changes
  *  
@@ -580,9 +578,9 @@ namespace KB30
             for (int s = 0; s < slides.Count; s++)
             {
                 Slide slide = slides[s];
-                if (slide.keys.Count <= 1)
+                if (slide.keys.Count <= 0)
                 {
-                    MessageBox.Show("Slide " + s.ToString() + " must have more than 1 keyframe.");
+                    MessageBox.Show("Slide " + s.ToString() + " must have at least 1 keyframe.");
                     return false;
                 }
             }
