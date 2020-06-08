@@ -19,6 +19,7 @@ using Newtonsoft.Json;
 using Microsoft.VisualBasic.CompilerServices;
 using System.Configuration;
 using Accessibility;
+using System.Threading;
 
 
 /*
@@ -51,6 +52,7 @@ namespace KB30
         private String soundtrack = "";
         private Boolean playWithArgumentFile = false;
         private Boolean uiLoaded = false;
+        private int slidesLoaded = 0;
 
         public MainWindow()
         {
@@ -69,40 +71,87 @@ namespace KB30
          */
         public void initializeSlidesUI()
         {
-            Cursor = Cursors.Wait;
             slidePanel.Children.Clear();
-
-            for (int i = 0; i < slides.Count; i++)
-            {
-                Slide slide = slides[i];
-                // caption.Text = "Loading slide " + (i + 1).ToString() + " of " + (slides.Count + 1).ToString();   // does not work - need background task
-                addSlideControl(slide);
-            }
-            selectSlide(0, false);
-            Cursor = Cursors.Arrow;
+            addSlideControlInBackground(slides[0]);
             uiLoaded = true;
         }
 
-        public Boolean addSlideControl(Slide slide)
+        class WorkerResult
         {
-            SlideControl slideControl = new SlideControl();
+            public Slide slide { get; set; }
+            public BitmapImage bmp { get; set; }
+        }
+
+        void worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            Slide slide = (Slide)e.Argument;
+            WorkerResult workerResult = new WorkerResult();
 
             BitmapImage bmp = new BitmapImage();
             try
             {
                 bmp.BeginInit();
                 bmp.UriSource = slide.uri;
-                bmp.DecodePixelWidth = 250;
                 bmp.EndInit();
+                bmp.Freeze();
             }
-            catch(NotSupportedException ex)
+            catch (NotSupportedException ex)
             {
                 MessageBox.Show("Error loading image file: " + slide.fileName, "Call the doctor, I think I'm gonna crash!");
-                return false;
+            }
+
+            workerResult.slide = slide;
+            workerResult.bmp = bmp;
+            e.Result = workerResult;
+        }
+
+        void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            WorkerResult wr = (WorkerResult)e.Result;
+            addSlideControl(wr.slide, wr.bmp);
+            int i = slides.IndexOf(wr.slide);
+            if(i == 0)
+            {
+                selectSlide(0, false);
+            }
+            i++;
+            if(i < slides.Count) {
+                caption.Text = "Loading slide " + (i + 1).ToString() + " of " + (slides.Count).ToString();
+                addSlideControlInBackground(slides[i]);
+            }
+        }
+
+        void addSlideControlInBackground(Slide slide)
+        {
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.WorkerReportsProgress = true;
+            worker.DoWork += worker_DoWork;
+            worker.RunWorkerCompleted += worker_RunWorkerCompleted;
+            worker.RunWorkerAsync(slide);
+        }
+
+        public Boolean addSlideControl(Slide slide, BitmapImage bmp = null)
+        {
+            SlideControl slideControl = new SlideControl();
+
+            if (bmp == null)
+            {
+                bmp = new BitmapImage();
+                try
+                {
+                    bmp.BeginInit();
+                    bmp.UriSource = slide.uri;
+                    bmp.EndInit();
+                    bmp.Freeze();
+                }
+                catch (NotSupportedException ex)
+                {
+                    MessageBox.Show("Error loading image file: " + slide.fileName, "Call the doctor, I think I'm gonna crash!");
+                    return false;
+                }
             }
             slideControl.image.Source = bmp;
             slideControl.caption.Text = System.IO.Path.GetFileName(slide.fileName) + " (" + bmp.PixelWidth + " x " + bmp.PixelHeight + ")";
-
             slideControl.button.Click += delegate (object sender, RoutedEventArgs e) { slideClick(sender, e, slide); };
             slideControl.CMCut.Click += delegate (object sender, RoutedEventArgs e) { cutSlideClick(sender, e, slide); };
             slideControl.CMPaste.Click += delegate (object sender, RoutedEventArgs e) { pasteSlideClick(sender, e, slide); };
@@ -151,8 +200,8 @@ namespace KB30
                     newSlide.keys.Add(new KF(4.0, 0.5, 0.5, 0));
                     if (addSlideControl(newSlide))
                     {
-                      slides.Add(newSlide);
-                      selectSlide(slides.Count - 1);
+                        slides.Add(newSlide);
+                        selectSlide(slides.Count - 1);
                     }
                 }
             }
