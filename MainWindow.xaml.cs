@@ -24,6 +24,7 @@ using System.Threading;
 
 /*
  * To DO:  
+ *  Finish skip _back
  *  Drag and Drop slides and keys to re-order
  *  File sometimes looks dirty with no changes
  *  

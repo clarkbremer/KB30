@@ -28,6 +28,7 @@ namespace KB30
         int currentSlideIndex;
         int nextSlideIndex;
         double speedFactor = 1;
+        String soundtrack = "";
 
         private static readonly CubicEase easeOut = new CubicEase() { EasingMode = EasingMode.EaseOut };
         private static readonly CubicEase easeIn = new CubicEase() { EasingMode = EasingMode.EaseIn };
@@ -51,19 +52,21 @@ namespace KB30
             mediaPlayer.Close();
         }
 
-        public void animate(List<Slide> _slides, int start = 0, String soundtrack = "")
+        public void animate(List<Slide> _slides, int _start = 0, String _soundtrack = "")
         {
-            slides = _slides;
-
-            foreach (Slide slide in slides) { 
-                if (slide.keys.Count == 1 && slide.keys[0].duration == 0)
+            slides.Clear();
+            foreach(Slide slide in _slides)
+            {
+                if(slide.keys.Count > 1 || slide.keys[0].duration > 0)
                 {
-                    slide.keys[0].duration = 1;
+                    slides.Add(slide);
                 }
             }
+            soundtrack = _soundtrack;
+
             currentImage = image1;
             otherImage = image2;
-            currentSlideIndex = start;
+            currentSlideIndex = _start;
             nextSlideIndex = currentSlideIndex + 1;
             if (nextSlideIndex >= slides.Count) { nextSlideIndex = 0; }
 
@@ -79,7 +82,9 @@ namespace KB30
             startPanZoom(currentImage, slides[currentSlideIndex].keys);
             if (soundtrack != "")
             {
-                mediaPlayer.Open(new Uri(soundtrack));
+                if (mediaPlayer.Position == TimeSpan.FromSeconds(0)) {
+                    mediaPlayer.Open(new Uri(soundtrack));
+                }
                 mediaPlayer.Play();
             }
         }
@@ -198,6 +203,7 @@ namespace KB30
             currentClocks.Add(cyClock);
             currentClocks.Add(pxClock);
             currentClocks.Add(pyClock);
+
             currentClocks.ForEach(c =>
             {
                 c.Controller.SpeedRatio = speedFactor;
@@ -243,7 +249,7 @@ namespace KB30
         }
         void skipBack()
         {
-            if (currentClocks.First().CurrentProgress < 0.1)
+            if (currentClocks.First().CurrentProgress < 0.2)
             {
                 currentClocks.ForEach(c =>
                 {
@@ -251,10 +257,12 @@ namespace KB30
                 });
             }
             else
-            currentClocks.ForEach(c =>
             {
-                c.Controller.Begin();
-            });
+                currentClocks.ForEach(c =>
+                {
+                    c.Controller.Begin();
+                });
+            }
         }
         void speedUp()
         {
