@@ -24,10 +24,8 @@ using System.Threading;
 
 /*
  * To DO:  
- *  Finish skip _back
  *  Drag and Drop slides and keys to re-order
  *  File sometimes looks dirty with no changes
- *  
  *  
  *  Bugs:
  *  - Resize window -> resize preview image -> cropper control doesn't resize.  (touch current keyframe control fixes it)

@@ -54,18 +54,24 @@ namespace KB30
 
         public void animate(List<Slide> _slides, int _start = 0, String _soundtrack = "")
         {
-            slides.Clear();
-            foreach(Slide slide in _slides)
+            if (_slides != null)
             {
-                if(slide.keys.Count > 1 || slide.keys[0].duration > 0)
+                slides.Clear();
+                foreach (Slide slide in _slides)
                 {
-                    slides.Add(slide);
+                    if (slide.keys.Count > 1 || slide.keys[0].duration > 0)
+                    {
+                        slides.Add(slide);
+                    }
                 }
             }
+
             soundtrack = _soundtrack;
 
             currentImage = image1;
+            frame1.Opacity = 1;
             otherImage = image2;
+            frame2.Opacity = 0;
             currentSlideIndex = _start;
             nextSlideIndex = currentSlideIndex + 1;
             if (nextSlideIndex >= slides.Count) { nextSlideIndex = 0; }
@@ -159,12 +165,10 @@ namespace KB30
             startPanZoom(currentImage, slides[currentSlideIndex].keys);
         }
 
-
         private void startPanZoom(Image image, List<KF> keys)
         {
             var iw = image.ActualWidth;
             var ih = image.ActualHeight;
-
 
             TimeSpan duration = TimeSpan.FromSeconds(keys.Sum(k => k.duration));
             TimeSpan partialDuration = TimeSpan.FromSeconds(0);
@@ -197,6 +201,7 @@ namespace KB30
             AnimationClock cyClock = animCtrY.CreateClock();
             AnimationClock pxClock = animPanX.CreateClock();
             AnimationClock pyClock = animPanY.CreateClock();
+
             currentClocks.Clear();
             currentClocks.Add(zClock);
             currentClocks.Add(cxClock);
@@ -244,8 +249,12 @@ namespace KB30
         {
             currentClocks.ForEach(c =>
             {
-                c.Controller.SkipToFill();
+                //   c.Controller.SkipToFill();
+                c.Controller.Stop();
             });
+            int newStart = currentSlideIndex + 1;
+            if (newStart >= slides.Count) { newStart = 0; }
+            animate(null, newStart, soundtrack);
         }
         void skipBack()
         {
@@ -253,8 +262,12 @@ namespace KB30
             {
                 currentClocks.ForEach(c =>
                 {
+//                    c.Controller.SkipToFill();
                     c.Controller.Stop();
                 });
+                int newStart = currentSlideIndex - 1;
+                if (newStart < 0) { newStart = slides.Count - 1; }
+                animate(null, newStart, soundtrack);
             }
             else
             {
