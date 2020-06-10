@@ -31,7 +31,8 @@
             <Button.ContextMenu>
                 <ContextMenu Name="KeyframeContextMenu">
                     <MenuItem Name="CMCut" Header="Cut Keyframe"></MenuItem>
-                    <MenuItem Name="CMPaste" Header="Paste Keyframe"></MenuItem>
+                    <MenuItem Name="CMPaste" Header="Paste Keyframe Left"></MenuItem>
+                    <MenuItem Name="CMInsert" Header="Insert Keyframe Left"></MenuItem>
                 </ContextMenu>
             </Button.ContextMenu>
         </Button>

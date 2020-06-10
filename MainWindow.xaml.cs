@@ -28,6 +28,7 @@ using System.Threading;
  *  File sometimes looks dirty with no changes
  *  
  *  Bugs:
+ *  - Load second file, get index error in select slide
  *  - Resize window -> resize preview image -> cropper control doesn't resize.  (touch current keyframe control fixes it)
  *   
  */
@@ -69,6 +70,9 @@ namespace KB30
          */
         public void initializeSlidesUI()
         {
+            Cursor = Cursors.Wait;
+            currentSlideIndex = 0;
+            currentKeyframeIndex = 0;
             slidePanel.Children.Clear();
             addSlideControlInBackground(slides[0]);
             uiLoaded = true;
@@ -117,6 +121,10 @@ namespace KB30
                 caption.Text = "Loading slide " + (i + 1).ToString() + " of " + (slides.Count).ToString();
                 addSlideControlInBackground(slides[i]);
             }
+            else
+            {
+                Cursor = Cursors.Arrow;
+            }
         }
 
         void addSlideControlInBackground(Slide slide)
@@ -128,7 +136,7 @@ namespace KB30
             worker.RunWorkerAsync(slide);
         }
 
-        public Boolean addSlideControl(Slide slide, BitmapImage bmp = null)
+        public Boolean addSlideControl(Slide slide, BitmapImage bmp = null, int insertPosition = -1)
         {
             SlideControl slideControl = new SlideControl();
 
@@ -153,10 +161,18 @@ namespace KB30
             slideControl.button.Click += delegate (object sender, RoutedEventArgs e) { slideClick(sender, e, slide); };
             slideControl.CMCut.Click += delegate (object sender, RoutedEventArgs e) { cutSlideClick(sender, e, slide); };
             slideControl.CMPaste.Click += delegate (object sender, RoutedEventArgs e) { pasteSlideClick(sender, e, slide); };
+            slideControl.CMInsert.Click += delegate (object sender, RoutedEventArgs e) { insertSlideClick(sender, e, slide); };
             slideControl.CMPlayFromHere.Click += delegate (object sender, RoutedEventArgs e) { playFromHereClick(sender, e, slide); };
             slideControl.SlideContextMenu.Opened += delegate (object sender, RoutedEventArgs e) { slideContextMenuOpened(sender, e, slide); };
             slide.slideControl = slideControl;
-            slidePanel.Children.Add(slideControl);
+            if(insertPosition == -1)
+            {
+                slidePanel.Children.Add(slideControl);
+            }
+            else
+            {
+                slidePanel.Children.Insert(insertPosition, slideControl);
+            }
             slideControl.DeSelect();
             return true;
         }
@@ -205,6 +221,44 @@ namespace KB30
             }
         }
 
+        private void insertSlideClick(object sender, RoutedEventArgs e, Slide slide)
+        {
+            var insertIndex = slides.IndexOf(slide);
+
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Title = "Select image file(s)";
+            openFileDialog.Multiselect = true;
+            openFileDialog.Filter = "Images (*.BMP;*.JPG;*.GIF)|*.BMP;*.JPG;*.GIF|All files (*.*)|*.*";
+            if (openFileDialog.ShowDialog() == true)
+            {
+                foreach (String fname in openFileDialog.FileNames)
+                {
+                    Slide newSlide = new Slide(fname);
+                    newSlide.keys.Add(new KF(4.0, 0.5, 0.5, 0));
+                    if (addSlideControl(newSlide, null, insertIndex))
+                    {
+                        slides.Insert(insertIndex, newSlide);
+                        if (fname == openFileDialog.FileNames.Last())
+                        {
+                            selectSlide(insertIndex, true);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void pasteSlideClick(object sender, RoutedEventArgs e, Slide slide)
+        {
+            var insertIndex = slides.IndexOf(slide);
+            slides.Insert(insertIndex, clipboardSlide);
+            slidePanel.Children.Insert(insertIndex, clipboardSlide.slideControl);
+            if (currentSlideIndex >= insertIndex)
+            {
+                currentSlideIndex++;
+            }
+            clipboardSlide = null;
+        }
+
         private void cutSlideClick(object sender, RoutedEventArgs e, Slide slide)
         {
             if (slides.Count == 1)
@@ -231,18 +285,6 @@ namespace KB30
             slides.Remove(slide);
 
             if (currentSlideIndex > victimIndex) { currentSlideIndex--; }
-        }
-
-        private void pasteSlideClick(object sender, RoutedEventArgs e, Slide slide)
-        {
-            var insertIndex = slides.IndexOf(slide);
-            slides.Insert(insertIndex, clipboardSlide);
-            slidePanel.Children.Insert(insertIndex, clipboardSlide.slideControl);
-            if (currentSlideIndex >= insertIndex)
-            {
-                currentSlideIndex++;
-            }
-            clipboardSlide = null;
         }
 
         private void playFromHereClick(object sender, RoutedEventArgs e, Slide slide)
@@ -276,15 +318,22 @@ namespace KB30
                 addKeyframeControl(key);
             }
 
-            selectKeyframe(keys[0], 0);
+            selectKeyframe(keys[0]);
         }
 
-        public void addKeyframeControl(KF key)
+        public void addKeyframeControl(KF key, int insertIndex = -1)
         {
             KeyframeControl kfControl = new KeyframeControl();
             kfControl.DeSelect();
             key.kfControl = kfControl;
-            keyframePanel.Children.Add(kfControl);
+            if(insertIndex == -1)
+            {
+                keyframePanel.Children.Add(kfControl);
+            }
+            else
+            {
+                keyframePanel.Children.Insert(insertIndex, kfControl);
+            }
 
             kfControl.Margin = new Thickness(2, 2, 2, 2);
             kfControl.button.Click += delegate (object sender, RoutedEventArgs e) { keyFrameClick(sender, e, key); };
@@ -301,8 +350,8 @@ namespace KB30
 
             kfControl.CMCut.Click += delegate (object sender, RoutedEventArgs e) { cutKeyframeClick(sender, e, key); };
             kfControl.CMPaste.Click += delegate (object sender, RoutedEventArgs e) { pasteKeyframeClick(sender, e, key); };
+            kfControl.CMInsert.Click += delegate (object sender, RoutedEventArgs e) { insertKeyframeClick(sender, e, key); };
             kfControl.KeyframeContextMenu.Opened += delegate (object sender, RoutedEventArgs e) { keyframeContextMenuOpened(sender, e, key); };
-
         }
 
         private void unBindKFC(KeyframeControl kfc, KF key)
@@ -321,9 +370,11 @@ namespace KB30
             kfc.zoomTb.Text = key.zoomFactor.ToString();
         }
 
-        public void selectKeyframe(KF key, int keyFrameIndex)
+        public void selectKeyframe(KF key)
         {
-            KF oldKey = slides[currentSlideIndex].keys[currentKeyframeIndex];
+            List<KF> keys = slides[currentSlideIndex].keys;
+            int keyFrameIndex = keys.IndexOf(key);
+            KF oldKey = keys[currentKeyframeIndex];
             KeyframeControl oldKFControl = oldKey.kfControl;
 
             unBindKFC(oldKFControl, oldKey);
@@ -393,9 +444,7 @@ namespace KB30
 
         private void keyFrameClick(object sender, RoutedEventArgs e, KF key)
         {
-            List<KF> keys = slides[currentSlideIndex].keys;
-            int index = keys.IndexOf(key, 0);
-            selectKeyframe(key, index);
+            selectKeyframe(key);
         }
 
         private void addKeyframeClick(object sender, RoutedEventArgs e)
@@ -404,25 +453,38 @@ namespace KB30
             Slide currentSlide = slides[currentSlideIndex];
             KF currentKey = currentSlide.keys[currentKeyframeIndex];
             KF newKey = new KF(currentKey.zoomFactor, currentKey.x, currentKey.y, DEFAULT_DURATION);
-            slides[currentSlideIndex].keys.Add(newKey);
+            currentSlide.keys.Add(newKey);
             addKeyframeControl(newKey);
-            selectKeyframe(newKey, currentSlide.keys.Count - 1);
+            selectKeyframe(newKey);
         }
 
-        private void deleteKeyframeClick(object sender, RoutedEventArgs e, KF key)
+        private void insertKeyframeClick(object sender, RoutedEventArgs e, KF key)
+        {
+            Slide currentSlide = slides[currentSlideIndex];
+            List<KF> keys = currentSlide.keys;
+            var insertIndex = keys.IndexOf(key);
+            KF newKey = new KF(key.zoomFactor, key.x, key.y, DEFAULT_DURATION);
+            keys.Insert(insertIndex, newKey);
+            addKeyframeControl(newKey, insertIndex);
+            if (currentKeyframeIndex >= insertIndex)
+            {
+                currentKeyframeIndex++;
+            }
+            selectKeyframe(newKey); 
+        }
+
+        private void pasteKeyframeClick(object sender, RoutedEventArgs e, KF key)
         {
             List<KF> keys = slides[currentSlideIndex].keys;
-            if (keys.Count > 1)
+
+            var insertIndex = keys.IndexOf(key);
+            keys.Insert(insertIndex, clipboardKey);
+            keyframePanel.Children.Insert(insertIndex, clipboardKey.kfControl);
+            if (currentKeyframeIndex >= insertIndex)
             {
-                KeyframeControl kfc = key.kfControl;
-                keyframePanel.Children.Remove(kfc);
-                keys.Remove(key);
-                if (currentKeyframeIndex >= keys.Count) { currentKeyframeIndex = 0; }
+                currentKeyframeIndex++;
             }
-            else
-            {
-                MessageBox.Show("A minimum of one keyframe is required.");
-            }
+            clipboardKey = null;
         }
 
         private void cutKeyframeClick(object sender, RoutedEventArgs e, KF key)
@@ -439,11 +501,11 @@ namespace KB30
             {
                 if (currentKeyframeIndex == (keys.Count - 1))
                 {
-                    selectKeyframe(keys[currentKeyframeIndex - 1], currentKeyframeIndex - 1);
+                    selectKeyframe(keys[currentKeyframeIndex - 1]);
                 }
                 else
                 {
-                    selectKeyframe(keys[currentKeyframeIndex + 1], currentKeyframeIndex + 1);
+                    selectKeyframe(keys[currentKeyframeIndex + 1]);
                 }
             }
 
@@ -453,20 +515,6 @@ namespace KB30
             keys.Remove(key);
 
             if (currentKeyframeIndex > victimIndex) { currentKeyframeIndex--; }
-        }
-
-        private void pasteKeyframeClick(object sender, RoutedEventArgs e, KF key)
-        {
-            List<KF> keys = slides[currentSlideIndex].keys;
-
-            var insertIndex = keys.IndexOf(key);
-            keys.Insert(insertIndex, clipboardKey);
-            keyframePanel.Children.Insert(insertIndex, clipboardKey.kfControl);
-            if (currentKeyframeIndex >= insertIndex)
-            {
-                currentKeyframeIndex++;
-            }
-            clipboardKey = null;
         }
 
         private void keyframeContextMenuOpened(object sender, RoutedEventArgs e, KF key)

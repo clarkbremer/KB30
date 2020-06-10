@@ -249,7 +249,6 @@ namespace KB30
         {
             currentClocks.ForEach(c =>
             {
-                //   c.Controller.SkipToFill();
                 c.Controller.Stop();
             });
             int newStart = currentSlideIndex + 1;
@@ -262,7 +261,6 @@ namespace KB30
             {
                 currentClocks.ForEach(c =>
                 {
-//                    c.Controller.SkipToFill();
                     c.Controller.Stop();
                 });
                 int newStart = currentSlideIndex - 1;
