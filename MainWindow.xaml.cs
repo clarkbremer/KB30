@@ -1,34 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.IO;
 using Microsoft.Win32;
 using System.ComponentModel;
 using Newtonsoft.Json;
-using Microsoft.VisualBasic.CompilerServices;
-using System.Configuration;
-using Accessibility;
-using System.Threading;
 
 
 /*
  * To DO:  
  *  Drag and Drop slides and keys to re-order
- *  File sometimes looks dirty with no changes
  *  
  *  Bugs:
- *  - Load second file, get index error in select slide
+ *  - File sometimes looks dirty with no changes
+ *  - skip ahead/back sometimes stops animation 
  *  - Resize window -> resize preview image -> cropper control doesn't resize.  (touch current keyframe control fixes it)
  *   
  */
