@@ -15,12 +15,11 @@ using Newtonsoft.Json;
 /*
  * To DO:  
  *  Drag and Drop slides and keys to re-order
- *  Insert group of slide - load in background?
+ *  Insert or append group of slide - load in background?
+ *  Cut/Paste multiple slides
  *  
  *  Bugs:
- *  - File sometimes looks dirty with no changes
- *  - skip ahead/back sometimes stops animation 
- *  - Resize window -> resize preview image -> cropper control doesn't resize.  (touch current keyframe control fixes it)
+ *  - skip ahead/back sometimes stops animation - opacity on wrong frame?
  *   
  */
 namespace KB30
@@ -38,7 +37,7 @@ namespace KB30
         public List<Slide> slides = new List<Slide>();
         public Slide clipboardSlide = null;
         public KF clipboardKey = null;
-        private String initialConfig;
+        private String lastSavedConfig;
         private String soundtrack = "";
         private Boolean playWithArgumentFile = false;
         private Boolean uiLoaded = false;
@@ -64,9 +63,11 @@ namespace KB30
             currentKeyframeIndex = 0;
             slidePanel.Children.Clear();
             addSlideControlInBackground(slides[0]);
+            imageCropper.SizeChanged += imageCropper_SizeChanged;
             uiLoaded = true;
         }
 
+ 
         class WorkerResult
         {
             public Slide slide { get; set; }
@@ -200,7 +201,6 @@ namespace KB30
             openFileDialog.Filter = "Images (*.BMP;*.JPG;*.GIF)|*.BMP;*.JPG;*.GIF|All files (*.*)|*.*";
             if (openFileDialog.ShowDialog() == true)
             {
-                int selectMe = slides.Count;
                 foreach (String fname in openFileDialog.FileNames)
                 {
                     Slide newSlide = new Slide(fname);
@@ -208,10 +208,12 @@ namespace KB30
                     if (addSlideControl(newSlide))
                     {
                         slides.Add(newSlide);
-                        selectSlide(slides.Count - 1);
+                        if (fname == openFileDialog.FileNames.First())
+                        {
+                            selectSlide(slides.Count - 1);
+                        }
                     }
                 }
-                selectSlide(selectMe);
             }
         }
 
@@ -528,6 +530,11 @@ namespace KB30
             }
         }
 
+        private void imageCropper_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            selectKeyframe(slides[currentSlideIndex].keys[currentKeyframeIndex]);
+        }
+
 
         /************
          *  Animate!
@@ -580,7 +587,7 @@ namespace KB30
 
         private void mainWindowLoaded(object sender, RoutedEventArgs e)
         {
-            initialConfig = serializeCurrentConfig();
+            lastSavedConfig = serializeCurrentConfig();
             var allArgs = Environment.GetCommandLineArgs();
             if (allArgs.Length > 1)
             {
@@ -607,7 +614,7 @@ namespace KB30
                 currentSlideIndex = 0;
                 currentKeyframeIndex = 0;
                 currentFileName = "untitled";
-                initialConfig = serializeCurrentConfig();
+                lastSavedConfig = serializeCurrentConfig();
                 caption.Text = "Add a slide to get started...";
             }
         }
@@ -637,7 +644,7 @@ namespace KB30
                     slides.RemoveAt(i);
                 }
             }
-            initialConfig = jsonString;
+            lastSavedConfig = jsonString;
             currentFileName = filename;
             this.Title = "KB30 - " + currentFileName;
         }
@@ -659,7 +666,8 @@ namespace KB30
 
         private Boolean saveIfDirty()
         {
-            if (serializeCurrentConfig() != initialConfig)
+            String snapshot = serializeCurrentConfig();
+            if (snapshot != lastSavedConfig)
             {
                 MessageBoxResult result = MessageBox.Show("Save changes to " + currentFileName + "?", "KB30", MessageBoxButton.YesNoCancel);
                 switch (result)
@@ -709,7 +717,8 @@ namespace KB30
         {
             if (configValid())
             {
-                File.WriteAllText(filename, serializeCurrentConfig());
+                lastSavedConfig = serializeCurrentConfig();
+                File.WriteAllText(filename, lastSavedConfig);
                 currentFileName = filename;
                 return true;
             }
