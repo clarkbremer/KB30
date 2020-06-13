@@ -107,7 +107,7 @@ namespace KB30
                 selectSlide(0, false);
             }
             i++;
-            if(i < slides.Count - 1) {
+            if(i < slides.Count) {
                 caption.Text = "Loading slide " + (i + 1).ToString() + " of " + (slides.Count).ToString();
                 addSlideControlInBackground(slides[i]);
             }
@@ -200,6 +200,7 @@ namespace KB30
             openFileDialog.Filter = "Images (*.BMP;*.JPG;*.GIF)|*.BMP;*.JPG;*.GIF|All files (*.*)|*.*";
             if (openFileDialog.ShowDialog() == true)
             {
+                int selectMe = slides.Count;
                 foreach (String fname in openFileDialog.FileNames)
                 {
                     Slide newSlide = new Slide(fname);
@@ -210,6 +211,7 @@ namespace KB30
                         selectSlide(slides.Count - 1);
                     }
                 }
+                selectSlide(selectMe);
             }
         }
 
@@ -234,10 +236,11 @@ namespace KB30
                         {
                             currentSlideIndex++;
                         }
-                        if (fname == openFileDialog.FileNames.Last())
+                        if (fname == openFileDialog.FileNames.First())
                         {
                             selectSlide(insertIndex, true);
                         }
+                        insertIndex++;
                     }
                 }
             }
