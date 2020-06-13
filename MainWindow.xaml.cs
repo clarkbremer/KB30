@@ -15,6 +15,7 @@ using Newtonsoft.Json;
 /*
  * To DO:  
  *  Drag and Drop slides and keys to re-order
+ *  Insert group of slide - load in background?
  *  
  *  Bugs:
  *  - File sometimes looks dirty with no changes
@@ -41,7 +42,6 @@ namespace KB30
         private String soundtrack = "";
         private Boolean playWithArgumentFile = false;
         private Boolean uiLoaded = false;
-        private int slidesLoaded = 0;
 
         public MainWindow()
         {
@@ -60,7 +60,6 @@ namespace KB30
          */
         public void initializeSlidesUI()
         {
-            Cursor = Cursors.Wait;
             currentSlideIndex = 0;
             currentKeyframeIndex = 0;
             slidePanel.Children.Clear();
@@ -84,6 +83,7 @@ namespace KB30
             {
                 bmp.BeginInit();
                 bmp.UriSource = slide.uri;
+                bmp.DecodePixelWidth = 200;
                 bmp.EndInit();
                 bmp.Freeze();
             }
@@ -107,13 +107,14 @@ namespace KB30
                 selectSlide(0, false);
             }
             i++;
-            if(i < slides.Count) {
+            if(i < slides.Count - 1) {
                 caption.Text = "Loading slide " + (i + 1).ToString() + " of " + (slides.Count).ToString();
                 addSlideControlInBackground(slides[i]);
             }
             else
             {
-                Cursor = Cursors.Arrow;
+                caption.Text = "Done Loading";
+                selectSlide(0, false);
             }
         }
 
@@ -137,6 +138,7 @@ namespace KB30
                 {
                     bmp.BeginInit();
                     bmp.UriSource = slide.uri;
+                    bmp.DecodePixelWidth = 200;
                     bmp.EndInit();
                     bmp.Freeze();
                 }
@@ -147,7 +149,7 @@ namespace KB30
                 }
             }
             slideControl.image.Source = bmp;
-            slideControl.caption.Text = System.IO.Path.GetFileName(slide.fileName) + " (" + bmp.PixelWidth + " x " + bmp.PixelHeight + ")";
+            slideControl.caption.Text = System.IO.Path.GetFileName(slide.fileName);
             slideControl.button.Click += delegate (object sender, RoutedEventArgs e) { slideClick(sender, e, slide); };
             slideControl.CMCut.Click += delegate (object sender, RoutedEventArgs e) { cutSlideClick(sender, e, slide); };
             slideControl.CMPaste.Click += delegate (object sender, RoutedEventArgs e) { pasteSlideClick(sender, e, slide); };
@@ -181,7 +183,7 @@ namespace KB30
             (slidePanel.Children[currentSlideIndex] as SlideControl).Select();
             currentKeyframeIndex = 0;
             initializeKeysUI(slides[currentSlideIndex]);
-            caption.Text = slides[currentSlideIndex].fileName;
+            caption.Text = slides[currentSlideIndex].fileName + " (" + bitmap.PixelWidth + " x " + bitmap.PixelHeight + ")";
         }
 
         private void slideClick(object sender, RoutedEventArgs e, Slide slide)
@@ -201,7 +203,7 @@ namespace KB30
                 foreach (String fname in openFileDialog.FileNames)
                 {
                     Slide newSlide = new Slide(fname);
-                    newSlide.keys.Add(new KF(4.0, 0.5, 0.5, 0));
+                    newSlide.keys.Add(new KF(4.0, 0.5, 0.5, 1));
                     if (addSlideControl(newSlide))
                     {
                         slides.Add(newSlide);
@@ -224,10 +226,14 @@ namespace KB30
                 foreach (String fname in openFileDialog.FileNames)
                 {
                     Slide newSlide = new Slide(fname);
-                    newSlide.keys.Add(new KF(4.0, 0.5, 0.5, 0));
+                    newSlide.keys.Add(new KF(4.0, 0.5, 0.5, 1));
                     if (addSlideControl(newSlide, null, insertIndex))
                     {
                         slides.Insert(insertIndex, newSlide);
+                        if (currentSlideIndex >= insertIndex)
+                        {
+                            currentSlideIndex++;
+                        }
                         if (fname == openFileDialog.FileNames.Last())
                         {
                             selectSlide(insertIndex, true);
@@ -564,6 +570,7 @@ namespace KB30
                     {
                         initializeSlidesUI();
                     }
+                    playWithArgumentFile = false;
                 }
             }
         }

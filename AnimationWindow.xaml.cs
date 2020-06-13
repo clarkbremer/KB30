@@ -116,7 +116,7 @@ namespace KB30
 
         private void beginFadeOutIn()
         {
-            var duration = new Duration(TimeSpan.FromSeconds(1));
+            var duration = new Duration(TimeSpan.FromSeconds(1.5));
             var animFadeOut = new DoubleAnimation(1, 0, duration);
             var animFadeIn = new DoubleAnimation(0, 1, duration);
             animFadeIn.Completed += new EventHandler(endFadeOutIn);
@@ -153,11 +153,11 @@ namespace KB30
             {
                 nextSlideIndex = 0;
             }
+            startPanZoom(currentImage, slides[currentSlideIndex].keys);
 
             var bitmap = new BitmapImage(slides[nextSlideIndex].uri);
             otherImage.Source = bitmap;
 
-            startPanZoom(currentImage, slides[currentSlideIndex].keys);
         }
 
         private void startPanZoom(Image image, List<KF> keys)
@@ -250,9 +250,17 @@ namespace KB30
             if (newStart >= slides.Count) { newStart = 0; }
             animate(null, newStart, soundtrack);
         }
+
         void skipBack()
         {
-            if (currentClocks.First().CurrentProgress < 0.2)
+            if (currentClocks.First().CurrentProgress > 0.2)
+            {
+                currentClocks.ForEach(c =>
+                {
+                    c.Controller.Begin();
+                });
+            }
+            else
             {
                 currentClocks.ForEach(c =>
                 {
@@ -261,13 +269,6 @@ namespace KB30
                 int newStart = currentSlideIndex - 1;
                 if (newStart < 0) { newStart = slides.Count - 1; }
                 animate(null, newStart, soundtrack);
-            }
-            else
-            {
-                currentClocks.ForEach(c =>
-                {
-                    c.Controller.Begin();
-                });
             }
         }
         void speedUp()
@@ -293,10 +294,19 @@ namespace KB30
         {
             this.ToggleWindow();
         }
+
         private void KeyHandler(object sender, KeyEventArgs e)
         {
             switch (e.Key)
             {
+                case Key.Delete:
+                    if(this.WindowState == WindowState.Maximized)
+                    {
+                        ToggleWindow();
+                    }
+                    MessageBox.Show("Breakpoint");
+                    break;
+
                 case Key.Enter:
                     this.ToggleWindow();
                     break;
@@ -356,6 +366,16 @@ namespace KB30
                         this.WindowStyle = WindowStyle.None;
                     }
                     break;
+            }
+            if (slides.Count > 0)
+            {
+                currentClocks.ForEach(c =>
+                {
+                    c.Controller.Stop();
+                });
+                transformImage(currentImage, slides[currentSlideIndex].keys[0]);
+                startPanZoom(currentImage, slides[currentSlideIndex].keys);
+
             }
         }
 
