@@ -45,10 +45,10 @@ namespace KB30
         public Uri uri;
 
         private string _fileName;
-        public string fileName 
-        {  
+        public string fileName
+        {
             get { return _fileName; }
-            set { _fileName = value;  uri = new Uri(_fileName); }
+            set { _fileName = value; uri = new Uri(_fileName); }
         }
 
         public List<KF> keys { get; set; }
@@ -61,7 +61,5 @@ namespace KB30
             fileName = s;
             keys = new List<KF>();
         }
-
-
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+﻿using System;
+using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace KB30
@@ -19,6 +20,15 @@ namespace KB30
         public void DeSelect()
         {
             SelectBorder.BorderBrush = Brushes.LightBlue;
+        }
+
+        public Boolean IsChecked(){
+            return checkbox.IsChecked == true;
+        }
+
+        public void UnCheck()
+        {
+            checkbox.IsChecked = false;
         }
     }
 }

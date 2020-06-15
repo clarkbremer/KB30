@@ -35,7 +35,7 @@ namespace KB30
         public int currentKeyframeIndex = 0;
         private String currentFileName = "untitled";
         public List<Slide> slides = new List<Slide>();
-        public Slide clipboardSlide = null;
+        public List<Slide> clipboardSlides = new List<Slide>();
         public KF clipboardKey = null;
         private String lastSavedConfig;
         private String soundtrack = "";
@@ -189,8 +189,11 @@ namespace KB30
 
         private void slideClick(object sender, RoutedEventArgs e, Slide slide)
         {
-            int index = slides.IndexOf(slide, 0);
-            selectSlide(index);
+            if (!(e.OriginalSource is CheckBox))
+            {
+                int index = slides.IndexOf(slide, 0);
+                selectSlide(index);
+            }
         }
 
         private void addSlideClick(object sender, RoutedEventArgs e)
@@ -248,44 +251,63 @@ namespace KB30
             }
         }
 
-        private void pasteSlideClick(object sender, RoutedEventArgs e, Slide slide)
+        private void pasteSlideClick(object sender, RoutedEventArgs e, Slide insertSlide)
         {
-            var insertIndex = slides.IndexOf(slide);
-            slides.Insert(insertIndex, clipboardSlide);
-            slidePanel.Children.Insert(insertIndex, clipboardSlide.slideControl);
-            if (currentSlideIndex >= insertIndex)
+            var insertIndex = slides.IndexOf(insertSlide);
+            foreach (Slide slide in clipboardSlides)
             {
-                currentSlideIndex++;
+                slides.Insert(insertIndex, slide);
+                slidePanel.Children.Insert(insertIndex, slide.slideControl);
+                if (currentSlideIndex >= insertIndex)
+                {
+                    currentSlideIndex++;
+                }
+                if (slide == clipboardSlides.First())
+                {
+                    selectSlide(insertIndex, true);
+                }
+                insertIndex++;
             }
-            clipboardSlide = null;
+            clipboardSlides.Clear();
+            foreach (Slide slide in slides) { slide.slideControl.UnCheck(); }
         }
 
-        private void cutSlideClick(object sender, RoutedEventArgs e, Slide slide)
+        private void cutSlideClick(object sender, RoutedEventArgs e, Slide s)
         {
-            if (slides.Count == 1)
+            clipboardSlides.Clear();
+            foreach (Slide slide in slides)
             {
-                MessageBox.Show("At least one slide is required");
-                return;
-            }
-            var victimIndex = slides.IndexOf(slide);
-
-            if (currentSlideIndex == victimIndex)
-            {
-                if (currentSlideIndex == (slides.Count - 1))
+                if (slide.slideControl.IsChecked())
                 {
-                    selectSlide(currentSlideIndex - 1);
-                }
-                else
-                {
-                    selectSlide(currentSlideIndex + 1);
+                    clipboardSlides.Add(slide);
                 }
             }
+            if(clipboardSlides.Count == 0)
+            {
+                clipboardSlides.Add(s);
+            }
+            
+            foreach (Slide slide in clipboardSlides) 
+            {
+                int victimIndex = slides.IndexOf(slide);
+                
+                if (currentSlideIndex == victimIndex) 
+                {
+                    if (currentSlideIndex == (slides.Count - 1))
+                    {
+                        selectSlide(currentSlideIndex - 1);
+                    }
+                    else
+                    {
+                        selectSlide(currentSlideIndex + 1);
+                    }
+                }
 
-            slidePanel.Children.Remove(slide.slideControl);
-            clipboardSlide = slide;
-            slides.Remove(slide);
+                slidePanel.Children.Remove(slide.slideControl);
+                slides.Remove(slide);
 
-            if (currentSlideIndex > victimIndex) { currentSlideIndex--; }
+                if (currentSlideIndex > victimIndex) { currentSlideIndex--; }
+            } 
         }
 
         private void playFromHereClick(object sender, RoutedEventArgs e, Slide slide)
@@ -295,7 +317,7 @@ namespace KB30
 
         private void slideContextMenuOpened(object sender, RoutedEventArgs e, Slide slide)
         {
-            if(clipboardSlide == null)
+            if(clipboardSlides.Count == 0)
             {
                 slide.slideControl.CMPaste.IsEnabled = false;
             }

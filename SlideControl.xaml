@@ -11,11 +11,12 @@
             <Grid>
                 <Image Name="image" />
                 <TextBlock x:Name="caption" Background="White" Text="Filename and Size" HorizontalAlignment="Center" VerticalAlignment="Bottom" Padding="5,2,5,2"></TextBlock>
+                <CheckBox Name="checkbox" HorizontalAlignment="Left" VerticalAlignment="Top"></CheckBox>
             </Grid>
             <Button.ContextMenu>
                 <ContextMenu Name="SlideContextMenu">
-                    <MenuItem Name="CMCut" Header="Cut Slide"></MenuItem>
-                    <MenuItem Name="CMPaste" Header="Paste Slide Above"></MenuItem>
+                    <MenuItem Name="CMCut" Header="Cut Slide(s)"></MenuItem>
+                    <MenuItem Name="CMPaste" Header="Paste Slide(s) Above"></MenuItem>
                     <MenuItem Name="CMInsert" Header="Insert New Slide(s) Above"></MenuItem>
                     <MenuItem Name="CMPlayFromHere" Header="Play Starting Here"></MenuItem>
                 </ContextMenu>
