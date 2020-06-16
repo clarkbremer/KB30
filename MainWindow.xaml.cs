@@ -170,10 +170,10 @@ namespace KB30
             return true;
         }
 
-        public void selectSlide(int slideIndex, Boolean deselectOld = true)
+        public void selectSlide(int slideIndex, Boolean unbindOld = true)
         {
-            (slidePanel.Children[currentSlideIndex] as SlideControl).DeSelect();
-            if (deselectOld) { 
+            slides[currentSlideIndex].slideControl.DeSelect();
+            if (unbindOld) { 
                 KF oldKey = slides[currentSlideIndex].keys[currentKeyframeIndex];
                 KeyframeControl oldKFControl = oldKey.kfControl;
                 unBindKFC(oldKFControl, oldKey);
@@ -181,7 +181,14 @@ namespace KB30
             currentSlideIndex = slideIndex;
             var bitmap = new BitmapImage(slides[slideIndex].uri);
             imageCropper.image.Source = bitmap;
-            (slidePanel.Children[currentSlideIndex] as SlideControl).Select();
+
+            if (!Keyboard.IsKeyDown(Key.LeftCtrl) && !Keyboard.IsKeyDown(Key.RightCtrl))
+            {
+                foreach (SlideControl sc in slidePanel.Children) { sc.UnCheck(); }
+            }
+
+            slides[currentSlideIndex].slideControl.Select();
+
             currentKeyframeIndex = 0;
             initializeKeysUI(slides[currentSlideIndex]);
             caption.Text = slides[currentSlideIndex].fileName + " (" + bitmap.PixelWidth + " x " + bitmap.PixelHeight + ")";
@@ -189,11 +196,10 @@ namespace KB30
 
         private void slideClick(object sender, RoutedEventArgs e, Slide slide)
         {
-            if (!(e.OriginalSource is CheckBox))
-            {
-                int index = slides.IndexOf(slide, 0);
-                selectSlide(index);
-            }
+            if (e.OriginalSource is CheckBox) { return; }
+
+            int index = slides.IndexOf(slide, 0);
+            selectSlide(index);
         }
 
         private void addSlideClick(object sender, RoutedEventArgs e)
