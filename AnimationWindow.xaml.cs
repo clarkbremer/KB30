@@ -216,6 +216,9 @@ namespace KB30
             tg.Children[1].ApplyAnimationClock(ScaleTransform.ScaleYProperty, zClock);
             tg.Children[1].ApplyAnimationClock(ScaleTransform.CenterXProperty, cxClock);
             tg.Children[1].ApplyAnimationClock(ScaleTransform.CenterYProperty, cyClock);
+
+            status.Text = (currentSlideIndex + 1).ToString() + " of " + slides.Count;
+            status.Visibility = Visibility.Visible;
         }
 
         void togglePauseAnimation()
