@@ -27,6 +27,7 @@
                 <MenuItem Header="O_pen"   Click="fileOpenClick"/>
                 <MenuItem Header="_Save"   Click="fileSaveClick"/>
                 <MenuItem Header="Save_As" Click="fileSaveAsClick"/>
+                <MenuItem Header="Details" Click="fileDetailsClick"/>
                 <MenuItem Header="Soundtrack" Click="soundtrackClick"/>
             </MenuItem>
         </Menu>

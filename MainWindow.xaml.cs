@@ -191,7 +191,7 @@ namespace KB30
 
             currentKeyframeIndex = 0;
             initializeKeysUI(slides[currentSlideIndex]);
-            caption.Text = slides[currentSlideIndex].fileName + " (" + bitmap.PixelWidth + " x " + bitmap.PixelHeight + ")";
+            caption.Text = slides[currentSlideIndex].fileName + " (" + bitmap.PixelWidth + " x " + bitmap.PixelHeight + ")  " + (slideIndex+1) + " of " + slides.Count;
         }
 
         private void slideClick(object sender, RoutedEventArgs e, Slide slide)
@@ -323,12 +323,16 @@ namespace KB30
 
         private void slideContextMenuOpened(object sender, RoutedEventArgs e, Slide slide)
         {
+            int numSelected = slides.Count( s=> s.slideControl.IsChecked());
+            slide.slideControl.CMCut.Header = "Cut " + numSelected + " Slide(s)";
             if(clipboardSlides.Count == 0)
             {
+                slide.slideControl.CMPaste.Header = "Paste Slide(s) Above";
                 slide.slideControl.CMPaste.IsEnabled = false;
             }
             else
             {
+                slide.slideControl.CMPaste.Header = "Paste " + clipboardSlides.Count + " Slides(s) Above";
                 slide.slideControl.CMPaste.IsEnabled = true;
             }
         }
@@ -560,7 +564,10 @@ namespace KB30
 
         private void imageCropper_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            selectKeyframe(slides[currentSlideIndex].keys[currentKeyframeIndex]);
+            if (slides.Count > 0)
+            {
+                selectKeyframe(slides[currentSlideIndex].keys[currentKeyframeIndex]);
+            }
         }
 
 
@@ -775,6 +782,24 @@ namespace KB30
                 saveIt(currentFileName);
             }
         }
+        private void fileDetailsClick(object sender, RoutedEventArgs e)
+        {
+            double totalDuration = 0;
+            foreach(Slide s in slides)
+            {
+                foreach(KF k in s.keys)
+                {
+                    totalDuration += k.duration;
+                }
+            }
+            int durationMins = (int)(totalDuration / 60);
+            int durationSecs = (int)(totalDuration % 60);
+            MessageBox.Show(slides.Count +  " slides." + Environment.NewLine + 
+                            "Total duration " + durationMins + ":"+ durationSecs.ToString("D2") + Environment.NewLine +
+                            "Soundtrack: " + soundtrack, "File Info");
+        }
+
+        
 
         private void mainWindowClosing(object sender, CancelEventArgs e)
         {

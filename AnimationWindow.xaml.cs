@@ -220,7 +220,8 @@ namespace KB30
 
         void togglePauseAnimation()
         {
-            if (paused)
+            
+             if (paused)
             {
                 currentClocks.ForEach(c =>
                 {

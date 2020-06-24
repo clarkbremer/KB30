@@ -4,6 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Resources\Archigraphs-Oldies-Old-House.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>

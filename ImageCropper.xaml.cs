@@ -15,6 +15,13 @@ namespace KB30
         public ImageCropper()
         {
             InitializeComponent();
+            Loaded += cropperLoaded;
+        }
+
+        private void cropperLoaded(object sender, RoutedEventArgs e)
+        {
+            var parentWindow = Window.GetWindow(this);
+            parentWindow.PreviewKeyDown += cropperKeyDown;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -30,7 +37,7 @@ namespace KB30
                 double ix = (grid.ActualWidth - image.ActualWidth) / 2;
                 double rx = Canvas.GetLeft(cropper);
                 double rw = cropper.Width;
-                return Math.Round(((rx - ix + (rw / 2))/ image.ActualWidth), 3);
+                return Math.Round(((rx - ix + (rw / 2)) / image.ActualWidth), 3);
             }
 
             set
@@ -49,7 +56,7 @@ namespace KB30
                 double iy = (grid.ActualHeight - image.ActualHeight) / 2;
                 double ry = Canvas.GetTop(cropper);
                 double rh = cropper.Height;
-                return Math.Round(((ry - iy + (rh / 2))/ image.ActualHeight), 3);
+                return Math.Round(((ry - iy + (rh / 2)) / image.ActualHeight), 3);
             }
 
             set
@@ -70,11 +77,12 @@ namespace KB30
                 double ih = image.ActualHeight;
                 double z;
 
-                if ((iw * 9) < (ih * 16))
+                if ((iw * 9) < (ih * 16))  // portrait
                 {
                     z = Math.Round((image.ActualHeight / cropper.ActualHeight), 3);
                 }
-                else { 
+                else // landscape
+                {
                     z = Math.Round((image.ActualWidth / cropper.ActualWidth), 3);
                 }
                 return z;
@@ -85,7 +93,7 @@ namespace KB30
                 double iw = image.ActualWidth;
                 double ih = image.ActualHeight;
 
-                if((iw * 9) < (ih * 16))
+                if ((iw * 9) < (ih * 16))
                 {
                     cropper.Height = image.ActualHeight / value;
                     cropper.Width = cropper.Height * 16 / 9;
@@ -213,7 +221,6 @@ namespace KB30
                 // Get the rectangle's current position.
                 double new_x = Canvas.GetLeft(cropper);
                 double new_y = Canvas.GetTop(cropper);
-                double bottom = Canvas.GetBottom(cropper);
                 double new_width = cropper.Width;
                 double new_height = cropper.Height;
 
@@ -268,23 +275,29 @@ namespace KB30
                         break;
                 }
 
-                // Don't allow tiny rectangle
-                if ((new_width > 25) && (new_height > 25) )
-                {
-                    // Update the rectangle.
-                    Canvas.SetLeft(cropper, new_x);
-                    Canvas.SetTop(cropper, new_y);
-                    cropper.Width = new_width;
-                    cropper.Height = new_height;
+                // Save the mouse's new location.
+                LastPoint = point;
+                updateCropper(new_x, new_y, new_width, new_height);
+            }
+        }
 
-                    // Save the mouse's new location.
-                    LastPoint = point;
+        void updateCropper(double new_x, double new_y, double new_width, double new_height)
+        {
 
-                    // Tell the world
-                    OnPropertyChanged("cropX");
-                    OnPropertyChanged("cropY");
-                    OnPropertyChanged("cropZoom");
-                }
+            // Don't allow tiny rectangle
+            if ((new_width > 25) && (new_height > 25))
+            {
+                // Update the rectangle.
+                Canvas.SetLeft(cropper, new_x);
+                Canvas.SetTop(cropper, new_y);
+                cropper.Width = new_width;
+                cropper.Height = new_height;
+                this.UpdateLayout();
+
+                // Tell the world
+                OnPropertyChanged("cropX");
+                OnPropertyChanged("cropY");
+                OnPropertyChanged("cropZoom");
             }
         }
 
@@ -292,6 +305,33 @@ namespace KB30
         private void cropperMouseUp(object sender, MouseButtonEventArgs e)
         {
             DragInProgress = false;
+        }
+
+        private void cropperKeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Left:
+                case Key.Right:
+                    // Get the rectangle's current position.
+
+                    if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+                    {
+                        double old_height = cropper.Height;
+                        double new_y = Canvas.GetTop(cropper);
+                        double new_x = (grid.ActualWidth - image.ActualWidth) / 2;
+                        double new_width = image.ActualWidth;
+                        double new_height = new_width * 9 / 16;
+                        new_y += (old_height - new_height) / 2;
+                        updateCropper(new_x, new_y, new_width, new_height);
+                        e.Handled = true;
+                    }
+                    break;
+
+                default:
+                    e.Handled = false;
+                    break;
+            }
         }
     }
 }
