@@ -167,6 +167,7 @@ namespace KB30
                 slidePanel.Children.Insert(insertPosition, slideControl);
             }
             slideControl.DeSelect();
+            renumberSlides();
             return true;
         }
 
@@ -276,6 +277,7 @@ namespace KB30
             }
             clipboardSlides.Clear();
             foreach (Slide slide in slides) { slide.slideControl.UnCheck(); }
+            renumberSlides();
         }
 
         private void cutSlideClick(object sender, RoutedEventArgs e, Slide s)
@@ -313,7 +315,19 @@ namespace KB30
                 slides.Remove(slide);
 
                 if (currentSlideIndex > victimIndex) { currentSlideIndex--; }
-            } 
+            }
+            renumberSlides();
+        }
+
+        private void renumberSlides()
+        {
+            foreach(Slide slide in slides)
+            {
+                if (slide.slideControl != null)
+                {
+                    slide.slideControl.slideNumber = slides.IndexOf(slide) + 1;
+                }
+            }
         }
 
         private void playFromHereClick(object sender, RoutedEventArgs e, Slide slide)
@@ -792,6 +806,7 @@ namespace KB30
                     totalDuration += k.duration;
                 }
             }
+            totalDuration += slides.Count * 1.5;  // fade in/out Transitions
             int durationMins = (int)(totalDuration / 60);
             int durationSecs = (int)(totalDuration % 60);
             MessageBox.Show(slides.Count +  " slides." + Environment.NewLine + 

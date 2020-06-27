@@ -51,5 +51,11 @@ namespace KB30
                 checkbox.IsChecked = true;
             }
         }
+
+        public int slideNumber
+        {
+            get { return Convert.ToInt32(slideText.Text); }
+            set { slideText.Text = value.ToString(); }
+        }
     }
 }

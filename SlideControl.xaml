@@ -12,6 +12,7 @@
                 <Image Name="image" />
                 <TextBlock x:Name="caption" Background="White" Text="Filename and Size" HorizontalAlignment="Center" VerticalAlignment="Bottom" Padding="5,2,5,2"></TextBlock>
                 <CheckBox Name="checkbox" HorizontalAlignment="Left" VerticalAlignment="Top"></CheckBox>
+                <TextBlock x:Name="slideText" Background="Black" Foreground="White" Text="99" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="2,0,2,0"></TextBlock>
             </Grid>
             <Button.ContextMenu>
                 <ContextMenu Name="SlideContextMenu">
