@@ -115,7 +115,7 @@ namespace KB30
             else
             {
                 caption.Text = "Done Loading";
-                selectSlide(0, false);
+                selectSlide(0, true);
             }
         }
 

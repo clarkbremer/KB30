@@ -28,6 +28,6 @@
                 </Image.RenderTransform>
             </Image>
         </Border>
-        <TextBlock x:Name="status" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent" Foreground="LightGreen" FontSize="12" Margin="10"></TextBlock>
+        <TextBlock x:Name="status" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Black" Foreground="LightSkyBlue" FontSize="12" Margin="0"></TextBlock>
     </Grid>
 </Window>
