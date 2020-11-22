@@ -25,6 +25,12 @@ namespace KB30
         double speedFactor = 1;
         String soundtrack = "";
 
+        const int NONE = 0;
+        const int PAN_ZOOM = 1;
+        const int FADE_OUT_IN = 2;
+
+        private int animationState = NONE;
+        
         private static readonly CubicEase easeOut = new CubicEase() { EasingMode = EasingMode.EaseOut };
         private static readonly CubicEase easeIn = new CubicEase() { EasingMode = EasingMode.EaseIn };
         private static readonly CubicEase easeInOut = new CubicEase() { EasingMode = EasingMode.EaseInOut };
@@ -87,7 +93,7 @@ namespace KB30
             }
             frame1.Opacity = 1;
             frame2.Opacity = 0;
-            startPanZoom(currentImage, slides[currentSlideIndex].keys);
+            beginPanZoom(currentImage, slides[currentSlideIndex].keys);
         }
 
         private void mediaPlayerEnded(object sender, EventArgs e)
@@ -127,6 +133,7 @@ namespace KB30
 
         private void beginFadeOutIn()
         {
+            animationState = FADE_OUT_IN;
             var duration = new Duration(TimeSpan.FromSeconds(1.5));
             var animFadeOut = new DoubleAnimation(1, 0, duration);
             var animFadeIn = new DoubleAnimation(0, 1, duration);
@@ -165,12 +172,14 @@ namespace KB30
             {
                 nextSlideIndex = 0;
             }
-            startPanZoom(currentImage, slides[currentSlideIndex].keys);
+            beginPanZoom(currentImage, slides[currentSlideIndex].keys);
+
+            // Load next image *after* we start pan/zoom, for smoother transititions.
             var bitmap = new BitmapImage(slides[nextSlideIndex].uri);
             otherImage.Source = bitmap;
         }
 
-        private void startPanZoom(Image image, List<KF> keys)
+        private void beginPanZoom(Image image, List<KF> keys)
         {
             var iw = image.ActualWidth;
             var ih = image.ActualHeight;
@@ -229,6 +238,7 @@ namespace KB30
 
             status.Text = " " + (currentSlideIndex + 1).ToString() + " of " + slides.Count + " ";
             status.Visibility = Visibility.Visible;
+            animationState = PAN_ZOOM;
         }
 
         void togglePauseAnimation()
@@ -261,29 +271,42 @@ namespace KB30
 
         void skipBack()
         {
-            if (currentClocks.First().CurrentProgress > 0.2)
+            if(animationState == PAN_ZOOM)
             {
-                currentClocks.ForEach(c =>
+                if (currentClocks.First().CurrentProgress > 0.2)
                 {
-                    c.Controller.Begin();
-                });
+                    currentClocks.ForEach(c =>
+                    {
+                        c.Controller.Begin();
+                    });
+                }
+                else
+                {
+                    currentSlideIndex = currentSlideIndex - 2;
+                    if(currentSlideIndex < 0)
+                    {
+                        currentSlideIndex = currentSlideIndex + slides.Count;
+                    }
+                    nextSlideIndex = currentSlideIndex + 1;
+                    if (nextSlideIndex >= slides.Count) { nextSlideIndex = 0; }
+                    var bitmap = new BitmapImage(slides[nextSlideIndex].uri);
+                    otherImage.Source = bitmap;
+                    skip_fade = true;
+                    fillAllClocks();
+                }
             }
             else
             {
-                // stopAllClocks();
-                // int newStart = currentSlideIndex - 1;
-                // if (newStart < 0) { newStart = slides.Count - 1; }
-                // startAnimation(newStart);
-                currentSlideIndex = currentSlideIndex - 2;
-                if(currentSlideIndex < 0)
+                currentSlideIndex = currentSlideIndex - 1;
+                if (currentSlideIndex < 0)
                 {
                     currentSlideIndex = currentSlideIndex + slides.Count;
                 }
                 nextSlideIndex = currentSlideIndex + 1;
                 if (nextSlideIndex >= slides.Count) { nextSlideIndex = 0; }
+
                 var bitmap = new BitmapImage(slides[nextSlideIndex].uri);
-                otherImage.Source = bitmap;
-                skip_fade = true;
+                currentImage.Source = bitmap;
                 fillAllClocks();
             }
         }
@@ -388,7 +411,7 @@ namespace KB30
             {
                 stopAllClocks();
                 transformImage(currentImage, slides[currentSlideIndex].keys[0]);
-                startPanZoom(currentImage, slides[currentSlideIndex].keys);
+                beginPanZoom(currentImage, slides[currentSlideIndex].keys);
             }
         }
 
