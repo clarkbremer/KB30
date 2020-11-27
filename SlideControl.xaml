@@ -19,8 +19,10 @@
             <Button.ContextMenu>
                 <ContextMenu Name="SlideContextMenu">
                     <MenuItem Name="CMCut" Header="Cut Slide(s)"></MenuItem>
-                    <MenuItem Name="CMPaste" Header="Paste Slide(s) Above"></MenuItem>
-                    <MenuItem Name="CMInsert" Header="Insert New Slide(s) Above"></MenuItem>
+                    <MenuItem Name="CMPasteAbove" Header="Paste Slide(s) Above"></MenuItem>
+                    <MenuItem Name="CMPasteBelow" Header="Paste Slide(s) Below"></MenuItem>
+                    <MenuItem Name="CMInsertAbove" Header="Insert New Slide(s) Above"></MenuItem>
+                    <MenuItem Name="CMInsertBelow" Header="Insert New Slide(s) Below"></MenuItem>
                     <MenuItem Name="CMPlayFromHere" Header="Play Starting Here"></MenuItem>
                 </ContextMenu>
             </Button.ContextMenu>

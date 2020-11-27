@@ -31,6 +31,10 @@ namespace KB30
     {
         const double CONFIG_VERSION = 1.0;
         const double DEFAULT_DURATION = 10.0;
+
+        const int ABOVE = 1;
+        const int BELOW = 2;
+
         public int currentSlideIndex = 0;
         public int currentKeyframeIndex = 0;
         private String currentFileName = "untitled";
@@ -153,8 +157,10 @@ namespace KB30
             slideControl.caption.Text = System.IO.Path.GetFileName(slide.fileName);
             slideControl.button.Click += delegate (object sender, RoutedEventArgs e) { slideClick(sender, e, slide); };
             slideControl.CMCut.Click += delegate (object sender, RoutedEventArgs e) { cutSlideClick(sender, e, slide); };
-            slideControl.CMPaste.Click += delegate (object sender, RoutedEventArgs e) { pasteSlideClick(sender, e, slide); };
-            slideControl.CMInsert.Click += delegate (object sender, RoutedEventArgs e) { insertSlideClick(sender, e, slide); };
+            slideControl.CMPasteAbove.Click += delegate (object sender, RoutedEventArgs e) { pasteSlideClick(sender, e, slide, ABOVE); };
+            slideControl.CMPasteBelow.Click += delegate (object sender, RoutedEventArgs e) { pasteSlideClick(sender, e, slide, BELOW); };
+            slideControl.CMInsertAbove.Click += delegate (object sender, RoutedEventArgs e) { insertSlideClick(sender, e, slide, ABOVE); };
+            slideControl.CMInsertBelow.Click += delegate (object sender, RoutedEventArgs e) { insertSlideClick(sender, e, slide, BELOW); };
             slideControl.CMPlayFromHere.Click += delegate (object sender, RoutedEventArgs e) { playFromHereClick(sender, e, slide); };
             slideControl.SlideContextMenu.Opened += delegate (object sender, RoutedEventArgs e) { slideContextMenuOpened(sender, e, slide); };
             slide.slideControl = slideControl;
@@ -227,9 +233,13 @@ namespace KB30
             }
         }
 
-        private void insertSlideClick(object sender, RoutedEventArgs e, Slide slide)
+        private void insertSlideClick(object sender, RoutedEventArgs e, Slide slide, int position)
         {
             var insertIndex = slides.IndexOf(slide);
+
+            if (position == BELOW) { 
+                insertIndex += 1;
+            }
 
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Title = "Select image file(s)";
@@ -255,12 +265,17 @@ namespace KB30
                         insertIndex++;
                     }
                 }
+                renumberSlides();
             }
         }
-
-        private void pasteSlideClick(object sender, RoutedEventArgs e, Slide insertSlide)
+    
+        private void pasteSlideClick(object sender, RoutedEventArgs e, Slide insertSlide, int direction)
         {
             var insertIndex = slides.IndexOf(insertSlide);
+            if (direction == BELOW) {
+                insertIndex += 1;
+            }
+
             foreach (Slide slide in clipboardSlides)
             {
                 slides.Insert(insertIndex, slide);
@@ -279,6 +294,7 @@ namespace KB30
             foreach (Slide slide in slides) { slide.slideControl.UnCheck(); }
             renumberSlides();
         }
+
 
         private void cutSlideClick(object sender, RoutedEventArgs e, Slide s)
         {
@@ -341,13 +357,17 @@ namespace KB30
             slide.slideControl.CMCut.Header = "Cut " + numSelected + " Slide(s)";
             if(clipboardSlides.Count == 0)
             {
-                slide.slideControl.CMPaste.Header = "Paste Slide(s) Above";
-                slide.slideControl.CMPaste.IsEnabled = false;
+                slide.slideControl.CMPasteAbove.Header = "Paste Slide(s) Above";
+                slide.slideControl.CMPasteBelow.Header = "Paste Slide(s) Below";
+                slide.slideControl.CMPasteAbove.IsEnabled = false;
+                slide.slideControl.CMPasteBelow.IsEnabled = false;
             }
             else
             {
-                slide.slideControl.CMPaste.Header = "Paste " + clipboardSlides.Count + " Slides(s) Above";
-                slide.slideControl.CMPaste.IsEnabled = true;
+                slide.slideControl.CMPasteAbove.Header = "Paste " + clipboardSlides.Count + " Slides(s) Above";
+                slide.slideControl.CMPasteBelow.Header = "Paste " + clipboardSlides.Count + " Slides(s) Below";
+                slide.slideControl.CMPasteAbove.IsEnabled = true;
+                slide.slideControl.CMPasteBelow.IsEnabled = true;
             }
         }
 
