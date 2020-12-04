@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -27,6 +28,18 @@ namespace KB30
             }
         }
 
+        public void highlightAbove()
+        {
+            SelectBorder.BorderThickness = new Thickness(5, 25, 5, 5);
+        }
+        public void highlightBelow()
+        {
+            SelectBorder.BorderThickness = new Thickness(5, 5, 5, 25);
+        }
+        public void highlightClear()
+        {
+            SelectBorder.BorderThickness = new Thickness(5, 5, 5, 5);
+        }
         public Boolean IsChecked(){
             return checkbox.IsChecked == true;
         }

@@ -156,6 +156,9 @@ namespace KB30
             slideControl.image.Source = bmp;
             slideControl.caption.Text = System.IO.Path.GetFileName(slide.fileName);
             slideControl.button.Click += delegate (object sender, RoutedEventArgs e) { slideClick(sender, e, slide); };
+            slideControl.Drop += delegate (object sender, DragEventArgs e) { slideDrop(sender, e, slide); };
+            slideControl.DragOver += delegate (object sender, DragEventArgs e) { slideDragOver(sender, e, slide); };
+            slideControl.DragLeave += delegate (object sender, DragEventArgs e) { slideDragLeave(sender, e, slide); };
             slideControl.CMCut.Click += delegate (object sender, RoutedEventArgs e) { cutSlideClick(sender, e, slide); };
             slideControl.CMPasteAbove.Click += delegate (object sender, RoutedEventArgs e) { pasteSlideClick(sender, e, slide, ABOVE); };
             slideControl.CMPasteBelow.Click += delegate (object sender, RoutedEventArgs e) { pasteSlideClick(sender, e, slide, BELOW); };
@@ -200,7 +203,23 @@ namespace KB30
             initializeKeysUI(slides[currentSlideIndex]);
             caption.Text = slides[currentSlideIndex].fileName + " (" + bitmap.PixelWidth + " x " + bitmap.PixelHeight + ")  " + (slideIndex+1) + " of " + slides.Count;
         }
-
+        private void addSlides(string[] fileNames)
+        {
+            foreach (String fname in fileNames)
+            {
+                Slide newSlide = new Slide(fname);
+                newSlide.keys.Add(new KF(4.0, 0.5, 0.5, 1));
+                if (addSlideControl(newSlide))
+                {
+                    slides.Add(newSlide);
+                    if (fname == fileNames.First())
+                    {
+                        selectSlide(slides.Count - 1);
+                    }
+                }
+            }
+            renumberSlides();
+        }
         private void slideClick(object sender, RoutedEventArgs e, Slide slide)
         {
             if (e.OriginalSource is CheckBox) { return; }
@@ -217,55 +236,47 @@ namespace KB30
             openFileDialog.Filter = "Images (*.BMP;*.JPG;*.GIF)|*.BMP;*.JPG;*.GIF|All files (*.*)|*.*";
             if (openFileDialog.ShowDialog() == true)
             {
-                foreach (String fname in openFileDialog.FileNames)
+                addSlides(openFileDialog.FileNames);
+            }
+        }
+
+        private void insertSlides(string[] fileNames, Slide slide, int position)
+        {
+            var insertIndex = slides.IndexOf(slide);
+            if (position == BELOW)
+            {
+                insertIndex += 1;
+            }
+            foreach (String fname in fileNames)
+            {
+                Slide newSlide = new Slide(fname);
+                newSlide.keys.Add(new KF(4.0, 0.5, 0.5, 1));
+                if (addSlideControl(newSlide, null, insertIndex))
                 {
-                    Slide newSlide = new Slide(fname);
-                    newSlide.keys.Add(new KF(4.0, 0.5, 0.5, 1));
-                    if (addSlideControl(newSlide))
+                    slides.Insert(insertIndex, newSlide);
+                    if (currentSlideIndex >= insertIndex)
                     {
-                        slides.Add(newSlide);
-                        if (fname == openFileDialog.FileNames.First())
-                        {
-                            selectSlide(slides.Count - 1);
-                        }
+                        currentSlideIndex++;
                     }
+                    if (fname == fileNames.First())
+                    {
+                        selectSlide(insertIndex, true);
+                    }
+                    insertIndex++;
                 }
             }
+            renumberSlides();
         }
 
         private void insertSlideClick(object sender, RoutedEventArgs e, Slide slide, int position)
         {
-            var insertIndex = slides.IndexOf(slide);
-
-            if (position == BELOW) { 
-                insertIndex += 1;
-            }
-
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Title = "Select image file(s)";
             openFileDialog.Multiselect = true;
             openFileDialog.Filter = "Images (*.BMP;*.JPG;*.GIF)|*.BMP;*.JPG;*.GIF|All files (*.*)|*.*";
             if (openFileDialog.ShowDialog() == true)
             {
-                foreach (String fname in openFileDialog.FileNames)
-                {
-                    Slide newSlide = new Slide(fname);
-                    newSlide.keys.Add(new KF(4.0, 0.5, 0.5, 1));
-                    if (addSlideControl(newSlide, null, insertIndex))
-                    {
-                        slides.Insert(insertIndex, newSlide);
-                        if (currentSlideIndex >= insertIndex)
-                        {
-                            currentSlideIndex++;
-                        }
-                        if (fname == openFileDialog.FileNames.First())
-                        {
-                            selectSlide(insertIndex, true);
-                        }
-                        insertIndex++;
-                    }
-                }
-                renumberSlides();
+                insertSlides(openFileDialog.FileNames, slide, position);
             }
         }
     
@@ -661,7 +672,7 @@ namespace KB30
             if (allArgs.Length > 1)
             {
                 var filenameArgument = allArgs[1];
-                playWithArgumentFile = true;                
+                playWithArgumentFile = true;
                 loadIt(filenameArgument);
                 playIt();
             }
@@ -851,6 +862,66 @@ namespace KB30
             if (openFileDialog.ShowDialog() == true)
             {
                 soundtrack = openFileDialog.FileName;
+            }
+        }
+
+        private void slidePanelDrop(object sender, DragEventArgs e)
+        {
+            if (e.OriginalSource is ScrollViewer)
+            {
+                slideDrop(sender, e);
+            }
+        }
+        private void slideDrop(object sender, DragEventArgs e, Slide slide = null)
+        {
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (slide == null)
+            {
+                addSlides(files);
+            } else
+            {
+                if (sender is SlideControl)
+                {
+                    SlideControl sc = (SlideControl)sender;
+                    Point p = e.GetPosition(sc);
+                    if (p.Y < (sc.ActualHeight / 2))
+                    {
+                        insertSlides(files, slide, ABOVE);
+                    }
+                    else
+                    {
+                        insertSlides(files, slide, BELOW);
+                    }
+                    sc.highlightClear();
+                }
+                else
+                {
+                    insertSlides(files, slide, ABOVE);
+                }
+            }
+        }
+        private void slideDragOver(object sender, System.Windows.DragEventArgs e, Slide slide)
+        {
+            if (sender is SlideControl)
+            {
+                SlideControl sc = (SlideControl)sender;
+                Point p = e.GetPosition(sc);
+                if (p.Y < (sc.ActualHeight / 2))
+                {
+                    sc.highlightAbove();
+                }
+                else
+                {
+                    sc.highlightBelow();
+                }
+            }
+        }
+        private void slideDragLeave(object sender, System.Windows.DragEventArgs e, Slide slide)
+        {
+            if (sender is SlideControl)
+            {
+                SlideControl sc = (SlideControl)sender;
+                sc.highlightClear();
             }
         }
     }
