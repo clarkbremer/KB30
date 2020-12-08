@@ -713,11 +713,19 @@ namespace KB30
             }
             if (config.soundtrack != null)
             {
-                soundtrack = config.soundtrack;
+                if (Path.IsPathFullyQualified(config.soundtrack))
+                {
+                    soundtrack = config.soundtrack;
+                }
+                else
+                {
+                    soundtrack = Path.GetFullPath(config.soundtrack, Path.GetDirectoryName(filename));
+                }
             }
             slides = config.slides;
             for (int i = slides.Count - 1; i >= 0; i--)
             {
+                slides[i].basePath = Path.GetDirectoryName(filename);
                 if (!File.Exists(slides[i].fileName))
                 {
                     MessageBox.Show("File Not Found: " + slides[i].fileName, "File Not Found");
@@ -787,7 +795,9 @@ namespace KB30
             Config config = new Config();
 
             config.version = CONFIG_VERSION.ToString();
-            config.soundtrack = soundtrack;
+            if (soundtrack.Length > 0) { 
+                config.soundtrack = Path.GetRelativePath(Path.GetDirectoryName(currentFileName), soundtrack);
+            }
             config.slides = slides;
 
             return JsonConvert.SerializeObject(config, Formatting.Indented);
@@ -797,9 +807,12 @@ namespace KB30
         {
             if (configValid())
             {
+                currentFileName = filename;
+                foreach(Slide slide in slides){
+                    slide.basePath = Path.GetDirectoryName(filename);
+                }
                 lastSavedConfig = serializeCurrentConfig();
                 File.WriteAllText(filename, lastSavedConfig);
-                currentFileName = filename;
                 return true;
             }
             return false;
@@ -845,8 +858,6 @@ namespace KB30
                             "Soundtrack: " + soundtrack, "File Info");
         }
 
-        
-
         private void mainWindowClosing(object sender, CancelEventArgs e)
         {
             if (saveIfDirty() == false)
@@ -864,6 +875,10 @@ namespace KB30
                 soundtrack = openFileDialog.FileName;
             }
         }
+
+        /*************
+         * Drag and Drop
+         */
 
         private void slidePanelDrop(object sender, DragEventArgs e)
         {

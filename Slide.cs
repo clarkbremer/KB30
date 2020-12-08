@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.Windows;
+using System.IO;
 
 namespace KB30
 {
@@ -42,13 +43,54 @@ namespace KB30
         public SlideControl slideControl { get; set; }
 
         [JsonIgnore]
+        public string basePath;
+
+        [JsonIgnore]
         public Uri uri;
+
+        public bool ShouldSerializefileName() { return false; }
 
         private string _fileName;
         public string fileName
         {
-            get { return _fileName; }
-            set { _fileName = value; uri = new Uri(_fileName); }
+            get
+            {
+                if (!string.IsNullOrEmpty(basePath) && string.IsNullOrEmpty(_fileName))
+                {
+                    _fileName = Path.GetFullPath(_relativePath, basePath);
+                    uri = new Uri(_fileName);
+                }
+                return (_fileName);
+            }
+            set { 
+                _fileName = value; 
+                uri = new Uri(_fileName);
+                if (!string.IsNullOrEmpty(basePath) && string.IsNullOrEmpty(_relativePath))
+                {
+                    _relativePath = Path.GetRelativePath(basePath, _fileName);
+                }
+            }
+        }
+
+        private string _relativePath;
+        public string relativePath
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(basePath) && !string.IsNullOrEmpty(_fileName))
+                {
+                    _relativePath = Path.GetRelativePath(basePath, _fileName);
+                }
+                return (_relativePath);
+            }
+            set { 
+                _relativePath = value; 
+                if (!string.IsNullOrEmpty(basePath) && string.IsNullOrEmpty(_fileName)) 
+                {
+                    _fileName = Path.GetFullPath(_relativePath, basePath);
+                    uri = new Uri(_fileName);
+                }
+            }
         }
 
         public List<KF> keys { get; set; }
