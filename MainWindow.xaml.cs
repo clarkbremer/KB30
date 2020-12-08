@@ -15,12 +15,6 @@ using Newtonsoft.Json;
 /*
  * To DO:  
  *  Drag and Drop slides and keys to re-order
- *  Insert or append group of slide - load in background?
- *  Cut/Paste multiple slides
- *  
- *  Bugs:
- *  - skip ahead/back sometimes stops animation - opacity on wrong frame?
- *   
  */
 namespace KB30
 {
@@ -222,6 +216,7 @@ namespace KB30
         }
         private void slideClick(object sender, RoutedEventArgs e, Slide slide)
         {
+            Console.Beep(5000, 250);
             if (e.OriginalSource is CheckBox) { return; }
 
             int index = slides.IndexOf(slide, 0);
@@ -889,30 +884,37 @@ namespace KB30
         }
         private void slideDrop(object sender, DragEventArgs e, Slide slide = null)
         {
-            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-            if (slide == null)
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                addSlides(files);
-            } else
-            {
-                if (sender is SlideControl)
+                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                if (slide == null)
                 {
-                    SlideControl sc = (SlideControl)sender;
-                    Point p = e.GetPosition(sc);
-                    if (p.Y < (sc.ActualHeight / 2))
+                    addSlides(files);
+                } else
+                {
+                    if (sender is SlideControl)
                     {
-                        insertSlides(files, slide, ABOVE);
+                        SlideControl sc = (SlideControl)sender;
+                        Point p = e.GetPosition(sc);
+                        if (p.Y < (sc.ActualHeight / 2))
+                        {
+                            insertSlides(files, slide, ABOVE);
+                        }
+                        else
+                        {
+                            insertSlides(files, slide, BELOW);
+                        }
+                        sc.highlightClear();
                     }
                     else
                     {
-                        insertSlides(files, slide, BELOW);
+                        insertSlides(files, slide, ABOVE);
                     }
-                    sc.highlightClear();
                 }
-                else
-                {
-                    insertSlides(files, slide, ABOVE);
-                }
+            }
+            else
+            {
+                Console.Beep();
             }
         }
         private void slideDragOver(object sender, System.Windows.DragEventArgs e, Slide slide)

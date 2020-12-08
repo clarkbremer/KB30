@@ -15,6 +15,37 @@ namespace KB30
         {
             InitializeComponent();
         }
+        private void mouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                // Package the data.
+                DataObject data = new DataObject();
+                data.SetData(DataFormats.StringFormat, "I am a slide");
+                data.SetData("Double", slideNumber);
+                data.SetData("Object", this);
+
+                // Inititate the drag-and-drop operation.
+                DragDrop.DoDragDrop(this, data, DragDropEffects.Move);
+            }
+        }
+
+         private void giveFeedback(object sender, GiveFeedbackEventArgs e)
+        {
+            // These Effects values are set in the drop target's
+            // DragOver event handler.
+          
+            if (e.Effects.HasFlag(DragDropEffects.Move))
+            {
+                Mouse.SetCursor(Cursors.Pen);
+            }
+            else
+            {
+                Mouse.SetCursor(Cursors.No);
+            }
+            e.Handled = true;
+        }
+
         public void Select()
         {
             SelectBorder.BorderBrush = Brushes.Blue;
