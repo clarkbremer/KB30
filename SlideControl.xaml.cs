@@ -29,22 +29,7 @@ namespace KB30
             }
         }
 
-         private void giveFeedback(object sender, GiveFeedbackEventArgs e)
-        {
-            // These Effects values are set in the drop target's
-            // DragOver event handler.
-          
-            if (e.Effects.HasFlag(DragDropEffects.Move))
-            {
-                Mouse.SetCursor(Cursors.Pen);
-            }
-            else
-            {
-                Mouse.SetCursor(Cursors.No);
-            }
-            e.Handled = true;
-        }
-
+ 
         public void Select()
         {
             SelectBorder.BorderBrush = Brushes.Blue;

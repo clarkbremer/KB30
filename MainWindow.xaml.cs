@@ -153,6 +153,7 @@ namespace KB30
             slideControl.Drop += delegate (object sender, DragEventArgs e) { slideDrop(sender, e, slide); };
             slideControl.DragOver += delegate (object sender, DragEventArgs e) { slideDragOver(sender, e, slide); };
             slideControl.DragLeave += delegate (object sender, DragEventArgs e) { slideDragLeave(sender, e, slide); };
+            slideControl.GiveFeedback += delegate (object sender, GiveFeedbackEventArgs e) { slideGiveFeedback(sender, e, slide); };
             slideControl.CMCut.Click += delegate (object sender, RoutedEventArgs e) { cutSlideClick(sender, e, slide); };
             slideControl.CMPasteAbove.Click += delegate (object sender, RoutedEventArgs e) { pasteSlideClick(sender, e, slide, ABOVE); };
             slideControl.CMPasteBelow.Click += delegate (object sender, RoutedEventArgs e) { pasteSlideClick(sender, e, slide, BELOW); };
@@ -932,8 +933,12 @@ namespace KB30
             }
             else if(e.Data.GetDataPresent(typeof(SlideControl)))
             {
-                Console.Beep();
                 Slide source_slide = slideFromSlideControl(e.Data.GetData(typeof(SlideControl)) as SlideControl);
+                if(source_slide == target_slide) 
+                {
+                    Console.Beep();
+                    return;  // don't drop on self
+                }
                 if (!source_slide.slideControl.IsChecked())
                 {
                     source_slide.slideControl.Check();
@@ -946,8 +951,28 @@ namespace KB30
         private void slideDragOver(object sender, System.Windows.DragEventArgs e, Slide slide)
         {
             e.Effects = DragDropEffects.None;
+
             if (sender is SlideControl)
             {
+                Point p = e.GetPosition(slideScrollViewer);
+                if (p.Y < (slideScrollViewer.ActualHeight * 0.1))
+                {
+                    slideScrollViewer.ScrollToVerticalOffset(slideScrollViewer.VerticalOffset - 20);
+                }
+                if (p.Y > (slideScrollViewer.ActualHeight * 0.9))
+                {
+                    slideScrollViewer.ScrollToVerticalOffset(slideScrollViewer.VerticalOffset + 20);
+                }
+
+                // don't allow drop on self.
+                if (e.Data.GetDataPresent(typeof(SlideControl))) {
+                    if (slideFromSlideControl(e.Data.GetData(typeof(SlideControl)) as SlideControl) == slide)
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                }
+
                 if (dropDirection(e, slide) == ABOVE)
                 {
                     slide.highlightAbove();
@@ -957,6 +982,8 @@ namespace KB30
                     slide.highlightBelow();
                 }
                 e.Effects = DragDropEffects.Move;
+
+ 
             }
         }
         private void slideDragLeave(object sender, System.Windows.DragEventArgs e, Slide slide)
@@ -966,6 +993,23 @@ namespace KB30
                 slide.highlightClear();
             }
         }
+
+        private void slideGiveFeedback(object sender, GiveFeedbackEventArgs e, Slide s)
+        {
+            // These Effects values are set in the drop target's
+            // DragOver event handler.
+
+            if (e.Effects.HasFlag(DragDropEffects.Move))
+            {
+                Mouse.SetCursor(Cursors.Hand);
+            }
+            else
+            {
+                Mouse.SetCursor(Cursors.No);
+            }
+            e.Handled = true;
+        }
+
     }
 }
 

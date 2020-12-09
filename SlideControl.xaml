@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="150" d:DesignWidth="200">
     <Border x:Name="SelectBorder" Background="Transparent" BorderBrush="Red" Margin="2" BorderThickness="5" VerticalAlignment="Center" HorizontalAlignment="Center">
-        <StackPanel MouseMove="mouseMove" GiveFeedback="giveFeedback">
+        <StackPanel MouseMove="mouseMove">
             <Grid>
                 <Image Name="image" />
                 <CheckBox Name="checkbox" HorizontalAlignment="Left" VerticalAlignment="Top"></CheckBox>
