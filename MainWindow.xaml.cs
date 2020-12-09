@@ -149,7 +149,7 @@ namespace KB30
             }
             slideControl.image.Source = bmp;
             slideControl.caption.Text = System.IO.Path.GetFileName(slide.fileName);
-            slideControl.button.Click += delegate (object sender, RoutedEventArgs e) { slideClick(sender, e, slide); };
+            slideControl.MouseLeftButtonUp += delegate (object sender, MouseButtonEventArgs e) { slideClick(sender, e, slide); };
             slideControl.Drop += delegate (object sender, DragEventArgs e) { slideDrop(sender, e, slide); };
             slideControl.DragOver += delegate (object sender, DragEventArgs e) { slideDragOver(sender, e, slide); };
             slideControl.DragLeave += delegate (object sender, DragEventArgs e) { slideDragLeave(sender, e, slide); };
@@ -216,7 +216,6 @@ namespace KB30
         }
         private void slideClick(object sender, RoutedEventArgs e, Slide slide)
         {
-            Console.Beep(5000, 250);
             if (e.OriginalSource is CheckBox) { return; }
 
             int index = slides.IndexOf(slide, 0);
@@ -275,7 +274,8 @@ namespace KB30
             }
         }
     
-        private void pasteSlideClick(object sender, RoutedEventArgs e, Slide insertSlide, int direction)
+        private void pasteSlideClick(object sender, RoutedEventArgs e, Slide insertSlide, int direction) { pasteSlides(insertSlide, direction); }
+        private void pasteSlides(Slide insertSlide, int direction)
         {
             var insertIndex = slides.IndexOf(insertSlide);
             if (direction == BELOW) {
@@ -302,7 +302,8 @@ namespace KB30
         }
 
 
-        private void cutSlideClick(object sender, RoutedEventArgs e, Slide s)
+        private void cutSlideClick(object sender, RoutedEventArgs e, Slide s){ cutSlides(s); }
+        private void cutSlides(Slide s)
         {
             clipboardSlides.Clear();
             foreach (Slide slide in slides)
@@ -375,6 +376,18 @@ namespace KB30
                 slide.slideControl.CMPasteAbove.IsEnabled = true;
                 slide.slideControl.CMPasteBelow.IsEnabled = true;
             }
+        }
+
+        private Slide slideFromSlideControl(SlideControl sc)
+        {
+            foreach (Slide slide in slides)
+            { 
+                if (slide.slideControl == sc)
+                {
+                    return (slide);
+                }
+            }
+            return null;
         }
 
         /*********
@@ -882,63 +895,75 @@ namespace KB30
                 slideDrop(sender, e);
             }
         }
-        private void slideDrop(object sender, DragEventArgs e, Slide slide = null)
+
+        private int dropDirection(DragEventArgs e, Slide target_slide)
+        {
+            SlideControl sc = target_slide.slideControl;
+            Point p = e.GetPosition(sc);
+            if (p.Y < (sc.ActualHeight / 2))
+            {
+                return(ABOVE);
+            }
+            else
+            {
+                return(BELOW);
+            }
+        }
+        private void slideDrop(object sender, DragEventArgs e, Slide target_slide = null)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                if (slide == null)
+                if (target_slide == null)
                 {
                     addSlides(files);
                 } else
                 {
-                    if (sender is SlideControl)
+                    if (sender is SlideControl) // dropped onto a slide
                     {
-                        SlideControl sc = (SlideControl)sender;
-                        Point p = e.GetPosition(sc);
-                        if (p.Y < (sc.ActualHeight / 2))
-                        {
-                            insertSlides(files, slide, ABOVE);
-                        }
-                        else
-                        {
-                            insertSlides(files, slide, BELOW);
-                        }
-                        sc.highlightClear();
+                        insertSlides(files, target_slide, dropDirection(e, target_slide));
+                        target_slide.highlightClear();
                     }
-                    else
+                    else  // dropped onto empty space
                     {
-                        insertSlides(files, slide, ABOVE);
+                        insertSlides(files, target_slide, ABOVE);
                     }
                 }
             }
-            else
+            else if(e.Data.GetDataPresent(typeof(SlideControl)))
             {
                 Console.Beep();
+                Slide source_slide = slideFromSlideControl(e.Data.GetData(typeof(SlideControl)) as SlideControl);
+                if (!source_slide.slideControl.IsChecked())
+                {
+                    source_slide.slideControl.Check();
+                }
+                cutSlides(source_slide);
+                pasteSlides(target_slide, dropDirection(e, target_slide));
+                target_slide.slideControl.highlightClear();
             }
         }
         private void slideDragOver(object sender, System.Windows.DragEventArgs e, Slide slide)
         {
+            e.Effects = DragDropEffects.None;
             if (sender is SlideControl)
             {
-                SlideControl sc = (SlideControl)sender;
-                Point p = e.GetPosition(sc);
-                if (p.Y < (sc.ActualHeight / 2))
+                if (dropDirection(e, slide) == ABOVE)
                 {
-                    sc.highlightAbove();
+                    slide.highlightAbove();
                 }
                 else
                 {
-                    sc.highlightBelow();
+                    slide.highlightBelow();
                 }
+                e.Effects = DragDropEffects.Move;
             }
         }
         private void slideDragLeave(object sender, System.Windows.DragEventArgs e, Slide slide)
         {
             if (sender is SlideControl)
             {
-                SlideControl sc = (SlideControl)sender;
-                sc.highlightClear();
+                slide.highlightClear();
             }
         }
     }

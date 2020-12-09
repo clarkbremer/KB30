@@ -21,12 +21,11 @@ namespace KB30
             {
                 // Package the data.
                 DataObject data = new DataObject();
-                data.SetData(DataFormats.StringFormat, "I am a slide");
-                data.SetData("Double", slideNumber);
-                data.SetData("Object", this);
+                data.SetData("Int", slideNumber);
+                data.SetData("SlideControl", this);
 
                 // Inititate the drag-and-drop operation.
-                DragDrop.DoDragDrop(this, data, DragDropEffects.Move);
+                DragDrop.DoDragDrop(this, this, DragDropEffects.Move);
             }
         }
 
