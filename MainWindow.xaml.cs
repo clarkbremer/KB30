@@ -14,7 +14,8 @@ using Newtonsoft.Json;
 
 /*
  * To DO:  
- *  Drag and Drop slides and keys to re-order
+ *  Drag and Drop keys to re-order.
+ *  Break up this file (drag and drop in own file?)
  */
 namespace KB30
 {
@@ -104,6 +105,7 @@ namespace KB30
             if(i == 0)
             {
                 selectSlide(0, false);
+                slides[0].UnCheck();
             }
             i++;
             if(i < slides.Count) {
@@ -114,6 +116,7 @@ namespace KB30
             {
                 caption.Text = "Done Loading";
                 selectSlide(0, true);
+                slides[0].UnCheck();
             }
         }
 
@@ -149,6 +152,7 @@ namespace KB30
             }
             slideControl.image.Source = bmp;
             slideControl.caption.Text = System.IO.Path.GetFileName(slide.fileName);
+            slideControl.MouseMove += delegate (object sender, MouseEventArgs e) { slideMouseMove(sender, e, slide); };
             slideControl.MouseLeftButtonUp += delegate (object sender, MouseButtonEventArgs e) { slideClick(sender, e, slide); };
             slideControl.Drop += delegate (object sender, DragEventArgs e) { slideDrop(sender, e, slide); };
             slideControl.DragOver += delegate (object sender, DragEventArgs e) { slideDragOver(sender, e, slide); };
@@ -888,6 +892,28 @@ namespace KB30
         /*************
          * Drag and Drop
          */
+        private void slideMouseMove(object sender, System.Windows.Input.MouseEventArgs e, Slide slide)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                // Package the data.
+                DataObject data = new DataObject();
+                data.SetData("SlideControl", slide);
+
+                foreach (Slide s in slides)
+                {
+                    if (s.IsChecked())
+                    {
+                        s.Dim();
+                    }
+                }
+
+                // Inititate the drag-and-drop operation.
+                DragDropEffects result = DragDrop.DoDragDrop(slide.slideControl, slide, DragDropEffects.Move);
+             
+                foreach (Slide s in slides) { s.UnDim(); }
+            }
+        }
 
         private void slidePanelDrop(object sender, DragEventArgs e)
         {
@@ -931,10 +957,10 @@ namespace KB30
                     }
                 }
             }
-            else if(e.Data.GetDataPresent(typeof(SlideControl)))
+            else if(e.Data.GetDataPresent(typeof(Slide)))
             {
-                Slide source_slide = slideFromSlideControl(e.Data.GetData(typeof(SlideControl)) as SlideControl);
-                if(source_slide == target_slide) 
+                Slide source_slide = e.Data.GetData(typeof(Slide)) as Slide;
+                if(target_slide.IsChecked()) 
                 {
                     Console.Beep();
                     return;  // don't drop on self
@@ -965,12 +991,10 @@ namespace KB30
                 }
 
                 // don't allow drop on self.
-                if (e.Data.GetDataPresent(typeof(SlideControl))) {
-                    if (slideFromSlideControl(e.Data.GetData(typeof(SlideControl)) as SlideControl) == slide)
-                    {
-                        e.Handled = true;
-                        return;
-                    }
+                if (slide.IsChecked())
+                {
+                    e.Handled = true;
+                    return;
                 }
 
                 if (dropDirection(e, slide) == ABOVE)

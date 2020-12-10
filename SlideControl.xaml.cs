@@ -15,20 +15,7 @@ namespace KB30
         {
             InitializeComponent();
         }
-        private void mouseMove(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                // Package the data.
-                DataObject data = new DataObject();
-                data.SetData("Int", slideNumber);
-                data.SetData("SlideControl", this);
-
-                // Inititate the drag-and-drop operation.
-                DragDrop.DoDragDrop(this, this, DragDropEffects.Move);
-            }
-        }
-
+ 
  
         public void Select()
         {

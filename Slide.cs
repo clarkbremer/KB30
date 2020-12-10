@@ -104,8 +104,12 @@ namespace KB30
             }
         }
 
+        public void Dim() { slideControl.image.Opacity = 0.5; }
+        public void UnDim() { slideControl.image.Opacity = 1.0; }
+
         public bool IsChecked() { return slideControl.IsChecked(); }
         public void Check() { slideControl.Check(); }
+        public void UnCheck() { slideControl.UnCheck(); }
         public void highlightAbove() { slideControl.highlightAbove(); }
         public void highlightBelow() { slideControl.highlightBelow(); }
         public void highlightClear() { slideControl.highlightClear(); }
