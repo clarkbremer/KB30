@@ -22,10 +22,11 @@ namespace KB30
             SelectBorder.BorderBrush = Brushes.Blue;
             Check();
         }
-        public void DeSelect()
+        public void DeSelect(Boolean unCheck = true)
         {
             SelectBorder.BorderBrush = Brushes.LightBlue;
-            if (!Keyboard.IsKeyDown(Key.LeftCtrl) && !Keyboard.IsKeyDown(Key.RightCtrl)){
+            if (!Keyboard.IsKeyDown(Key.LeftCtrl) && !Keyboard.IsKeyDown(Key.RightCtrl) && unCheck)
+            {
                 UnCheck();
             }
         }

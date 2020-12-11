@@ -40,6 +40,7 @@ namespace KB30
         private String soundtrack = "";
         private Boolean playWithArgumentFile = false;
         private Boolean uiLoaded = false;
+        private Point initialMousePosition;
 
         public MainWindow()
         {
@@ -154,6 +155,7 @@ namespace KB30
             slideControl.caption.Text = System.IO.Path.GetFileName(slide.fileName);
             slideControl.MouseMove += delegate (object sender, MouseEventArgs e) { slideMouseMove(sender, e, slide); };
             slideControl.MouseLeftButtonUp += delegate (object sender, MouseButtonEventArgs e) { slideClick(sender, e, slide); };
+            slideControl.PreviewMouseDown += delegate (object sender, MouseButtonEventArgs e) { slidePreviewMouseDown(sender, e, slide); };
             slideControl.Drop += delegate (object sender, DragEventArgs e) { slideDrop(sender, e, slide); };
             slideControl.DragOver += delegate (object sender, DragEventArgs e) { slideDragOver(sender, e, slide); };
             slideControl.DragLeave += delegate (object sender, DragEventArgs e) { slideDragLeave(sender, e, slide); };
@@ -179,9 +181,10 @@ namespace KB30
             return true;
         }
 
-        public void selectSlide(int slideIndex, Boolean unbindOld = true)
+        public void selectSlide(Slide slide, Boolean unbindOld = true, Boolean unCheckAll = true) { selectSlide(slides.IndexOf(slide), unbindOld, unCheckAll);  } 
+        public void selectSlide(int slideIndex, Boolean unbindOld = true, Boolean unCheckAll = true )
         {
-            slides[currentSlideIndex].slideControl.DeSelect();
+            slides[currentSlideIndex].slideControl.DeSelect(unCheckAll);
             if (unbindOld) { 
                 KF oldKey = slides[currentSlideIndex].keys[currentKeyframeIndex];
                 KeyframeControl oldKFControl = oldKey.kfControl;
@@ -191,7 +194,7 @@ namespace KB30
             var bitmap = new BitmapImage(slides[slideIndex].uri);
             imageCropper.image.Source = bitmap;
 
-            if (!Keyboard.IsKeyDown(Key.LeftCtrl) && !Keyboard.IsKeyDown(Key.RightCtrl))
+            if (!Keyboard.IsKeyDown(Key.LeftCtrl) && !Keyboard.IsKeyDown(Key.RightCtrl) && unCheckAll)
             {
                 foreach (SlideControl sc in slidePanel.Children) { sc.UnCheck(); }
             }
@@ -207,7 +210,7 @@ namespace KB30
             foreach (String fname in fileNames)
             {
                 Slide newSlide = new Slide(fname);
-                newSlide.keys.Add(new KF(4.0, 0.5, 0.5, 1));
+                newSlide.keys.Add(new KF(1.0, 0.5, 0.5, 1));
                 if (addSlideControl(newSlide))
                 {
                     slides.Add(newSlide);
@@ -224,7 +227,7 @@ namespace KB30
             if (e.OriginalSource is CheckBox) { return; }
 
             int index = slides.IndexOf(slide, 0);
-            selectSlide(index);
+            selectSlide(slide);
         }
 
         private void addSlideClick(object sender, RoutedEventArgs e)
@@ -249,7 +252,7 @@ namespace KB30
             foreach (String fname in fileNames)
             {
                 Slide newSlide = new Slide(fname);
-                newSlide.keys.Add(new KF(4.0, 0.5, 0.5, 1));
+                newSlide.keys.Add(new KF(1.0, 0.5, 0.5, 1));
                 if (addSlideControl(newSlide, null, insertIndex))
                 {
                     slides.Insert(insertIndex, newSlide);
@@ -892,26 +895,36 @@ namespace KB30
         /*************
          * Drag and Drop
          */
+        private void slidePreviewMouseDown(object sender, MouseButtonEventArgs e, Slide slide)
+        {
+            initialMousePosition = e.GetPosition(slide.slideControl);
+        }
+
         private void slideMouseMove(object sender, System.Windows.Input.MouseEventArgs e, Slide slide)
         {
             if (e.LeftButton == MouseButtonState.Pressed)
             {
-                // Package the data.
-                DataObject data = new DataObject();
-                data.SetData("SlideControl", slide);
-
-                foreach (Slide s in slides)
+                var movedDistance = Point.Subtract(initialMousePosition, e.GetPosition(slide.slideControl)).Length;
+                if (movedDistance > 10)
                 {
-                    if (s.IsChecked())
-                    {
-                        s.Dim();
-                    }
-                }
+                    // Package the data.
+                    DataObject data = new DataObject();
+                    data.SetData("SlideControl", slide);
 
-                // Inititate the drag-and-drop operation.
-                DragDropEffects result = DragDrop.DoDragDrop(slide.slideControl, slide, DragDropEffects.Move);
-             
-                foreach (Slide s in slides) { s.UnDim(); }
+                    selectSlide(slide, true, false);
+                    foreach (Slide s in slides)
+                    {
+                        if (s.IsChecked())
+                        {
+                            s.Dim();
+                        }
+                    }
+
+                    // Inititate the drag-and-drop operation.
+                    DragDropEffects result = DragDrop.DoDragDrop(slide.slideControl, slide, DragDropEffects.Copy | DragDropEffects.Move);
+
+                    foreach (Slide s in slides) { s.UnDim(); }
+                }
             }
         }
 
@@ -944,7 +957,8 @@ namespace KB30
                 if (target_slide == null)
                 {
                     addSlides(files);
-                } else
+                } 
+                else
                 {
                     if (sender is SlideControl) // dropped onto a slide
                     {
@@ -962,7 +976,6 @@ namespace KB30
                 Slide source_slide = e.Data.GetData(typeof(Slide)) as Slide;
                 if(target_slide.IsChecked()) 
                 {
-                    Console.Beep();
                     return;  // don't drop on self
                 }
                 if (!source_slide.slideControl.IsChecked())
@@ -1023,7 +1036,7 @@ namespace KB30
             // These Effects values are set in the drop target's
             // DragOver event handler.
 
-            if (e.Effects.HasFlag(DragDropEffects.Move))
+            if (e.Effects.HasFlag(DragDropEffects.Move) || e.Effects.HasFlag(DragDropEffects.Copy))
             {
                 Mouse.SetCursor(Cursors.Hand);
             }
