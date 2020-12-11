@@ -33,15 +33,18 @@ namespace KB30
 
         public void highlightAbove()
         {
-            SelectBorder.BorderThickness = new Thickness(5, 25, 5, 5);
+            UpperBorder.BorderThickness = new Thickness(10);
+            LowerBorder.BorderThickness = new Thickness(0);
         }
         public void highlightBelow()
         {
-            SelectBorder.BorderThickness = new Thickness(5, 5, 5, 25);
+            UpperBorder.BorderThickness = new Thickness(0);
+            LowerBorder.BorderThickness = new Thickness(10);
         }
         public void highlightClear()
         {
-            SelectBorder.BorderThickness = new Thickness(5, 5, 5, 5);
+            UpperBorder.BorderThickness = new Thickness(0);
+            LowerBorder.BorderThickness = new Thickness(0);
         }
         public Boolean IsChecked(){
             return checkbox.IsChecked == true;

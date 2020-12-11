@@ -6,24 +6,33 @@
              xmlns:local="clr-namespace:KB30"
              mc:Ignorable="d" 
              d:DesignHeight="150" d:DesignWidth="200">
-    <Border x:Name="SelectBorder" Background="Transparent" BorderBrush="Red" Margin="2" BorderThickness="5" VerticalAlignment="Center" HorizontalAlignment="Center">
-        <StackPanel>
-            <Grid>
-                <Image Name="image" />
-                <CheckBox Name="checkbox" HorizontalAlignment="Left" VerticalAlignment="Top"></CheckBox>
-                <TextBlock x:Name="slideText" Background="Black" Foreground="White" Text="99" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="2,0,2,0"></TextBlock>
-            </Grid>
-            <TextBlock x:Name="caption" Background="White" Text="Filename and Size" HorizontalAlignment="Center" VerticalAlignment="Bottom" Padding="5,2,5,2"></TextBlock>
-            <StackPanel.ContextMenu>
-                <ContextMenu Name="SlideContextMenu">
-                    <MenuItem Name="CMCut" Header="Cut Slide(s)"></MenuItem>
-                    <MenuItem Name="CMPasteAbove" Header="Paste Slide(s) Above"></MenuItem>
-                    <MenuItem Name="CMPasteBelow" Header="Paste Slide(s) Below"></MenuItem>
-                    <MenuItem Name="CMInsertAbove" Header="Insert New Slide(s) Above"></MenuItem>
-                    <MenuItem Name="CMInsertBelow" Header="Insert New Slide(s) Below"></MenuItem>
-                    <MenuItem Name="CMPlayFromHere" Header="Play Starting Here"></MenuItem>
-                </ContextMenu>
-            </StackPanel.ContextMenu>
-        </StackPanel>
-    </Border>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Border x:Name="UpperBorder" Grid.Row="0" Background="Transparent" BorderBrush="LightGreen" Margin="0" BorderThickness="0" VerticalAlignment="Center" HorizontalAlignment="Stretch"></Border>
+        <Border x:Name="LowerBorder" Grid.Row="2" Background="Transparent" BorderBrush="LightGreen " Margin="0" BorderThickness="0" VerticalAlignment="Center" HorizontalAlignment="Stretch"></Border>
+        <Border x:Name="SelectBorder" Grid.Row="1" Background="Transparent" BorderBrush="Red" Margin="2" BorderThickness="5" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <StackPanel>
+                <Grid>
+                    <Image Name="image" />
+                    <CheckBox Name="checkbox" HorizontalAlignment="Left" VerticalAlignment="Top"></CheckBox>
+                    <TextBlock x:Name="slideText" Background="Black" Foreground="White" Text="99" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="2,0,2,0"></TextBlock>
+                </Grid>
+                <TextBlock x:Name="caption" Background="White" Text="Filename and Size" HorizontalAlignment="Center" VerticalAlignment="Bottom" Padding="5,2,5,2"></TextBlock>
+                <StackPanel.ContextMenu>
+                    <ContextMenu Name="SlideContextMenu">
+                        <MenuItem Name="CMCut" Header="Cut Slide(s)"></MenuItem>
+                        <MenuItem Name="CMPasteAbove" Header="Paste Slide(s) Above"></MenuItem>
+                        <MenuItem Name="CMPasteBelow" Header="Paste Slide(s) Below"></MenuItem>
+                        <MenuItem Name="CMInsertAbove" Header="Insert New Slide(s) Above"></MenuItem>
+                        <MenuItem Name="CMInsertBelow" Header="Insert New Slide(s) Below"></MenuItem>
+                        <MenuItem Name="CMPlayFromHere" Header="Play Starting Here"></MenuItem>
+                    </ContextMenu>
+                </StackPanel.ContextMenu>
+            </StackPanel>
+        </Border>
+    </Grid>
 </UserControl>

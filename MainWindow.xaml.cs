@@ -1019,14 +1019,13 @@ namespace KB30
                     slide.highlightBelow();
                 }
                 e.Effects = DragDropEffects.Move;
-
- 
             }
         }
         private void slideDragLeave(object sender, System.Windows.DragEventArgs e, Slide slide)
         {
             if (sender is SlideControl)
             {
+                Console.Beep(2000, 100);
                 slide.highlightClear();
             }
         }
