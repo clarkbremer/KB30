@@ -53,7 +53,7 @@ namespace KB30
             public string soundtrack { get; set; }
             public List<Slide> slides { get; set; }
         }
-        
+
         /*********
          *  Slides 
          */
@@ -67,7 +67,7 @@ namespace KB30
             uiLoaded = true;
         }
 
- 
+
         class WorkerResult
         {
             public Slide slide { get; set; }
@@ -103,13 +103,14 @@ namespace KB30
             WorkerResult wr = (WorkerResult)e.Result;
             addSlideControl(wr.slide, wr.bmp);
             int i = slides.IndexOf(wr.slide);
-            if(i == 0)
+            if (i == 0)
             {
                 selectSlide(0, false);
                 slides[0].UnCheck();
             }
             i++;
-            if(i < slides.Count) {
+            if (i < slides.Count)
+            {
                 caption.Text = "Loading slide " + (i + 1).ToString() + " of " + (slides.Count).ToString();
                 addSlideControlInBackground(slides[i]);
             }
@@ -158,7 +159,6 @@ namespace KB30
             slideControl.PreviewMouseDown += delegate (object sender, MouseButtonEventArgs e) { slidePreviewMouseDown(sender, e, slide); };
             slideControl.Drop += delegate (object sender, DragEventArgs e) { slideDrop(sender, e, slide); };
             slideControl.DragOver += delegate (object sender, DragEventArgs e) { slideDragOver(sender, e, slide); };
-            slideControl.DragLeave += delegate (object sender, DragEventArgs e) { slideDragLeave(sender, e, slide); };
             slideControl.GiveFeedback += delegate (object sender, GiveFeedbackEventArgs e) { slideGiveFeedback(sender, e, slide); };
             slideControl.CMCut.Click += delegate (object sender, RoutedEventArgs e) { cutSlideClick(sender, e, slide); };
             slideControl.CMPasteAbove.Click += delegate (object sender, RoutedEventArgs e) { pasteSlideClick(sender, e, slide, ABOVE); };
@@ -168,7 +168,7 @@ namespace KB30
             slideControl.CMPlayFromHere.Click += delegate (object sender, RoutedEventArgs e) { playFromHereClick(sender, e, slide); };
             slideControl.SlideContextMenu.Opened += delegate (object sender, RoutedEventArgs e) { slideContextMenuOpened(sender, e, slide); };
             slide.slideControl = slideControl;
-            if(insertPosition == -1)
+            if (insertPosition == -1)
             {
                 slidePanel.Children.Add(slideControl);
             }
@@ -181,11 +181,12 @@ namespace KB30
             return true;
         }
 
-        public void selectSlide(Slide slide, Boolean unbindOld = true, Boolean unCheckAll = true) { selectSlide(slides.IndexOf(slide), unbindOld, unCheckAll);  } 
-        public void selectSlide(int slideIndex, Boolean unbindOld = true, Boolean unCheckAll = true )
+        public void selectSlide(Slide slide, Boolean unbindOld = true, Boolean unCheckAll = true) { selectSlide(slides.IndexOf(slide), unbindOld, unCheckAll); }
+        public void selectSlide(int slideIndex, Boolean unbindOld = true, Boolean unCheckAll = true)
         {
             slides[currentSlideIndex].slideControl.DeSelect(unCheckAll);
-            if (unbindOld) { 
+            if (unbindOld)
+            {
                 KF oldKey = slides[currentSlideIndex].keys[currentKeyframeIndex];
                 KeyframeControl oldKFControl = oldKey.kfControl;
                 unBindKFC(oldKFControl, oldKey);
@@ -203,7 +204,7 @@ namespace KB30
 
             currentKeyframeIndex = 0;
             initializeKeysUI(slides[currentSlideIndex]);
-            caption.Text = slides[currentSlideIndex].fileName + " (" + bitmap.PixelWidth + " x " + bitmap.PixelHeight + ")  " + (slideIndex+1) + " of " + slides.Count;
+            caption.Text = slides[currentSlideIndex].fileName + " (" + bitmap.PixelWidth + " x " + bitmap.PixelHeight + ")  " + (slideIndex + 1) + " of " + slides.Count;
         }
         private void addSlides(string[] fileNames)
         {
@@ -281,12 +282,13 @@ namespace KB30
                 insertSlides(openFileDialog.FileNames, slide, position);
             }
         }
-    
+
         private void pasteSlideClick(object sender, RoutedEventArgs e, Slide insertSlide, int direction) { pasteSlides(insertSlide, direction); }
         private void pasteSlides(Slide insertSlide, int direction)
         {
             var insertIndex = slides.IndexOf(insertSlide);
-            if (direction == BELOW) {
+            if (direction == BELOW)
+            {
                 insertIndex += 1;
             }
 
@@ -310,7 +312,7 @@ namespace KB30
         }
 
 
-        private void cutSlideClick(object sender, RoutedEventArgs e, Slide s){ cutSlides(s); }
+        private void cutSlideClick(object sender, RoutedEventArgs e, Slide s) { cutSlides(s); }
         private void cutSlides(Slide s)
         {
             clipboardSlides.Clear();
@@ -321,16 +323,16 @@ namespace KB30
                     clipboardSlides.Add(slide);
                 }
             }
-            if(clipboardSlides.Count == 0)
+            if (clipboardSlides.Count == 0)
             {
                 clipboardSlides.Add(s);
             }
-            
-            foreach (Slide slide in clipboardSlides) 
+
+            foreach (Slide slide in clipboardSlides)
             {
                 int victimIndex = slides.IndexOf(slide);
-                
-                if (currentSlideIndex == victimIndex) 
+
+                if (currentSlideIndex == victimIndex)
                 {
                     if (currentSlideIndex == (slides.Count - 1))
                     {
@@ -352,7 +354,7 @@ namespace KB30
 
         private void renumberSlides()
         {
-            foreach(Slide slide in slides)
+            foreach (Slide slide in slides)
             {
                 if (slide.slideControl != null)
                 {
@@ -368,9 +370,9 @@ namespace KB30
 
         private void slideContextMenuOpened(object sender, RoutedEventArgs e, Slide slide)
         {
-            int numSelected = slides.Count( s=> s.slideControl.IsChecked());
+            int numSelected = slides.Count(s => s.slideControl.IsChecked());
             slide.slideControl.CMCut.Header = "Cut " + numSelected + " Slide(s)";
-            if(clipboardSlides.Count == 0)
+            if (clipboardSlides.Count == 0)
             {
                 slide.slideControl.CMPasteAbove.Header = "Paste Slide(s) Above";
                 slide.slideControl.CMPasteBelow.Header = "Paste Slide(s) Below";
@@ -389,7 +391,7 @@ namespace KB30
         private Slide slideFromSlideControl(SlideControl sc)
         {
             foreach (Slide slide in slides)
-            { 
+            {
                 if (slide.slideControl == sc)
                 {
                     return (slide);
@@ -420,7 +422,7 @@ namespace KB30
             KeyframeControl kfControl = new KeyframeControl();
             kfControl.DeSelect();
             key.kfControl = kfControl;
-            if(insertIndex == -1)
+            if (insertIndex == -1)
             {
                 keyframePanel.Children.Add(kfControl);
             }
@@ -564,7 +566,7 @@ namespace KB30
             {
                 currentKeyframeIndex++;
             }
-            selectKeyframe(newKey); 
+            selectKeyframe(newKey);
         }
 
         private void pasteKeyframeClick(object sender, RoutedEventArgs e, KF key)
@@ -636,7 +638,7 @@ namespace KB30
          *  Animate!
          */
 
-        private void playIt(int start=0)
+        private void playIt(int start = 0)
         {
             AnimationWindow animationWindow = new AnimationWindow();
             animationWindow.Closed += animationWindow_Closed;
@@ -811,7 +813,8 @@ namespace KB30
             Config config = new Config();
 
             config.version = CONFIG_VERSION.ToString();
-            if (soundtrack.Length > 0) { 
+            if (soundtrack.Length > 0)
+            {
                 config.soundtrack = Path.GetRelativePath(Path.GetDirectoryName(currentFileName), soundtrack);
             }
             config.slides = slides;
@@ -824,7 +827,8 @@ namespace KB30
             if (configValid())
             {
                 currentFileName = filename;
-                foreach(Slide slide in slides){
+                foreach (Slide slide in slides)
+                {
                     slide.basePath = Path.GetDirectoryName(filename);
                 }
                 lastSavedConfig = serializeCurrentConfig();
@@ -859,9 +863,9 @@ namespace KB30
         private void fileDetailsClick(object sender, RoutedEventArgs e)
         {
             double totalDuration = 0;
-            foreach(Slide s in slides)
+            foreach (Slide s in slides)
             {
-                foreach(KF k in s.keys)
+                foreach (KF k in s.keys)
                 {
                     totalDuration += k.duration;
                 }
@@ -869,8 +873,8 @@ namespace KB30
             totalDuration += slides.Count * 1.5;  // fade in/out Transitions
             int durationMins = (int)(totalDuration / 60);
             int durationSecs = (int)(totalDuration % 60);
-            MessageBox.Show(slides.Count +  " slides." + Environment.NewLine + 
-                            "Total duration " + durationMins + ":"+ durationSecs.ToString("D2") + Environment.NewLine +
+            MessageBox.Show(slides.Count + " slides." + Environment.NewLine +
+                            "Total duration " + durationMins + ":" + durationSecs.ToString("D2") + Environment.NewLine +
                             "Soundtrack: " + soundtrack, "File Info");
         }
 
@@ -942,11 +946,11 @@ namespace KB30
             Point p = e.GetPosition(sc);
             if (p.Y < (sc.ActualHeight / 2))
             {
-                return(ABOVE);
+                return (ABOVE);
             }
             else
             {
-                return(BELOW);
+                return (BELOW);
             }
         }
         private void slideDrop(object sender, DragEventArgs e, Slide target_slide = null)
@@ -957,7 +961,7 @@ namespace KB30
                 if (target_slide == null)
                 {
                     addSlides(files);
-                } 
+                }
                 else
                 {
                     if (sender is SlideControl) // dropped onto a slide
@@ -971,10 +975,10 @@ namespace KB30
                     }
                 }
             }
-            else if(e.Data.GetDataPresent(typeof(Slide)))
+            else if (e.Data.GetDataPresent(typeof(Slide)))
             {
                 Slide source_slide = e.Data.GetData(typeof(Slide)) as Slide;
-                if(target_slide.IsChecked()) 
+                if (target_slide.IsChecked())
                 {
                     return;  // don't drop on self
                 }
@@ -984,7 +988,7 @@ namespace KB30
                 }
                 cutSlides(source_slide);
                 pasteSlides(target_slide, dropDirection(e, target_slide));
-                target_slide.slideControl.highlightClear();
+                target_slide.highlightClear();
             }
         }
         private void slideDragOver(object sender, System.Windows.DragEventArgs e, Slide slide)
@@ -1010,6 +1014,15 @@ namespace KB30
                     return;
                 }
 
+                // clear all others
+                foreach (Slide s in slides)
+                {
+                    if (s != slide)
+                    {
+                        s.highlightClear();
+                    }
+                }
+
                 if (dropDirection(e, slide) == ABOVE)
                 {
                     slide.highlightAbove();
@@ -1021,14 +1034,6 @@ namespace KB30
                 e.Effects = DragDropEffects.Move;
             }
         }
-        private void slideDragLeave(object sender, System.Windows.DragEventArgs e, Slide slide)
-        {
-            if (sender is SlideControl)
-            {
-                Console.Beep(2000, 100);
-                slide.highlightClear();
-            }
-        }
 
         private void slideGiveFeedback(object sender, GiveFeedbackEventArgs e, Slide s)
         {
@@ -1037,6 +1042,11 @@ namespace KB30
 
             if (e.Effects.HasFlag(DragDropEffects.Move) || e.Effects.HasFlag(DragDropEffects.Copy))
             {
+                int numSelected = 0;
+                foreach (Slide ss in slides)
+                {
+                    if (ss.IsChecked()) { numSelected++; }
+                }
                 Mouse.SetCursor(Cursors.Hand);
             }
             else
@@ -1045,7 +1055,6 @@ namespace KB30
             }
             e.Handled = true;
         }
-
     }
 }
 

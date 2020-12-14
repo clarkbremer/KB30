@@ -15,7 +15,13 @@ namespace KB30
         {
             InitializeComponent();
         }
- 
+
+
+        const int HIGHLIGHT_NONE = 0;
+        const int HIGHLIGHT_ABOVE = 1;
+        const int HIGHLIGHT_BELOW = 2;
+
+        private int hightlightState = HIGHLIGHT_NONE;
  
         public void Select()
         {
@@ -33,18 +39,24 @@ namespace KB30
 
         public void highlightAbove()
         {
+            if (hightlightState == HIGHLIGHT_ABOVE) { return; }
             UpperBorder.BorderThickness = new Thickness(10);
             LowerBorder.BorderThickness = new Thickness(0);
+            hightlightState = HIGHLIGHT_ABOVE;
         }
         public void highlightBelow()
         {
+            if (hightlightState == HIGHLIGHT_BELOW) { return; }
             UpperBorder.BorderThickness = new Thickness(0);
             LowerBorder.BorderThickness = new Thickness(10);
+            hightlightState = HIGHLIGHT_BELOW;
         }
         public void highlightClear()
         {
+            if (hightlightState == HIGHLIGHT_NONE) { return; }
             UpperBorder.BorderThickness = new Thickness(0);
             LowerBorder.BorderThickness = new Thickness(0);
+            hightlightState = HIGHLIGHT_NONE;
         }
         public Boolean IsChecked(){
             return checkbox.IsChecked == true;
