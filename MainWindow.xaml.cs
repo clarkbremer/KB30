@@ -211,7 +211,7 @@ namespace KB30
             foreach (String fname in fileNames)
             {
                 Slide newSlide = new Slide(fname);
-                newSlide.keys.Add(new KF(1.0, 0.5, 0.5, 1));
+                newSlide.keys.Add(new KF(2.0, 0.5, 0.5, 1));
                 if (addSlideControl(newSlide))
                 {
                     slides.Add(newSlide);
@@ -977,6 +977,7 @@ namespace KB30
             }
             else if (e.Data.GetDataPresent(typeof(Slide)))
             {
+                if (target_slide == null) { return; }
                 Slide source_slide = e.Data.GetData(typeof(Slide)) as Slide;
                 if (target_slide.IsChecked())
                 {
