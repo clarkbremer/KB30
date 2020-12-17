@@ -10,6 +10,7 @@ using System.IO;
 using Microsoft.Win32;
 using System.ComponentModel;
 using Newtonsoft.Json;
+using System.Windows.Documents;
 
 
 /*
@@ -904,6 +905,7 @@ namespace KB30
             initialMousePosition = e.GetPosition(slide.slideControl);
         }
 
+        private SlideAdorner slideAdorner;
         private void slideMouseMove(object sender, System.Windows.Input.MouseEventArgs e, Slide slide)
         {
             if (e.LeftButton == MouseButtonState.Pressed)
@@ -911,22 +913,35 @@ namespace KB30
                 var movedDistance = Point.Subtract(initialMousePosition, e.GetPosition(slide.slideControl)).Length;
                 if (movedDistance > 10)
                 {
-                    // Package the data.
+                    // package the data
                     DataObject data = new DataObject();
                     data.SetData("SlideControl", slide);
 
+                    // dim and count all the slides that will be dragged
                     selectSlide(slide, true, false);
+                    int numSelected = 0;
                     foreach (Slide s in slides)
                     {
                         if (s.IsChecked())
                         {
                             s.Dim();
+                            numSelected++;
                         }
                     }
 
-                    // Inititate the drag-and-drop operation.
-                    DragDropEffects result = DragDrop.DoDragDrop(slide.slideControl, slide, DragDropEffects.Copy | DragDropEffects.Move);
+                    // set up the adorner
+                    var adLayer = AdornerLayer.GetAdornerLayer(slideScrollViewer);
+                    Rect renderRect = new Rect(slide.slideControl.RenderSize);
+                    renderRect.Height = renderRect.Height / 2;
+                    renderRect.Width = renderRect.Width / 2;
+                    slideAdorner = new SlideAdorner(slideScrollViewer, numSelected, slide.slideControl.image.Source, renderRect); 
+                    adLayer.Add(slideAdorner);
 
+                    // do it!
+                    DragDropEffects result = DragDrop.DoDragDrop(slide.slideControl, slide, DragDropEffects.Copy | DragDropEffects.Move);
+                    
+                    // clean up
+                    adLayer.Remove(slideAdorner);
                     foreach (Slide s in slides) { s.UnDim(); }
                 }
             }
@@ -981,6 +996,7 @@ namespace KB30
                 Slide source_slide = e.Data.GetData(typeof(Slide)) as Slide;
                 if (target_slide.IsChecked())
                 {
+                    Console.Beep(2000, 200);
                     return;  // don't drop on self
                 }
                 if (!source_slide.slideControl.IsChecked())
@@ -1008,12 +1024,7 @@ namespace KB30
                     slideScrollViewer.ScrollToVerticalOffset(slideScrollViewer.VerticalOffset + 20);
                 }
 
-                // don't allow drop on self.
-                if (slide.IsChecked())
-                {
-                    e.Handled = true;
-                    return;
-                }
+                slideAdorner.Arrange(new Rect(p.X, p.Y, slideAdorner.DesiredSize.Width, slideAdorner.DesiredSize.Height));
 
                 // clear all others
                 foreach (Slide s in slides)
@@ -1024,6 +1035,13 @@ namespace KB30
                     }
                 }
 
+                // don't allow drop on self.
+                if (slide.IsChecked())
+                {
+                   e.Handled = true;
+                   return;
+                }
+
                 if (dropDirection(e, slide) == ABOVE)
                 {
                     slide.highlightAbove();
@@ -1032,22 +1050,16 @@ namespace KB30
                 {
                     slide.highlightBelow();
                 }
+
                 e.Effects = DragDropEffects.Move;
             }
         }
 
         private void slideGiveFeedback(object sender, GiveFeedbackEventArgs e, Slide s)
         {
-            // These Effects values are set in the drop target's
-            // DragOver event handler.
-
+            // These Effects values are set in the drop target's DragOver event handler.
             if (e.Effects.HasFlag(DragDropEffects.Move) || e.Effects.HasFlag(DragDropEffects.Copy))
             {
-                int numSelected = 0;
-                foreach (Slide ss in slides)
-                {
-                    if (ss.IsChecked()) { numSelected++; }
-                }
                 Mouse.SetCursor(Cursors.Hand);
             }
             else
@@ -1057,5 +1069,6 @@ namespace KB30
             e.Handled = true;
         }
     }
+ 
 }
 
