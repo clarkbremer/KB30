@@ -917,15 +917,23 @@ namespace KB30
                     DataObject data = new DataObject();
                     data.SetData("SlideControl", slide);
 
+                    // If this slide is already checked, then we move all checked slides.  If its not checked, then we move only this one. 
+                    if (!slide.IsChecked())
+                    {
+                        foreach (Slide s in slides)
+                        {
+                            s.UnCheck();
+                        }
+                    }
                     // dim and count all the slides that will be dragged
                     selectSlide(slide, true, false);
-                    int numSelected = 0;
+                    int numChecked = 0;
                     foreach (Slide s in slides)
                     {
                         if (s.IsChecked())
                         {
                             s.Dim();
-                            numSelected++;
+                            numChecked++;
                         }
                     }
 
@@ -934,15 +942,26 @@ namespace KB30
                     Rect renderRect = new Rect(slide.slideControl.RenderSize);
                     renderRect.Height = renderRect.Height / 2;
                     renderRect.Width = renderRect.Width / 2;
-                    slideAdorner = new SlideAdorner(slideScrollViewer, numSelected, slide.slideControl.image.Source, renderRect); 
+                    slideAdorner = new SlideAdorner(slideScrollViewer, numChecked, slide.slideControl.image.Source, renderRect); 
                     adLayer.Add(slideAdorner);
 
                     // do it!
                     DragDropEffects result = DragDrop.DoDragDrop(slide.slideControl, slide, DragDropEffects.Copy | DragDropEffects.Move);
-                    
+                    if (result.HasFlag(DragDropEffects.Move))
+                    {
+                        Console.Beep(2000, 50);
+                    }
+                    else
+                    {
+                        Console.Beep(600, 50);
+                        Console.Beep(600, 50);
+                    }
                     // clean up
                     adLayer.Remove(slideAdorner);
-                    foreach (Slide s in slides) { s.UnDim(); }
+                    foreach (Slide s in slides) { 
+                        s.UnDim();
+                        s.highlightClear();
+                    }
                 }
             }
         }
@@ -996,7 +1015,7 @@ namespace KB30
                 Slide source_slide = e.Data.GetData(typeof(Slide)) as Slide;
                 if (target_slide.IsChecked())
                 {
-                    Console.Beep(2000, 200);
+                    Console.Beep(600, 200);
                     return;  // don't drop on self
                 }
                 if (!source_slide.slideControl.IsChecked())

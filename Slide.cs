@@ -104,7 +104,7 @@ namespace KB30
             }
         }
 
-        public void Dim() { slideControl.image.Opacity = 0.5; }
+        public void Dim() { slideControl.image.Opacity = 0.4; }
         public void UnDim() { slideControl.image.Opacity = 1.0; }
 
         public bool IsChecked() { return (bool)(slideControl?.IsChecked()); }

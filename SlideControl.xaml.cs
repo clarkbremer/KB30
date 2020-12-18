@@ -16,7 +16,6 @@ namespace KB30
             InitializeComponent();
         }
 
-
         const int HIGHLIGHT_NONE = 0;
         const int HIGHLIGHT_ABOVE = 1;
         const int HIGHLIGHT_BELOW = 2;

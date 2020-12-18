@@ -24,10 +24,13 @@ namespace KB30
         protected override void OnRender(DrawingContext drawingContext)
         {
             drawingContext.DrawImage(imageSource, renderRect);
-            FormattedText formattedText = new FormattedText(numDragging.ToString(), CultureInfo.GetCultureInfo("en-us"), FlowDirection.LeftToRight, new Typeface("Verdana"), 24, Brushes.White, VisualTreeHelper.GetDpi(this).PixelsPerDip);
-            Point textLocation = new Point(Center.X - formattedText.Width / 2, Center.Y - formattedText.Height / 2);
-            drawingContext.DrawRectangle(Brushes.Blue, null, new Rect(textLocation.X, textLocation.Y, formattedText.Width, formattedText.Height));
-            drawingContext.DrawText(formattedText, textLocation);
+            if (numDragging > 1)
+            {
+                FormattedText formattedText = new FormattedText(numDragging.ToString(), CultureInfo.GetCultureInfo("en-us"), FlowDirection.LeftToRight, new Typeface("Verdana"), 24, Brushes.White, VisualTreeHelper.GetDpi(this).PixelsPerDip);
+                Point textLocation = new Point(Center.X - formattedText.Width / 2, Center.Y - formattedText.Height / 2);
+                drawingContext.DrawRectangle(Brushes.Blue, null, new Rect(textLocation.X, textLocation.Y, formattedText.Width, formattedText.Height));
+                drawingContext.DrawText(formattedText, textLocation);
+            }
         }
     }
 }
