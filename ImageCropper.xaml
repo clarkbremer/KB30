@@ -9,7 +9,7 @@
     <Grid x:Name="grid">
         <Image Name="image"></Image>
         <Canvas Name="cropperCanvas" MouseDown="cropperMouseDown" MouseMove="cropperMouseMove" MouseUp="cropperMouseUp" Background="Transparent">
-            <Rectangle Name="cropper" Stroke="DarkOrange" Fill='#77ffffff' ></Rectangle>
+            <Rectangle Name="cropper" Stroke="Lime" Fill='#77ffffff' ></Rectangle>
         </Canvas>
     </Grid>
 </UserControl>

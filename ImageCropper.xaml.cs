@@ -4,6 +4,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Shapes;
 using System.ComponentModel;
+using System.Windows.Media.Imaging;
+using System.Windows.Media;
 
 namespace KB30
 {
@@ -292,13 +294,36 @@ namespace KB30
                 Canvas.SetTop(cropper, new_y);
                 cropper.Width = new_width;
                 cropper.Height = new_height;
-                this.UpdateLayout();
+
+                updateLayout();
 
                 // Tell the world
                 OnPropertyChanged("cropX");
                 OnPropertyChanged("cropY");
                 OnPropertyChanged("cropZoom");
             }
+        }
+
+        public void updateLayout()
+        {
+            BitmapSource bms = image.Source as BitmapSource;
+            double scale = image.ActualWidth / bms.PixelWidth;
+            double cwp = cropper.Width / scale;
+            if (cwp < 1080)
+            {
+                // resolution has dropped below 2K screen res
+                cropper.Stroke = Brushes.OrangeRed;
+            }
+            else if (cwp < 2048)
+            {
+                cropper.Stroke = Brushes.Yellow;
+            }
+            else
+            {
+                cropper.Stroke = Brushes.Lime;
+            }
+
+            this.UpdateLayout();
         }
 
         // Stop dragging.
@@ -319,7 +344,7 @@ namespace KB30
                     {
                         double old_height = cropper.Height;
                         double new_y = Canvas.GetTop(cropper);
-                        double new_x = (grid.ActualWidth - image.ActualWidth) / 2;
+                        double new_x = (cropperCanvas.ActualWidth - image.ActualWidth) / 2;
                         double new_width = image.ActualWidth;
                         double new_height = new_width * 9 / 16;
                         new_y += (old_height - new_height) / 2;

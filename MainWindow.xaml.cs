@@ -17,6 +17,9 @@ using System.Windows.Documents;
  * To DO:  
  *  Drag and Drop keys to re-order.
  *  Break up this file (drag and drop in own file?)
+ *  Timer showing time left in show
+ *  Key to reverse keyframe order
+ *  Slides list should be inherited class
  */
 namespace KB30
 {
@@ -37,7 +40,7 @@ namespace KB30
         public List<Slide> slides = new List<Slide>();
         public List<Slide> clipboardSlides = new List<Slide>();
         public KF clipboardKey = null;
-        private String lastSavedConfig;
+        private String lastSavedAlbum;
         private String soundtrack = "";
         private Boolean playWithArgumentFile = false;
         private Boolean uiLoaded = false;
@@ -48,7 +51,7 @@ namespace KB30
             InitializeComponent();
         }
 
-        public class Config
+        public class Album
         {
             public string version { get; set; }
             public string soundtrack { get; set; }
@@ -254,7 +257,7 @@ namespace KB30
             foreach (String fname in fileNames)
             {
                 Slide newSlide = new Slide(fname);
-                newSlide.keys.Add(new KF(1.0, 0.5, 0.5, 1));
+                newSlide.keys.Add(new KF(2.0, 0.5, 0.5, 1));
                 if (addSlideControl(newSlide, null, insertIndex))
                 {
                     slides.Insert(insertIndex, newSlide);
@@ -389,18 +392,6 @@ namespace KB30
             }
         }
 
-        private Slide slideFromSlideControl(SlideControl sc)
-        {
-            foreach (Slide slide in slides)
-            {
-                if (slide.slideControl == sc)
-                {
-                    return (slide);
-                }
-            }
-            return null;
-        }
-
         /*********
          *  Keyframes
          */
@@ -480,12 +471,12 @@ namespace KB30
 
             currentKeyframeIndex = keyFrameIndex;
 
-            imageCropper.UpdateLayout();
+            imageCropper.updateLayout();
             imageCropper.cropZoom = key.zoomFactor;
             imageCropper.cropX = key.x;
             imageCropper.cropY = key.y;
 
-            imageCropper.UpdateLayout();
+            imageCropper.updateLayout();
 
             KeyframeControl kfControl = key.kfControl;
             kfControl.Select();
@@ -648,14 +639,14 @@ namespace KB30
         }
         private void playClick(object sender, RoutedEventArgs e)
         {
-            if (configValid())
+            if (albumValid())
             {
                 playIt();
             }
         }
         private void playSlideClick(object sender, RoutedEventArgs e)
         {
-            if (configValid())
+            if (albumValid())
             {
                 List<Slide> oneSlide = new List<Slide>();
                 oneSlide.Add(slides[currentSlideIndex]);
@@ -686,7 +677,7 @@ namespace KB30
 
         private void mainWindowLoaded(object sender, RoutedEventArgs e)
         {
-            lastSavedConfig = serializeCurrentConfig();
+            lastSavedAlbum = serializeCurrentAlbum();
             var allArgs = Environment.GetCommandLineArgs();
             if (allArgs.Length > 1)
             {
@@ -713,35 +704,35 @@ namespace KB30
                 currentSlideIndex = 0;
                 currentKeyframeIndex = 0;
                 currentFileName = "untitled";
-                lastSavedConfig = serializeCurrentConfig();
+                lastSavedAlbum = serializeCurrentAlbum();
                 caption.Text = "Add a slide to get started...";
             }
         }
 
         private void loadIt(string filename)
         {
-            Config config = new Config();
+            Album album = new Album();
             string jsonString;
 
             jsonString = File.ReadAllText(filename);
-            config = JsonConvert.DeserializeObject<Config>(jsonString);
-            if (Convert.ToDouble(config.version) > CONFIG_VERSION)
+            album = JsonConvert.DeserializeObject<Album>(jsonString);
+            if (Convert.ToDouble(album.version) > CONFIG_VERSION)
             {
-                MessageBox.Show("Config File version is newer than this version of the program.");
+                MessageBox.Show("Album File version is newer than this version of the program.");
                 return;
             }
-            if (config.soundtrack != null)
+            if (album.soundtrack != null)
             {
-                if (Path.IsPathFullyQualified(config.soundtrack))
+                if (Path.IsPathFullyQualified(album.soundtrack))
                 {
-                    soundtrack = config.soundtrack;
+                    soundtrack = album.soundtrack;
                 }
                 else
                 {
-                    soundtrack = Path.GetFullPath(config.soundtrack, Path.GetDirectoryName(filename));
+                    soundtrack = Path.GetFullPath(album.soundtrack, Path.GetDirectoryName(filename));
                 }
             }
-            slides = config.slides;
+            slides = album.slides;
             for (int i = slides.Count - 1; i >= 0; i--)
             {
                 slides[i].basePath = Path.GetDirectoryName(filename);
@@ -751,7 +742,7 @@ namespace KB30
                     slides.RemoveAt(i);
                 }
             }
-            lastSavedConfig = jsonString;
+            lastSavedAlbum = jsonString;
             currentFileName = filename;
             this.Title = "KB30 - " + currentFileName;
         }
@@ -773,8 +764,8 @@ namespace KB30
 
         private Boolean saveIfDirty()
         {
-            String snapshot = serializeCurrentConfig();
-            if (snapshot != lastSavedConfig)
+            String snapshot = serializeCurrentAlbum();
+            if (snapshot != lastSavedAlbum)
             {
                 MessageBoxResult result = MessageBox.Show("Save changes to " + currentFileName + "?", "KB30", MessageBoxButton.YesNoCancel);
                 switch (result)
@@ -790,7 +781,7 @@ namespace KB30
             return true;
         }
 
-        private Boolean configValid()
+        private Boolean albumValid()
         {
             if (slides.Count <= 0)
             {
@@ -809,31 +800,31 @@ namespace KB30
             return true;
         }
 
-        private String serializeCurrentConfig()
+        private String serializeCurrentAlbum()
         {
-            Config config = new Config();
+            Album album = new Album();
 
-            config.version = CONFIG_VERSION.ToString();
+            album.version = CONFIG_VERSION.ToString();
             if (soundtrack.Length > 0)
             {
-                config.soundtrack = Path.GetRelativePath(Path.GetDirectoryName(currentFileName), soundtrack);
+                album.soundtrack = Path.GetRelativePath(Path.GetDirectoryName(currentFileName), soundtrack);
             }
-            config.slides = slides;
+            album.slides = slides;
 
-            return JsonConvert.SerializeObject(config, Formatting.Indented);
+            return JsonConvert.SerializeObject(album, Formatting.Indented);
         }
 
         private Boolean saveIt(String filename)
         {
-            if (configValid())
+            if (albumValid())
             {
                 currentFileName = filename;
                 foreach (Slide slide in slides)
                 {
                     slide.basePath = Path.GetDirectoryName(filename);
                 }
-                lastSavedConfig = serializeCurrentConfig();
-                File.WriteAllText(filename, lastSavedConfig);
+                lastSavedAlbum = serializeCurrentAlbum();
+                File.WriteAllText(filename, lastSavedAlbum);
                 return true;
             }
             return false;
@@ -1043,22 +1034,24 @@ namespace KB30
                     slideScrollViewer.ScrollToVerticalOffset(slideScrollViewer.VerticalOffset + 20);
                 }
 
-                slideAdorner.Arrange(new Rect(p.X, p.Y, slideAdorner.DesiredSize.Width, slideAdorner.DesiredSize.Height));
+                if (e.Data.GetDataPresent(typeof(Slide)))
+                {
+                    slideAdorner.Arrange(new Rect(p.X, p.Y, slideAdorner.DesiredSize.Width, slideAdorner.DesiredSize.Height));
+                    // don't allow drop on self.
+                    if (slide.IsChecked())
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                }
 
-                // clear all others
+                // clear all other highlights
                 foreach (Slide s in slides)
                 {
                     if (s != slide)
                     {
                         s.highlightClear();
                     }
-                }
-
-                // don't allow drop on self.
-                if (slide.IsChecked())
-                {
-                   e.Handled = true;
-                   return;
                 }
 
                 if (dropDirection(e, slide) == ABOVE)
