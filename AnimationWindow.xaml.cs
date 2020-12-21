@@ -7,6 +7,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Animation;
 using System.Linq;
+using System.Windows.Threading;
 
 namespace KB30
 {
@@ -407,6 +408,8 @@ namespace KB30
                     }
                     break;
             }
+            // wait for rendering to complete so new window size is set
+            Dispatcher.Invoke(new Action(() => { }), DispatcherPriority.Render, null);
             if (slides.Count > 0)
             {
                 stopAllClocks();

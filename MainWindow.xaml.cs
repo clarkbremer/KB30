@@ -14,6 +14,9 @@ using System.Windows.Documents;
 
 
 /*
+ * Bugs:
+ *  Load non-image file -> trouble.
+ * 
  * To DO:  
  *  Drag and Drop keys to re-order.
  *  Break up this file (drag and drop in own file?)
@@ -66,7 +69,14 @@ namespace KB30
             currentSlideIndex = 0;
             currentKeyframeIndex = 0;
             slidePanel.Children.Clear();
-            addSlideControlInBackground(slides[0]);
+            if (slides.Count == 0)
+            {
+                blankUI();
+            }
+            else
+            {
+                addSlideControlInBackground(slides[0]);
+            }
             imageCropper.SizeChanged += imageCropper_SizeChanged;
             uiLoaded = true;
         }
@@ -188,6 +198,8 @@ namespace KB30
         public void selectSlide(Slide slide, Boolean unbindOld = true, Boolean unCheckAll = true) { selectSlide(slides.IndexOf(slide), unbindOld, unCheckAll); }
         public void selectSlide(int slideIndex, Boolean unbindOld = true, Boolean unCheckAll = true)
         {
+            if (slideIndex < 0) { return; }
+
             slides[currentSlideIndex].slideControl.DeSelect(unCheckAll);
             if (unbindOld)
             {
@@ -354,6 +366,10 @@ namespace KB30
                 if (currentSlideIndex > victimIndex) { currentSlideIndex--; }
             }
             renumberSlides();
+            if (slides.Count == 0)
+            {
+                blankUI();
+            }
         }
 
         private void renumberSlides()
@@ -696,16 +712,10 @@ namespace KB30
         {
             if (saveIfDirty())
             {
-                slides.Clear();
-                keyframePanel.Children.Clear();
-                slidePanel.Children.Clear();
-                imageCropper.image.Source = null;
-                imageCropper.cropper.Visibility = Visibility.Collapsed;
-                currentSlideIndex = 0;
-                currentKeyframeIndex = 0;
+                blankUI();
                 currentFileName = "untitled";
+                soundtrack = "";
                 lastSavedAlbum = serializeCurrentAlbum();
-                caption.Text = "Add a slide to get started...";
             }
         }
 
@@ -888,6 +898,17 @@ namespace KB30
             }
         }
 
+        private void blankUI()
+        {
+            slides.Clear();
+            keyframePanel.Children.Clear();
+            slidePanel.Children.Clear();
+            imageCropper.image.Source = null;
+            imageCropper.cropper.Visibility = Visibility.Collapsed;
+            currentSlideIndex = 0;
+            currentKeyframeIndex = 0;
+            caption.Text = "Add a slide to get started...";
+        }
         /*************
          * Drag and Drop
          */
