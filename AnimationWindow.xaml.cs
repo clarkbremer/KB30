@@ -36,6 +36,8 @@ namespace KB30
         private static readonly CubicEase easeIn = new CubicEase() { EasingMode = EasingMode.EaseIn };
         private static readonly CubicEase easeInOut = new CubicEase() { EasingMode = EasingMode.EaseInOut };
 
+        private DispatcherTimer playTimer = new DispatcherTimer();
+
         private List<AnimationClock> currentClocks = new List<AnimationClock>();
 
         private Boolean paused = false;
@@ -48,11 +50,15 @@ namespace KB30
             exitOnClose = false ;
             Loaded += animationWindowLoaded;
             Closed += animationWindowClosed;
+            playTimer.Interval = new TimeSpan(0, 0, 0, 1);
+            playTimer.Tick += playTimerTick;
         }
 
         private void animationWindowClosed(object sender, EventArgs e)
         {
             mediaPlayer.Close();
+            stopAllClocks();
+            playTimer.Stop();
         }
 
         public void animate(Slides _slides, int _start = 0, String _soundtrack = "")
@@ -95,6 +101,7 @@ namespace KB30
             frame1.Opacity = 1;
             frame2.Opacity = 0;
             beginPanZoom(currentImage, slides[currentSlideIndex].keys);
+            playTimer.Start();
         }
 
         private void mediaPlayerEnded(object sender, EventArgs e)
@@ -239,6 +246,7 @@ namespace KB30
 
             status.Text = " " + (currentSlideIndex + 1).ToString() + " of " + slides.Count + " ";
             status.Visibility = Visibility.Visible;
+            timer.Visibility = Visibility.Visible;
             animationState = PAN_ZOOM;
         }
 
@@ -251,6 +259,7 @@ namespace KB30
                     c.Controller.Resume();
                 });
                 mediaPlayer.Play();
+                playTimer.Start();
                 paused = false;
             }
             else
@@ -260,6 +269,7 @@ namespace KB30
                     c.Controller.Pause();
                 });
                 mediaPlayer.Pause();
+                playTimer.Stop();
                 paused = true;
             }
         }
@@ -450,6 +460,40 @@ namespace KB30
             {
                 c.Controller.SkipToFill();
             });
+        }
+
+        string timeRemaining()
+        {
+            double currentSlideDuration;
+            double totalDuration;
+
+            if (animationState == PAN_ZOOM)
+            {
+                currentSlideDuration = slides[currentSlideIndex].keys.Sum(k => k.duration);
+                totalDuration = ((1 - currentClocks[0].CurrentProgress.Value) * currentSlideDuration) + 1.5;
+            }
+            else
+            {
+                currentSlideDuration = 1.5;
+                totalDuration = (1 - currentClocks[0].CurrentProgress.Value) * currentSlideDuration;
+            }
+
+            for (int s = currentSlideIndex + 1; s < slides.Count; s++)
+            {
+                for (int k = 0; k < slides[s].keys.Count; k++)
+                {
+                    totalDuration += slides[s].keys[k].duration;
+                }
+                totalDuration += 1.5; // for fade in out
+            }
+            int durationMins = (int)(totalDuration / 60);
+            int durationSecs = (int)(totalDuration % 60);
+            return durationMins.ToString("D2") + ":" + durationSecs.ToString("D2");
+        }
+
+        private void playTimerTick(object sender, EventArgs e)
+        {
+            timer.Text = timeRemaining();
         }
     }
 }

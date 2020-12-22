@@ -20,9 +20,7 @@ using System.Windows.Documents;
  * To DO:  
  *  Drag and Drop keys to re-order.
  *  Break up this file (drag and drop in own file?)
- *  Timer showing time left in show
  *  Key to reverse keyframe order
- *  Slides list should be inherited class
  */
 namespace KB30
 {

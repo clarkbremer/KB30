@@ -29,5 +29,6 @@
             </Image>
         </Border>
         <TextBlock x:Name="status" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Black" Foreground="LightSkyBlue" FontSize="12" Margin="0"></TextBlock>
+        <TextBlock x:Name="timer" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Black" Foreground="LightSkyBlue" FontSize="12" Margin="0"></TextBlock>
     </Grid>
 </Window>
