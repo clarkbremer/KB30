@@ -16,7 +16,7 @@ namespace KB30
     /// </summary>
     public partial class AnimationWindow : Window
     {
-        public List<Slide> slides = new List<Slide>();
+        public Slides slides = new Slides();
         public MediaPlayer mediaPlayer = new MediaPlayer();
 
         Image currentImage;
@@ -55,7 +55,7 @@ namespace KB30
             mediaPlayer.Close();
         }
 
-        public void animate(List<Slide> _slides, int _start = 0, String _soundtrack = "")
+        public void animate(Slides _slides, int _start = 0, String _soundtrack = "")
         {
             slides.Clear();
             foreach (Slide slide in _slides)

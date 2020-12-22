@@ -40,7 +40,8 @@ namespace KB30
         public int currentSlideIndex = 0;
         public int currentKeyframeIndex = 0;
         private String currentFileName = "untitled";
-        public List<Slide> slides = new List<Slide>();
+// public List<Slide> slides = new List<Slide>();
+        public Slides slides = new Slides();
         public List<Slide> clipboardSlides = new List<Slide>();
         public KF clipboardKey = null;
         private String lastSavedAlbum;
@@ -58,7 +59,7 @@ namespace KB30
         {
             public string version { get; set; }
             public string soundtrack { get; set; }
-            public List<Slide> slides { get; set; }
+            public Slides slides { get; set; }
         }
 
         /*********
@@ -191,7 +192,7 @@ namespace KB30
                 slidePanel.Children.Insert(insertPosition, slideControl);
             }
             slideControl.DeSelect();
-            renumberSlides();
+            slides.Renumber();
             return true;
         }
 
@@ -237,7 +238,7 @@ namespace KB30
                     }
                 }
             }
-            renumberSlides();
+            slides.Renumber();
         }
         private void slideClick(object sender, RoutedEventArgs e, Slide slide)
         {
@@ -284,7 +285,7 @@ namespace KB30
                     insertIndex++;
                 }
             }
-            renumberSlides();
+            slides.Renumber();
         }
 
         private void insertSlideClick(object sender, RoutedEventArgs e, Slide slide, int position)
@@ -323,8 +324,8 @@ namespace KB30
                 insertIndex++;
             }
             clipboardSlides.Clear();
-            foreach (Slide slide in slides) { slide.slideControl.UnCheck(); }
-            renumberSlides();
+            slides.UncheckAll();
+            slides.Renumber();
         }
 
 
@@ -365,21 +366,10 @@ namespace KB30
 
                 if (currentSlideIndex > victimIndex) { currentSlideIndex--; }
             }
-            renumberSlides();
+            slides.Renumber();
             if (slides.Count == 0)
             {
                 blankUI();
-            }
-        }
-
-        private void renumberSlides()
-        {
-            foreach (Slide slide in slides)
-            {
-                if (slide.slideControl != null)
-                {
-                    slide.slideControl.slideNumber = slides.IndexOf(slide) + 1;
-                }
             }
         }
 
@@ -664,7 +654,7 @@ namespace KB30
         {
             if (albumValid())
             {
-                List<Slide> oneSlide = new List<Slide>();
+                Slides oneSlide = new Slides();
                 oneSlide.Add(slides[currentSlideIndex]);
                 AnimationWindow animationWindow = new AnimationWindow();
                 animationWindow.Show();
@@ -932,10 +922,7 @@ namespace KB30
                     // If this slide is already checked, then we move all checked slides.  If its not checked, then we move only this one. 
                     if (!slide.IsChecked())
                     {
-                        foreach (Slide s in slides)
-                        {
-                            s.UnCheck();
-                        }
+                        slides.UncheckAll();
                     }
                     // dim and count all the slides that will be dragged
                     selectSlide(slide, true, false);
@@ -970,10 +957,8 @@ namespace KB30
                     }
                     // clean up
                     adLayer.Remove(slideAdorner);
-                    foreach (Slide s in slides) { 
-                        s.UnDim();
-                        s.highlightClear();
-                    }
+                    slides.UnDimAll();
+                    slides.ClearHighlightAll();
                 }
             }
         }
@@ -1067,13 +1052,7 @@ namespace KB30
                 }
 
                 // clear all other highlights
-                foreach (Slide s in slides)
-                {
-                    if (s != slide)
-                    {
-                        s.highlightClear();
-                    }
-                }
+                slides.ClearHightlightsExcept(slide);
 
                 if (dropDirection(e, slide) == ABOVE)
                 {

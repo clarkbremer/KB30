@@ -115,4 +115,44 @@ namespace KB30
         public void highlightClear() { slideControl.highlightClear(); }
 
     }
+
+    public class Slides : List<Slide>
+    {
+        public void UncheckAll()
+        {
+            foreach(Slide slide in this) { slide.slideControl.UnCheck(); }
+        }
+
+        public void Renumber()
+        {
+            foreach (Slide slide in this)
+            {
+                if (slide.slideControl != null)
+                {
+                    slide.slideControl.slideNumber = this.IndexOf(slide) + 1;
+                }
+            }
+        }
+
+        public void UnDimAll()
+        {
+            foreach (Slide slide in this) { slide.UnDim(); }
+        }
+        public void ClearHighlightAll()
+        {
+            foreach (Slide slide in this) { slide.highlightClear(); }
+        }
+
+        public void ClearHightlightsExcept(Slide notMe)
+        {
+            foreach (Slide s in this)
+            {
+                if (s != notMe)
+                {
+                    s.highlightClear();
+                }
+            }
+        }
+
+    }
 }
