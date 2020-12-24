@@ -486,6 +486,7 @@ namespace KB30
                 }
                 totalDuration += 1.5; // for fade in out
             }
+            totalDuration = totalDuration / speedFactor;
             int durationMins = (int)(totalDuration / 60);
             int durationSecs = (int)(totalDuration % 60);
             return durationMins.ToString("D2") + ":" + durationSecs.ToString("D2");

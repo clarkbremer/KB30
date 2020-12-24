@@ -38,9 +38,8 @@ namespace KB30
         public int currentSlideIndex = 0;
         public int currentKeyframeIndex = 0;
         private String currentFileName = "untitled";
-// public List<Slide> slides = new List<Slide>();
         public Slides slides = new Slides();
-        public List<Slide> clipboardSlides = new List<Slide>();
+        public Slides clipboardSlides = new Slides();
         public KF clipboardKey = null;
         private String lastSavedAlbum;
         private String soundtrack = "";
