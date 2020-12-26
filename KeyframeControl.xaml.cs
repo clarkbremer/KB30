@@ -21,5 +21,12 @@ namespace KB30
         {
             SelectBorder.BorderBrush = Brushes.LightBlue;
         }
+
+
+        private void KFControl_Loaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            this.durTb.Focus();
+            this.durTb.SelectAll();
+        }
     }
 }

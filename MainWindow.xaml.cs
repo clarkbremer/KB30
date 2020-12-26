@@ -20,6 +20,12 @@ using System.Windows.Documents;
  * To DO:  
  *  Drag and Drop keys to re-order.
  *  Break up this file (drag and drop in own file?)
+ *  Config options both global and local to this album:
+ *   - Absolute/Relative paths 
+ *   - default fadein/out duration
+ *   - default key duration
+ *  Duration textbox allow only numeric.
+ *  Maybe combine slide and slidecontol classes.  Same with keys.  Figure out serialization.
  *  Key to reverse keyframe order
  */
 namespace KB30
@@ -427,7 +433,11 @@ namespace KB30
             }
 
             kfControl.Margin = new Thickness(2, 2, 2, 2);
-            kfControl.button.Click += delegate (object sender, RoutedEventArgs e) { keyFrameClick(sender, e, key); };
+            kfControl.MouseLeftButtonUp += delegate (object sender, MouseButtonEventArgs e) { keyFrameClick(sender, e, key); };
+            kfControl.xTb.PreviewMouseDown += delegate (object sender, MouseButtonEventArgs e) { keyFrameClick(sender, e, key); };
+            kfControl.yTb.PreviewMouseDown += delegate (object sender, MouseButtonEventArgs e) { keyFrameClick(sender, e, key); };
+            kfControl.zoomTb.PreviewMouseDown += delegate (object sender, MouseButtonEventArgs e) { keyFrameClick(sender, e, key); };
+            kfControl.durTb.PreviewMouseDown += delegate (object sender, MouseButtonEventArgs e) { keyFrameClick(sender, e, key); };
 
             kfControl.xTb.Text = key.x.ToString();
             kfControl.yTb.Text = key.y.ToString();
@@ -445,6 +455,7 @@ namespace KB30
             kfControl.KeyframeContextMenu.Opened += delegate (object sender, RoutedEventArgs e) { keyframeContextMenuOpened(sender, e, key); };
         }
 
+ 
         private void unBindKFC(KeyframeControl kfc, KF key)
         {
             if (kfc == null)
@@ -546,6 +557,7 @@ namespace KB30
             KF newKey = new KF(currentKey.zoomFactor, currentKey.x, currentKey.y, DEFAULT_DURATION);
             currentSlide.keys.Add(newKey);
             addKeyframeControl(newKey);
+            newKey.kfControl.durTb.Focus();
             selectKeyframe(newKey);
         }
 
@@ -689,6 +701,14 @@ namespace KB30
                 loadIt(filenameArgument);
                 playIt();
             }
+            /* debug */
+            else
+            {
+                loadIt("C:\\Users\\clark\\source\\repos\\pictures\\cards.kb30");
+                initializeSlidesUI();
+
+            }
+
         }
 
 

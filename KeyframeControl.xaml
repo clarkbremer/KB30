@@ -5,9 +5,10 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:KB30"
              mc:Ignorable="d" 
-             d:DesignHeight="80" d:DesignWidth="100">
+             d:DesignHeight="80" d:DesignWidth="100"
+             Loaded="KFControl_Loaded">
     <Border x:Name="SelectBorder" Background="Transparent" BorderBrush="Red" Margin="2" BorderThickness="5" VerticalAlignment="Center">
-        <Button x:Name="button">
+        <StackPanel x:Name="keyPanel" Background="LightGray">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*" />
@@ -24,17 +25,17 @@
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Y: "/>
                 <TextBlock Grid.Row="3" Grid.Column="0" Text="Zoom: "/>
                 <TextBox Grid.Row="0" Grid.Column="1" Name="durTb" Text="99"/>
-                <TextBox Grid.Row="1" Grid.Column="1" Name="xTb" Text="99" IsReadOnly="True"/>
-                <TextBox Grid.Row="2" Grid.Column="1" Name="yTb" Text="99" IsReadOnly="True"/>
-                <TextBox Grid.Row="3" Grid.Column="1" Name="zoomTb" Text="99" IsReadOnly="True"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Name="xTb" Text="99" IsReadOnly="True" Background="LightGray"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Name="yTb" Text="99" IsReadOnly="True" Background="LightGray"/>
+                <TextBox Grid.Row="3" Grid.Column="1" Name="zoomTb" Text="99" IsReadOnly="True" Background="LightGray"/>
             </Grid>
-            <Button.ContextMenu>
+            <StackPanel.ContextMenu>
                 <ContextMenu Name="KeyframeContextMenu">
                     <MenuItem Name="CMCut" Header="Cut Keyframe"></MenuItem>
                     <MenuItem Name="CMPaste" Header="Paste Keyframe Left"></MenuItem>
                     <MenuItem Name="CMInsert" Header="Insert Keyframe Left"></MenuItem>
                 </ContextMenu>
-            </Button.ContextMenu>
-        </Button>
+            </StackPanel.ContextMenu>
+        </StackPanel>
     </Border>
 </UserControl>
