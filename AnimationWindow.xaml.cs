@@ -110,7 +110,7 @@ namespace KB30
             mediaPlayer.Play();
         }
 
-        private void transformImage(Image image, KF kf)
+        private void transformImage(Image image, Keyframe kf)
         {
             Double w = image.ActualWidth;
             Double h = image.ActualHeight;
@@ -187,7 +187,7 @@ namespace KB30
             otherImage.Source = bitmap;
         }
 
-        private void beginPanZoom(Image image, List<KF> keys)
+        private void beginPanZoom(Image image, List<Keyframe> keys)
         {
             var iw = image.ActualWidth;
             var ih = image.ActualHeight;

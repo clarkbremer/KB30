@@ -1,54 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using System.Windows;
 using System.IO;
 
 namespace KB30
 {
-    [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-    public class KF : FrameworkElement
-    {
-        [JsonProperty]
-        public double zoomFactor { get; set; }
-        [JsonProperty]
-        public double x { get; set; }
-        [JsonProperty]
-        public double y { get; set; }
-        [JsonProperty]
-        public double duration { get; set; }
-
-        public static readonly DependencyProperty zoomFactorProperty = DependencyProperty.Register("zoomFactor", typeof(double), typeof(KF));
-        public static readonly DependencyProperty xProperty = DependencyProperty.Register("x", typeof(double), typeof(KF));
-        public static readonly DependencyProperty yProperty = DependencyProperty.Register("y", typeof(double), typeof(KF));
-        public static readonly DependencyProperty durationProperty = DependencyProperty.Register("duration", typeof(double), typeof(KF));
-
-
-        public KF(double z, double x, double y, double d)
-        {
-            this.zoomFactor = z;
-            this.x = x;
-            this.y = y;
-            this.duration = d;
-        }
-
-        public KF() { }
-
-        public KeyframeControl kfControl { get; set; }
-    }
 
     public class Slide
     {
         public Slide()
         {
-            keys = new List<KF>();
+            keys = new Keyframes();
         }
         public Slide(string s)
         {
             fileName = s;
-            keys = new List<KF>();
+            keys = new Keyframes();
         }
-        public List<KF> keys { get; set; }
+        public Keyframes keys { get; set; }
 
         [JsonIgnore]
         public SlideControl slideControl { get; set; }
@@ -73,7 +42,8 @@ namespace KB30
                 }
                 return (_fileName);
             }
-            set {
+            set
+            {
                 _fileName = value;
                 uri = new Uri(_fileName);
                 if (!string.IsNullOrEmpty(basePath) && string.IsNullOrEmpty(_relativePath))
@@ -94,7 +64,8 @@ namespace KB30
                 }
                 return (_relativePath);
             }
-            set {
+            set
+            {
                 _relativePath = value;
                 if (!string.IsNullOrEmpty(basePath) && string.IsNullOrEmpty(_fileName))
                 {
@@ -120,7 +91,7 @@ namespace KB30
     {
         public void UncheckAll()
         {
-            foreach(Slide slide in this) { slide.slideControl.UnCheck(); }
+            foreach (Slide slide in this) { slide.slideControl.UnCheck(); }
         }
 
         public void Renumber()
@@ -155,4 +126,6 @@ namespace KB30
         }
 
     }
+
+  
 }

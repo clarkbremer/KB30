@@ -18,7 +18,6 @@ using System.Windows.Documents;
  *  Load non-image file -> trouble.
  * 
  * To DO:  
- *  Drag and Drop keys to re-order.
  *  Break up this file (drag and drop in own file?)
  *  Config options both global and local to this album:
  *   - Absolute/Relative paths 
@@ -40,18 +39,21 @@ namespace KB30
 
         const int ABOVE = 1;
         const int BELOW = 2;
+        const int LEFT = 3;
+        const int RIGHT = 4;
 
         public int currentSlideIndex = 0;
         public int currentKeyframeIndex = 0;
         private String currentFileName = "untitled";
         public Slides slides = new Slides();
         public Slides clipboardSlides = new Slides();
-        public KF clipboardKey = null;
+        public Keyframe clipboardKey = null;
         private String lastSavedAlbum;
         private String soundtrack = "";
         private Boolean playWithArgumentFile = false;
         private Boolean uiLoaded = false;
-        private Point initialMousePosition;
+        private Point initialSlideMousePosition;
+        private Point initialKeyframeMousePosition;
 
         public MainWindow()
         {
@@ -85,6 +87,12 @@ namespace KB30
             uiLoaded = true;
         }
 
+        private Slide currentSlide {
+            get
+            {
+                return slides[currentSlideIndex];
+            }
+        }
 
         class WorkerResult
         {
@@ -172,6 +180,7 @@ namespace KB30
             }
             slideControl.image.Source = bmp;
             slideControl.caption.Text = System.IO.Path.GetFileName(slide.fileName);
+
             slideControl.MouseMove += delegate (object sender, MouseEventArgs e) { slideMouseMove(sender, e, slide); };
             slideControl.MouseLeftButtonUp += delegate (object sender, MouseButtonEventArgs e) { slideClick(sender, e, slide); };
             slideControl.PreviewMouseDown += delegate (object sender, MouseButtonEventArgs e) { slidePreviewMouseDown(sender, e, slide); };
@@ -185,6 +194,7 @@ namespace KB30
             slideControl.CMInsertBelow.Click += delegate (object sender, RoutedEventArgs e) { insertSlideClick(sender, e, slide, BELOW); };
             slideControl.CMPlayFromHere.Click += delegate (object sender, RoutedEventArgs e) { playFromHereClick(sender, e, slide); };
             slideControl.SlideContextMenu.Opened += delegate (object sender, RoutedEventArgs e) { slideContextMenuOpened(sender, e, slide); };
+
             slide.slideControl = slideControl;
             if (insertPosition == -1)
             {
@@ -204,11 +214,11 @@ namespace KB30
         {
             if (slideIndex < 0) { return; }
 
-            slides[currentSlideIndex].slideControl.DeSelect(unCheckAll);
+            currentSlide.slideControl.DeSelect(unCheckAll);
             if (unbindOld)
             {
-                KF oldKey = slides[currentSlideIndex].keys[currentKeyframeIndex];
-                KeyframeControl oldKFControl = oldKey.kfControl;
+                Keyframe oldKey = currentSlide.keys[currentKeyframeIndex];
+                KeyframeControl oldKFControl = oldKey.keyframeControl;
                 unBindKFC(oldKFControl, oldKey);
             }
             currentSlideIndex = slideIndex;
@@ -220,18 +230,18 @@ namespace KB30
                 foreach (SlideControl sc in slidePanel.Children) { sc.UnCheck(); }
             }
 
-            slides[currentSlideIndex].slideControl.Select();
+            currentSlide.slideControl.Select();
 
             currentKeyframeIndex = 0;
-            initializeKeysUI(slides[currentSlideIndex]);
-            caption.Text = slides[currentSlideIndex].fileName + " (" + bitmap.PixelWidth + " x " + bitmap.PixelHeight + ")  " + (slideIndex + 1) + " of " + slides.Count;
+            initializeKeysUI(currentSlide);
+            caption.Text = currentSlide.fileName + " (" + bitmap.PixelWidth + " x " + bitmap.PixelHeight + ")  " + (slideIndex + 1) + " of " + slides.Count;
         }
         private void addSlides(string[] fileNames)
         {
             foreach (String fname in fileNames)
             {
                 Slide newSlide = new Slide(fname);
-                newSlide.keys.Add(new KF(2.0, 0.5, 0.5, 1));
+                newSlide.keys.Add(new Keyframe(2.0, 0.5, 0.5, 1));
                 if (addSlideControl(newSlide))
                 {
                     slides.Add(newSlide);
@@ -273,7 +283,7 @@ namespace KB30
             foreach (String fname in fileNames)
             {
                 Slide newSlide = new Slide(fname);
-                newSlide.keys.Add(new KF(2.0, 0.5, 0.5, 1));
+                newSlide.keys.Add(new Keyframe(2.0, 0.5, 0.5, 1));
                 if (addSlideControl(newSlide, null, insertIndex))
                 {
                     slides.Insert(insertIndex, newSlide);
@@ -408,21 +418,21 @@ namespace KB30
         public void initializeKeysUI(Slide slide)
         {
             keyframePanel.Children.Clear();
-            List<KF> keys = slide.keys;
+            Keyframes keys = slide.keys;
             for (int i = 0; i < keys.Count; i++)
             {
-                KF key = keys[i];
+                Keyframe key = keys[i];
                 addKeyframeControl(key);
             }
 
             selectKeyframe(keys[0]);
         }
 
-        public void addKeyframeControl(KF key, int insertIndex = -1)
+        public void addKeyframeControl(Keyframe key, int insertIndex = -1)
         {
             KeyframeControl kfControl = new KeyframeControl();
             kfControl.DeSelect();
-            key.kfControl = kfControl;
+            key.keyframeControl = kfControl;
             if (insertIndex == -1)
             {
                 keyframePanel.Children.Add(kfControl);
@@ -432,12 +442,13 @@ namespace KB30
                 keyframePanel.Children.Insert(insertIndex, kfControl);
             }
 
-            kfControl.Margin = new Thickness(2, 2, 2, 2);
-            kfControl.MouseLeftButtonUp += delegate (object sender, MouseButtonEventArgs e) { keyFrameClick(sender, e, key); };
-            kfControl.xTb.PreviewMouseDown += delegate (object sender, MouseButtonEventArgs e) { keyFrameClick(sender, e, key); };
-            kfControl.yTb.PreviewMouseDown += delegate (object sender, MouseButtonEventArgs e) { keyFrameClick(sender, e, key); };
-            kfControl.zoomTb.PreviewMouseDown += delegate (object sender, MouseButtonEventArgs e) { keyFrameClick(sender, e, key); };
-            kfControl.durTb.PreviewMouseDown += delegate (object sender, MouseButtonEventArgs e) { keyFrameClick(sender, e, key); };
+            kfControl.PreviewMouseUp += delegate (object sender, MouseButtonEventArgs e) { keyFrameClick(sender, e, key); };
+
+            kfControl.PreviewMouseDown += delegate (object sender, MouseButtonEventArgs e) { keyframePreviewMouseDown(sender, e, key); };
+            kfControl.MouseMove += delegate (object sender, MouseEventArgs e) { keyframeMouseMove(sender, e, key); };
+            kfControl.DragOver += delegate (object sender, DragEventArgs e) { keyframeDragOver(sender, e, key); };
+            kfControl.Drop += delegate (object sender, DragEventArgs e) { keyframeDrop(sender, e, key); };
+            kfControl.GiveFeedback += delegate (object sender, GiveFeedbackEventArgs e) { keyframeGiveFeedback(sender, e, key); };
 
             kfControl.xTb.Text = key.x.ToString();
             kfControl.yTb.Text = key.y.ToString();
@@ -456,7 +467,7 @@ namespace KB30
         }
 
  
-        private void unBindKFC(KeyframeControl kfc, KF key)
+        private void unBindKFC(KeyframeControl kfc, Keyframe key)
         {
             if (kfc == null)
             {
@@ -472,12 +483,12 @@ namespace KB30
             kfc.zoomTb.Text = key.zoomFactor.ToString();
         }
 
-        public void selectKeyframe(KF key)
+        public void selectKeyframe(Keyframe key)
         {
-            List<KF> keys = slides[currentSlideIndex].keys;
+            Keyframes keys = currentSlide.keys;
             int keyFrameIndex = keys.IndexOf(key);
-            KF oldKey = keys[currentKeyframeIndex];
-            KeyframeControl oldKFControl = oldKey.kfControl;
+            Keyframe oldKey = keys[currentKeyframeIndex];
+            KeyframeControl oldKFControl = oldKey.keyframeControl;
 
             unBindKFC(oldKFControl, oldKey);
 
@@ -492,7 +503,7 @@ namespace KB30
 
             imageCropper.updateLayout();
 
-            KeyframeControl kfControl = key.kfControl;
+            KeyframeControl kfControl = key.keyframeControl;
             kfControl.Select();
 
             Binding xBinding = new Binding("cropX")
@@ -517,7 +528,7 @@ namespace KB30
             kfControl.zoomTb.SetBinding(TextBox.TextProperty, zoomBinding);
         }
 
-        private void kfControlChangeEvent(object sender, TextChangedEventArgs e, KF key)
+        private void kfControlChangeEvent(object sender, TextChangedEventArgs e, Keyframe key)
         {
             Double maybe;
             TextBox tb = (e.Source as TextBox);
@@ -544,7 +555,7 @@ namespace KB30
             }
         }
 
-        private void keyFrameClick(object sender, RoutedEventArgs e, KF key)
+        private void keyFrameClick(object sender, RoutedEventArgs e, Keyframe key)
         {
             selectKeyframe(key);
         }
@@ -552,21 +563,19 @@ namespace KB30
         private void addKeyframeClick(object sender, RoutedEventArgs e)
         {
             if (slides.Count == 0) { return; }
-            Slide currentSlide = slides[currentSlideIndex];
-            KF currentKey = currentSlide.keys[currentKeyframeIndex];
-            KF newKey = new KF(currentKey.zoomFactor, currentKey.x, currentKey.y, DEFAULT_DURATION);
+            Keyframe currentKey = currentSlide.keys[currentKeyframeIndex];
+            Keyframe newKey = new Keyframe(currentKey.zoomFactor, currentKey.x, currentKey.y, DEFAULT_DURATION);
             currentSlide.keys.Add(newKey);
             addKeyframeControl(newKey);
-            newKey.kfControl.durTb.Focus();
+            newKey.keyframeControl.durTb.Focus();
             selectKeyframe(newKey);
         }
 
-        private void insertKeyframeClick(object sender, RoutedEventArgs e, KF key)
+        private void insertKeyframeClick(object sender, RoutedEventArgs e, Keyframe key)
         {
-            Slide currentSlide = slides[currentSlideIndex];
-            List<KF> keys = currentSlide.keys;
+            Keyframes keys = currentSlide.keys;
             var insertIndex = keys.IndexOf(key);
-            KF newKey = new KF(key.zoomFactor, key.x, key.y, DEFAULT_DURATION);
+            Keyframe newKey = new Keyframe(key.zoomFactor, key.x, key.y, DEFAULT_DURATION);
             keys.Insert(insertIndex, newKey);
             addKeyframeControl(newKey, insertIndex);
             if (currentKeyframeIndex >= insertIndex)
@@ -576,13 +585,24 @@ namespace KB30
             selectKeyframe(newKey);
         }
 
-        private void pasteKeyframeClick(object sender, RoutedEventArgs e, KF key)
+        private void pasteKeyframeClick(object sender, RoutedEventArgs e, Keyframe key)
         {
-            List<KF> keys = slides[currentSlideIndex].keys;
+            pasteKeyframe(key, LEFT);
+        }
+        private void pasteKeyframe(Keyframe insertKey, int direction)
+        {
+            if (clipboardKey == null) { return; }
 
-            var insertIndex = keys.IndexOf(key);
+            Keyframes keys = currentSlide.keys;
+            
+            var insertIndex = keys.IndexOf(insertKey);
+            if (direction == RIGHT)
+            {
+                insertIndex += 1;
+            }
+
             keys.Insert(insertIndex, clipboardKey);
-            keyframePanel.Children.Insert(insertIndex, clipboardKey.kfControl);
+            keyframePanel.Children.Insert(insertIndex, clipboardKey.keyframeControl);
             if (currentKeyframeIndex >= insertIndex)
             {
                 currentKeyframeIndex++;
@@ -590,9 +610,13 @@ namespace KB30
             clipboardKey = null;
         }
 
-        private void cutKeyframeClick(object sender, RoutedEventArgs e, KF key)
+        private void cutKeyframeClick(object sender, RoutedEventArgs e, Keyframe key)
         {
-            List<KF> keys = slides[currentSlideIndex].keys;
+            cutKeyframe(key);
+        }
+        private void cutKeyframe(Keyframe key)
+        {
+            Keyframes keys = currentSlide.keys;
             if (keys.Count == 1)
             {
                 MessageBox.Show("At least one keyframe is required");
@@ -612,7 +636,7 @@ namespace KB30
                 }
             }
 
-            KeyframeControl kfc = key.kfControl;
+            KeyframeControl kfc = key.keyframeControl;
             keyframePanel.Children.Remove(kfc);
             clipboardKey = key;
             keys.Remove(key);
@@ -620,15 +644,15 @@ namespace KB30
             if (currentKeyframeIndex > victimIndex) { currentKeyframeIndex--; }
         }
 
-        private void keyframeContextMenuOpened(object sender, RoutedEventArgs e, KF key)
+        private void keyframeContextMenuOpened(object sender, RoutedEventArgs e, Keyframe key)
         {
             if (clipboardKey == null)
             {
-                key.kfControl.CMPaste.IsEnabled = false;
+                key.keyframeControl.CMPaste.IsEnabled = false;
             }
             else
             {
-                key.kfControl.CMPaste.IsEnabled = true;
+                key.keyframeControl.CMPaste.IsEnabled = true;
             }
         }
 
@@ -636,7 +660,7 @@ namespace KB30
         {
             if (slides.Count > 0)
             {
-                selectKeyframe(slides[currentSlideIndex].keys[currentKeyframeIndex]);
+                selectKeyframe(currentSlide.keys[currentKeyframeIndex]);
             }
         }
 
@@ -664,7 +688,7 @@ namespace KB30
             if (albumValid())
             {
                 Slides oneSlide = new Slides();
-                oneSlide.Add(slides[currentSlideIndex]);
+                oneSlide.Add(currentSlide);
                 AnimationWindow animationWindow = new AnimationWindow();
                 animationWindow.Show();
                 animationWindow.animate(oneSlide);
@@ -874,7 +898,7 @@ namespace KB30
             double totalDuration = 0;
             foreach (Slide s in slides)
             {
-                foreach (KF k in s.keys)
+                foreach (Keyframe k in s.keys)
                 {
                     totalDuration += k.duration;
                 }
@@ -919,9 +943,11 @@ namespace KB30
         /*************
          * Drag and Drop
          */
+
+        /* Slides */
         private void slidePreviewMouseDown(object sender, MouseButtonEventArgs e, Slide slide)
         {
-            initialMousePosition = e.GetPosition(slide.slideControl);
+            initialSlideMousePosition = e.GetPosition(slide.slideControl);
         }
 
         private SlideAdorner slideAdorner;
@@ -929,7 +955,7 @@ namespace KB30
         {
             if (e.LeftButton == MouseButtonState.Pressed)
             {
-                var movedDistance = Point.Subtract(initialMousePosition, e.GetPosition(slide.slideControl)).Length;
+                var movedDistance = Point.Subtract(initialSlideMousePosition, e.GetPosition(slide.slideControl)).Length;
                 if (movedDistance > 10)
                 {
                     // package the data
@@ -979,7 +1005,6 @@ namespace KB30
                 }
             }
         }
-
         private void slidePanelDrop(object sender, DragEventArgs e)
         {
             if (e.OriginalSource is ScrollViewer)
@@ -1097,7 +1122,150 @@ namespace KB30
             }
             e.Handled = true;
         }
+
+
+        // Keyframes
+        private void keyframePreviewMouseDown(object sender, MouseButtonEventArgs e, Keyframe key)
+        {
+            initialKeyframeMousePosition = e.GetPosition(key.keyframeControl);
+        }
+
+        private KeyframeAdorner keyAdorner;
+        private void keyframeMouseMove(object sender, System.Windows.Input.MouseEventArgs e, Keyframe key)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                var movedDistance = Point.Subtract(initialKeyframeMousePosition, e.GetPosition(key.keyframeControl)).Length;
+                if (movedDistance > 10)
+                {
+                    // package the data
+                    DataObject data = new DataObject();
+                    data.SetData("Keyframe", key);
+
+                    // dim the source key
+                    selectKeyframe(key);
+                    key.Dim();
+
+                    // set up the adorner
+                    var adLayer = AdornerLayer.GetAdornerLayer(keyScrollViewer);
+                    Rect renderRect = new Rect(key.keyframeControl.RenderSize);
+                    renderRect.Height = renderRect.Height / 2;
+                    keyAdorner = new KeyframeAdorner(keyScrollViewer, renderRect);
+                    adLayer.Add(keyAdorner);
+
+                    // do it!
+                    DragDropEffects result = DragDrop.DoDragDrop(key.keyframeControl, key, DragDropEffects.Copy | DragDropEffects.Move);
+                    if (result.HasFlag(DragDropEffects.Move))
+                    {
+                        Console.Beep(2000, 50);
+                    }
+                    else
+                    {
+                        Console.Beep(600, 50);
+                        Console.Beep(600, 50);
+                    }
+                    // clean up
+                    adLayer.Remove(keyAdorner);
+                    currentSlide.keys.UnDimAll();
+                    currentSlide.keys.ClearHighlightAll();
+                }
+            }
+        }
+
+        private int dropDirection(DragEventArgs e, Keyframe target_key)
+        {
+            KeyframeControl kfc = target_key.keyframeControl;
+            Point p = e.GetPosition(kfc);
+            if (p.X < (kfc.ActualWidth / 2))
+            {
+                return LEFT;
+            }
+            else
+            {
+                return RIGHT;
+            }
+        }
+
+        private void keyframeDragOver(object sender, System.Windows.DragEventArgs e, Keyframe key)
+        {
+            e.Effects = DragDropEffects.None;
+
+            if (sender is KeyframeControl)
+            {
+                Point p = e.GetPosition(keyScrollViewer);
+                if (p.X < (keyScrollViewer.ActualWidth * 0.1))
+                {
+                    keyScrollViewer.ScrollToHorizontalOffset(keyScrollViewer.HorizontalOffset - 20);
+                }
+                if (p.X > (keyScrollViewer.ActualWidth * 0.9))
+                {
+                    keyScrollViewer.ScrollToHorizontalOffset(keyScrollViewer.HorizontalOffset + 20);
+                }
+
+                if (e.Data.GetDataPresent(typeof(Keyframe)))
+                {
+                    keyAdorner.Arrange(new Rect(p.X, p.Y, keyAdorner.DesiredSize.Width, keyAdorner.DesiredSize.Height));
+                    // don't allow drop on self.
+                    if (key.IsSelected())
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                }
+
+                // clear all other highlights
+                currentSlide.keys.ClearHightlightsExcept(key);
+
+                if (dropDirection(e, key) == LEFT)
+                {
+                    key.highlightLeft();
+                }
+                else
+                {
+                    key.highlightRight();
+                }
+
+                e.Effects = DragDropEffects.Move;
+            }
+        }
+        private void keyframeGiveFeedback(object sender, GiveFeedbackEventArgs e, Keyframe key)
+        {
+            // These Effects values are set in the drop target's DragOver event handler.
+            if (e.Effects.HasFlag(DragDropEffects.Move) || e.Effects.HasFlag(DragDropEffects.Copy))
+            {
+                Mouse.SetCursor(Cursors.Hand);
+            }
+            else
+            {
+                Mouse.SetCursor(Cursors.No);
+            }
+            e.Handled = true;
+        }
+
+        private void keyframeDrop(object sender, DragEventArgs e, Keyframe target_key = null)
+        {
+            if (e.Data.GetDataPresent(typeof(Keyframe)))
+            {
+                if (target_key == null) { return; }
+                Keyframe source_key = e.Data.GetData(typeof(Keyframe)) as Keyframe;
+                if (target_key.IsSelected())
+                {
+                    Console.Beep(600, 200);
+                    return;  // don't drop on self
+                }
+                cutKeyframe(source_key);
+                pasteKeyframe(target_key, dropDirection(e, target_key));
+                target_key.highlightClear();
+            }
+        }
+
+        private void keyPanelDrop(object sender, DragEventArgs e)
+        {
+            if (e.OriginalSource is ScrollViewer)
+            {
+                keyframeDrop(sender, e, currentSlide.keys.Last());
+            }
+        }
     }
- 
 }
 

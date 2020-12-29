@@ -31,18 +31,18 @@
                 <MenuItem Header="Soundtrack" Click="soundtrackClick"/>
             </MenuItem>
         </Menu>
-        <local:ImageCropper x:Name="imageCropper" Grid.Column="2" Grid.Row="1" Grid.ColumnSpan="2"></local:ImageCropper>
+        <DockPanel Grid.Column="2" Grid.Row="1" Grid.ColumnSpan="2">
+            <TextBlock x:Name="caption" DockPanel.Dock="Bottom" Text="Add a slide to get started..." TextAlignment="Center" HorizontalAlignment="Stretch" Background="LightGoldenrodYellow"></TextBlock>
+            <local:ImageCropper x:Name="imageCropper"></local:ImageCropper>
+        </DockPanel>
         <GridSplitter Name="horizontalSplitter" Grid.Column="2" Grid.Row="2" Height="8" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="CornflowerBlue" />
         <GridSplitter Name="verticalSplitter" Grid.Row="1" Grid.Column="1" Width="8" Grid.RowSpan="4" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="CornflowerBlue" />
-        <ScrollViewer x:Name="slideScrollViewer"  Grid.Column="0" Grid.Row="1" Grid.RowSpan="3" Drop="slidePanelDrop" AllowDrop="true">
+        <ScrollViewer x:Name="slideScrollViewer" Grid.Column="0" Grid.Row="1" Grid.RowSpan="3" AllowDrop="true" Drop="slidePanelDrop" >
             <StackPanel HorizontalAlignment="Stretch" Name="slidePanel" Orientation="Vertical" CanVerticallyScroll="True"></StackPanel>
         </ScrollViewer>
-        <DockPanel Grid.Column="2" Grid.Row="3" Grid.RowSpan="2" >
-            <TextBlock x:Name="caption" DockPanel.Dock="Top" Text="Add a slide to get started..." TextAlignment="Center" HorizontalAlignment="Stretch" Background="LightGoldenrodYellow"></TextBlock>
-            <ScrollViewer DockPanel.Dock="Bottom" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled">
-                <StackPanel VerticalAlignment="Stretch" Name="keyframePanel" Orientation="Horizontal" CanHorizontallyScroll="True"></StackPanel>
-            </ScrollViewer>
-        </DockPanel>
+        <ScrollViewer x:Name="keyScrollViewer" Grid.Column="2" Grid.Row="3" Grid.RowSpan="2" AllowDrop="True" Drop="keyPanelDrop" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled">
+            <StackPanel VerticalAlignment="Stretch" Name="keyframePanel" Orientation="Horizontal" CanHorizontallyScroll="True"></StackPanel>
+        </ScrollViewer>
         <Grid Grid.Row ="5" Grid.Column="0" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"></ColumnDefinition>
