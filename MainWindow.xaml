@@ -11,8 +11,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="5*"/>
-            <RowDefinition Height="8"/>
-            <RowDefinition Height="1*"/>
+            <RowDefinition Height="4"/>
+            <RowDefinition Height="110"/>
             <RowDefinition Height="25"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -32,10 +32,10 @@
             </MenuItem>
         </Menu>
         <DockPanel Grid.Column="2" Grid.Row="1" Grid.ColumnSpan="2">
-            <TextBlock x:Name="caption" DockPanel.Dock="Bottom" Text="Add a slide to get started..." TextAlignment="Center" HorizontalAlignment="Stretch" Background="LightGoldenrodYellow"></TextBlock>
-            <local:ImageCropper x:Name="imageCropper"></local:ImageCropper>
+            <local:ImageCropper x:Name="imageCropper" DockPanel.Dock="Top"></local:ImageCropper>
+            <TextBlock x:Name="caption" DockPanel.Dock="Bottom" Text="Add a slide to get started..." TextAlignment="Center" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Background="LightGoldenrodYellow"></TextBlock>
         </DockPanel>
-        <GridSplitter Name="horizontalSplitter" Grid.Column="2" Grid.Row="2" Height="8" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="CornflowerBlue" />
+        <Border Grid.Column="2" Grid.Row="2" Height="8" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="CornflowerBlue" />
         <GridSplitter Name="verticalSplitter" Grid.Row="1" Grid.Column="1" Width="8" Grid.RowSpan="4" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="CornflowerBlue" />
         <ScrollViewer x:Name="slideScrollViewer" Grid.Column="0" Grid.Row="1" Grid.RowSpan="3" AllowDrop="true" Drop="slidePanelDrop" >
             <StackPanel HorizontalAlignment="Stretch" Name="slidePanel" Orientation="Vertical" CanVerticallyScroll="True"></StackPanel>
