@@ -250,6 +250,8 @@ namespace KB30
                         selectSlide(slides.Count - 1);
                     }
                 }
+                Console.Beep(1000, 100);
+                Console.Beep(2000, 100);
             }
             slides.Renumber();
         }
@@ -297,6 +299,8 @@ namespace KB30
                     }
                     insertIndex++;
                 }
+                Console.Beep(1000, 100);
+                Console.Beep(2000, 100);
             }
             slides.Renumber();
         }
@@ -725,20 +729,25 @@ namespace KB30
                 loadIt(filenameArgument);
                 playIt();
             }
-            /* debug */
+            /* debug 
             else
             {
                 loadIt("C:\\Users\\clark\\source\\repos\\pictures\\cards.kb30");
                 initializeSlidesUI();
 
             }
-
+            */
         }
 
 
         /************
          *  File Menu
          */
+        private void finderClick(object sender, RoutedEventArgs e)
+        {
+            FinderWindow finderWindow = new FinderWindow();
+            finderWindow.Show();
+        }
         private void fileNewClick(object sender, RoutedEventArgs e)
         {
             if (saveIfDirty())
