@@ -5,31 +5,51 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:KB30"
         mc:Ignorable="d"
-        Title="FinderWindow" Height="450" Width="800" Loaded="Window_Loaded">
+        Title="FinderWindow" Height="900" Width="1400" Loaded="Window_Loaded">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="30"/>
+            <RowDefinition Height="35"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*" />
             <ColumnDefinition Width="8" />
-            <ColumnDefinition Width="5*" />
+            <ColumnDefinition Width="1*" />
         </Grid.ColumnDefinitions>
-        <TreeView x:Name="folderTree" Grid.Row="0" Grid.Column="0" Grid.RowSpan="3"></TreeView>
-        <GridSplitter Name="verticalSplitter" Grid.Row="0" Grid.Column="1" Width="8" Grid.RowSpan="3" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="LightBlue" />
-        <Grid Grid.Column="2" Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*" />
-                <ColumnDefinition Width="1*" />
-                <ColumnDefinition Width="1*" />
-            </Grid.ColumnDefinitions>
-            <Button x:Name="prevDirButton" Grid.Column="0" Content="Previous Folder"></Button>
-            <Button x:Name="parentDirButton" Grid.Column="1" Content="Parent Folder"></Button>
-            <Button x:Name="nextDirButton" Grid.Column="2" Content="Next Folder"></Button>
-        </Grid>
-        <Image x:Name="previewImage" Grid.Row="1" Grid.Column="2"></Image>
-        <Button x:Name="addButton" Grid.Column="2" Grid.Row="2" Content="Add Image"></Button>
+        <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" BorderBrush="CornflowerBlue" BorderThickness="2">
+            <StackPanel x:Name="navigation" Orientation="Horizontal">
+                 <Button x:Name="prevDirButton" Click="prevDirButtonClick" Padding="5" >
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="Resources/left-up-arrow.png"/>
+                        <TextBlock Margin="2">Prev</TextBlock>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="upDirButton" Click="upDirButtonClick" Padding="5" >
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="Resources/up-arrow.png"/>
+                        <TextBlock Margin="2">Up</TextBlock>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="nextDirButton" Click="nextDirButtonClick" Padding="5" >
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="Resources/right-up-arrow.png"/>
+                        <TextBlock Margin="2">Next</TextBlock>
+                    </StackPanel>
+                </Button>
+                <Border Width="3" Background="CornflowerBlue"></Border>
+                <StackPanel x:Name="folderNavPanel" Orientation="Horizontal" VerticalAlignment="Stretch">
+                </StackPanel>
+            </StackPanel>
+        </Border>
+        <ScrollViewer  Grid.Row="1" Grid.Column="0" Grid.RowSpan="2" VerticalScrollBarVisibility="Auto">
+            <WrapPanel x:Name="filePanel" ></WrapPanel>
+        </ScrollViewer>
+        <GridSplitter Name="verticalSplitter" Grid.Row="1" Grid.Column="1" Width="8" Grid.RowSpan="2" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="LightBlue" />
+        <TextBlock Name="Caption" Grid.Column="2" Grid.Row="0" VerticalAlignment="Center" TextAlignment="Center" FontSize="16" Text="No Image Selected"></TextBlock>
+        <Button Grid.Row="1" Grid.Column="2" MouseDoubleClick="addButton_Click" Background="White" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Image x:Name="previewImage" MouseWheel="previewImage_MouseWheel"></Image>
+        </Button>
+        <Button x:Name="addButton" Grid.Column="2" Grid.Row="2" Content="Add Image" Click="addButton_Click"></Button>
     </Grid>
 </Window>

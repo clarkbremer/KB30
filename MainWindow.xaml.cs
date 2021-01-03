@@ -18,13 +18,14 @@ using System.Windows.Documents;
  *  Load non-image file -> trouble.
  * 
  * To DO:  
+ *  Finder 
+ *  Use control tag to attach slide and keyframe controls back to data object.
  *  Break up this file (drag and drop in own file?)
  *  Config options both global and local to this album:
  *   - Absolute/Relative paths 
  *   - default fadein/out duration
  *   - default key duration
  *  Duration textbox allow only numeric.
- *  Maybe combine slide and slidecontol classes.  Same with keys.  Figure out serialization.
  *  Key to reverse keyframe order
  */
 namespace KB30
@@ -148,6 +149,7 @@ namespace KB30
             }
         }
 
+ 
         void addSlideControlInBackground(Slide slide)
         {
             BackgroundWorker worker = new BackgroundWorker();
@@ -236,7 +238,8 @@ namespace KB30
             initializeKeysUI(currentSlide);
             caption.Text = currentSlide.fileName + " (" + bitmap.PixelWidth + " x " + bitmap.PixelHeight + ")  " + (slideIndex + 1) + " of " + slides.Count;
         }
-        private void addSlides(string[] fileNames)
+
+        internal void addSlides(string[] fileNames)
         {
             foreach (String fname in fileNames)
             {
@@ -265,20 +268,31 @@ namespace KB30
 
         private void addSlideClick(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Title = "Select image file(s)";
-            openFileDialog.Multiselect = true;
-            openFileDialog.Filter = "Images (*.BMP;*.JPG;*.GIF)|*.BMP;*.JPG;*.GIF|All files (*.*)|*.*";
-            if (openFileDialog.ShowDialog() == true)
+            FinderWindow finderWindow = new FinderWindow();
+            finderWindow.Owner = this;
+            finderWindow.Show();
+        }
+
+        internal void insertSlide(string fileName, int direction = BELOW)
+        {
+            if (slides.Count == 0)
             {
-                addSlides(openFileDialog.FileNames);
+                addSlides(new string[] { fileName });
+            } else
+            {
+                insertSlides(new string[] { fileName }, currentSlideIndex, direction);
             }
         }
 
-        private void insertSlides(string[] fileNames, Slide slide, int position)
+
+        internal void insertSlides(string[] fileNames, Slide slide, int direction)
         {
             var insertIndex = slides.IndexOf(slide);
-            if (position == BELOW)
+            insertSlides(fileNames, insertIndex, direction);
+        }
+
+        internal void insertSlides(string[] fileNames, int insertIndex, int direction) {
+            if (direction == BELOW)
             {
                 insertIndex += 1;
             }
@@ -746,6 +760,7 @@ namespace KB30
         private void finderClick(object sender, RoutedEventArgs e)
         {
             FinderWindow finderWindow = new FinderWindow();
+            finderWindow.Owner = this;
             finderWindow.Show();
         }
         private void fileNewClick(object sender, RoutedEventArgs e)
@@ -1274,6 +1289,11 @@ namespace KB30
             {
                 keyframeDrop(sender, e, currentSlide.keys.Last());
             }
+        }
+
+        private void mainWindowActivated(object sender, EventArgs e)
+        {
+     //       Topmost = true;
         }
     }
 }
