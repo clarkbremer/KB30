@@ -29,6 +29,7 @@ namespace KB30
         List<Tile> current_image_tiles = new List<Tile>();
         int current_file_index = 0;
         string current_folder;
+        List<string> image_extensions = new List<string>() {".gif", ".jpg", ".png", ".bmp"};
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -37,9 +38,9 @@ namespace KB30
 
         private void loadDrives() {
             current_folder = "";
-            filePanel.Children.Clear();
             folderNavPanel.Children.Clear();
-
+            
+            filePanel.Children.Clear();
             foreach (var drive in DriveInfo.GetDrives())
             {
                 Tile driveTile = new Tile();
@@ -60,6 +61,7 @@ namespace KB30
 
         private void loadFolder(string folder) {
             current_folder = folder;
+
             // Draw folder nav buttons
             folderNavPanel.Children.Clear();
             string root = Path.GetPathRoot(folder);
@@ -105,7 +107,8 @@ namespace KB30
                 }
                 current_image_tiles.Clear();
                 foreach (String fname in Directory.GetFiles(current_folder))  {
-                    if (fname.EndsWith(".gif") || fname.EndsWith(".jpg")) {
+                   
+                    if (image_extensions.IndexOf(Path.GetExtension(fname).ToLower()) > 0 ) {
                         Tile imageTile = new Tile();
                         imageTile.tileType = Tile.Type.Image;
                         imageTile.fullPath = fname;
@@ -181,7 +184,7 @@ namespace KB30
                 MessageBox.Show("Error loading image file: " + tile.fullPath, "Call the doctor, I think I'm gonna crash!");
             }
             previewImage.Source = bmp;
-            Caption.Text = Path.GetFileName(tile.fullPath);
+            Caption.Text = Path.GetFileName(tile.fullPath) + " (" + bmp.PixelWidth + " x " + bmp.PixelHeight + ")";
             current_folder = Path.GetDirectoryName(tile.fullPath);
             current_file_index = current_image_tiles.IndexOf(tile);
         }

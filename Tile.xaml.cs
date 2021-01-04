@@ -31,8 +31,5 @@ namespace KB30
         {
             InitializeComponent();
         }
-
- 
-
     }
 }

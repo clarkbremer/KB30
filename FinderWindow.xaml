@@ -37,7 +37,7 @@
                         <TextBlock Margin="2">Next</TextBlock>
                     </StackPanel>
                 </Button>
-                <Border Width="3" Background="CornflowerBlue"></Border>
+                <Border Width="15" Background="CornflowerBlue"></Border>
                 <StackPanel x:Name="folderNavPanel" Orientation="Horizontal" VerticalAlignment="Stretch">
                 </StackPanel>
             </StackPanel>
