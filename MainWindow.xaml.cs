@@ -19,7 +19,7 @@ using System.Windows.Documents;
  * 
  * To DO:  
  *  Finder 
- *  Use control tag to attach slide and keyframe controls back to data object.
+ *  - 
  *  Break up this file (drag and drop in own file?)
  *  Config options both global and local to this album:
  *   - Absolute/Relative paths 
@@ -208,6 +208,7 @@ namespace KB30
             }
             slideControl.DeSelect();
             slides.Renumber();
+            slideControl.BringIntoView();
             return true;
         }
 

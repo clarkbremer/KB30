@@ -19,6 +19,7 @@
     <None Remove="Resources\image.png" />
     <None Remove="Resources\left-up-arrow.png" />
     <None Remove="Resources\PlayVideo_16x.png" />
+    <None Remove="Resources\plus.png" />
     <None Remove="Resources\right-up-arrow.png" />
     <None Remove="Resources\up-arrow.png" />
   </ItemGroup>
@@ -40,6 +41,7 @@
     <Resource Include="Resources\PlayVideo_16x.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Resources\plus.png" />
     <Resource Include="Resources\right-up-arrow.png" />
     <Resource Include="Resources\up-arrow.png" />
   </ItemGroup>

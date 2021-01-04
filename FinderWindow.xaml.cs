@@ -52,6 +52,7 @@ namespace KB30
                 driveTile.MouseLeftButtonUp += folderButtonClick;
                 filePanel.Children.Add(driveTile);
             }
+            updateNavButtons();
         }
 
         private void folderButtonClick(object sender, RoutedEventArgs e)
@@ -89,40 +90,92 @@ namespace KB30
 
             // load left panel images
             filePanel.Children.Clear();
-            try
-            {
-                foreach (string folderName in Directory.GetDirectories(current_folder)){
-                    DirectoryInfo info = new DirectoryInfo(folderName);
-                    if (info.Attributes.HasFlag(FileAttributes.Hidden)) {
-                        continue;
-                    }
-                    Tile folderTile = new Tile();
-                    folderTile.tileType = Tile.Type.Folder;
-                    folderTile.fullPath = folderName;
-                    folderTile.Caption.Text = Path.GetFileName(folderName);
-                    folderTile.Thumbnail.Source = ThumbnailFromUri(new Uri(@"pack://application:,,,/Resources/folder.jpg", UriKind.Absolute));
-                    folderTile.Thumbnail.Height = 75;
-                    folderTile.MouseLeftButtonUp += folderButtonClick;
-                    filePanel.Children.Add(folderTile);
+            foreach (string folderName in Directory.GetDirectories(current_folder)){
+                DirectoryInfo directory_info = new DirectoryInfo(folderName);
+                if (directory_info.Attributes.HasFlag(FileAttributes.Hidden)) {
+                    continue;
                 }
-                current_image_tiles.Clear();
-                foreach (String fname in Directory.GetFiles(current_folder))  {
-                   
-                    if (image_extensions.IndexOf(Path.GetExtension(fname).ToLower()) > 0 ) {
-                        Tile imageTile = new Tile();
-                        imageTile.tileType = Tile.Type.Image;
-                        imageTile.fullPath = fname;
-                        imageTile.Caption.Text = Path.GetFileName(fname);
-                        imageTile.MouseLeftButtonUp += thumbnailButtonClick;
-                        filePanel.Children.Add(imageTile);
-                        current_image_tiles.Add(imageTile);
-                    }
-                }
-                loadThumbsInBackground(current_image_tiles[0]);
+                Tile folderTile = new Tile();
+                folderTile.tileType = Tile.Type.Folder;
+                folderTile.fullPath = folderName;
+                folderTile.Caption.Text = Path.GetFileName(folderName);
+                folderTile.Thumbnail.Source = ThumbnailFromUri(new Uri(@"pack://application:,,,/Resources/folder.jpg", UriKind.Absolute));
+                folderTile.Thumbnail.Height = 75;
+                folderTile.MouseLeftButtonUp += folderButtonClick;
+                filePanel.Children.Add(folderTile);
             }
-            catch (Exception) { }
+            current_image_tiles.Clear();
+            foreach (String fname in Directory.GetFiles(current_folder))  {
+                   
+                if (image_extensions.IndexOf(Path.GetExtension(fname).ToLower()) > 0 ) {
+                    Tile imageTile = new Tile();
+                    imageTile.tileType = Tile.Type.Image;
+                    imageTile.fullPath = fname;
+                    imageTile.Caption.Text = Path.GetFileName(fname);
+                    imageTile.MouseLeftButtonUp += thumbnailButtonClick;
+                    filePanel.Children.Add(imageTile);
+                    current_image_tiles.Add(imageTile);
+ 
+                }
+            }
+            if (current_image_tiles.Count > 0)
+            {
+                loadThumbsInBackground(current_image_tiles[0]);
+                loadImage(current_image_tiles[0]);
+            }
+            else
+            {
+                previewImage.Source = null;
+            }
+
+            updateNavButtons();
+            filePanelScrollViewer.ScrollToVerticalOffset(0);
         }
         
+        void updateNavButtons()
+        {
+            if (current_folder == "")
+            {
+                upDirButton.IsEnabled = false;
+                prevDirButton.IsEnabled = false;
+                nextDirButton.IsEnabled = false;
+                return;
+            }
+
+            upDirButton.IsEnabled = true;
+            prevDirButton.IsEnabled = true;
+            nextDirButton.IsEnabled = true;
+
+            DirectoryInfo directory_info = new DirectoryInfo(current_folder);
+            if (directory_info.Parent == null)
+            {
+                prevDirButton.IsEnabled = false;
+                nextDirButton.IsEnabled = false;
+            }
+            else
+            {
+                string parent = directory_info.Parent.FullName;
+                List<string> siblings = new List<string>(Directory.GetDirectories(parent));
+                siblings.RemoveAll(isHidden);
+
+                int index = siblings.IndexOf(current_folder);
+                if (index == 0)
+                {
+                    prevDirButton.IsEnabled = false;
+                }
+                if (index == siblings.Count - 1)
+                {
+                    nextDirButton.IsEnabled = false;
+                }
+            }
+        }
+
+
+        private static bool isHidden(string f)
+        {
+            return ((File.GetAttributes(f) & FileAttributes.Hidden) == FileAttributes.Hidden);
+        }
+
         void loadThumbsInBackground(Tile tile)
         {
             BackgroundWorker worker = new BackgroundWorker();
@@ -184,17 +237,21 @@ namespace KB30
                 MessageBox.Show("Error loading image file: " + tile.fullPath, "Call the doctor, I think I'm gonna crash!");
             }
             previewImage.Source = bmp;
-            Caption.Text = Path.GetFileName(tile.fullPath) + " (" + bmp.PixelWidth + " x " + bmp.PixelHeight + ")";
             current_folder = Path.GetDirectoryName(tile.fullPath);
             current_file_index = current_image_tiles.IndexOf(tile);
+            Caption.Text = Path.GetFileName(tile.fullPath) + " (" + bmp.PixelWidth + " x " + bmp.PixelHeight + ")  (" + (current_file_index + 1) + " of " + current_image_tiles.Count + ")";
         }
 
         public void addButton_Click(object sender, RoutedEventArgs e)
         {
             if (previewImage.Source != null)
             {
-                String fname = previewImage.Source.ToString();
+                String fname = current_image_tiles[current_file_index].fullPath;
                 ((MainWindow)this.Owner).insertSlide(fname);
+                if (current_file_index < (current_image_tiles.Count - 1))
+                {
+                    loadImage(current_image_tiles[current_file_index + 1]);
+                }
             }
         }
 
@@ -262,6 +319,7 @@ namespace KB30
             {
                 string parent = info.Parent.FullName;
                 List<string> siblings = new List<string> (Directory.GetDirectories(parent));
+                siblings.RemoveAll(isHidden);
                 int index = siblings.IndexOf(current_folder);
                 if (index < siblings.Count - 1)
                 {
@@ -279,6 +337,7 @@ namespace KB30
             {
                 string parent = info.Parent.FullName;
                 List<string> siblings = new List<string>(Directory.GetDirectories(parent));
+                siblings.RemoveAll(isHidden);
                 int index = siblings.IndexOf(current_folder);
                 if (index > 0)
                 {

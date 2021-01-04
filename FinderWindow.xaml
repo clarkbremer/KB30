@@ -42,14 +42,19 @@
                 </StackPanel>
             </StackPanel>
         </Border>
-        <ScrollViewer  Grid.Row="1" Grid.Column="0" Grid.RowSpan="2" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer x:Name="filePanelScrollViewer" Grid.Row="1" Grid.Column="0" Grid.RowSpan="2" VerticalScrollBarVisibility="Auto">
             <WrapPanel x:Name="filePanel" ></WrapPanel>
         </ScrollViewer>
         <GridSplitter Name="verticalSplitter" Grid.Row="1" Grid.Column="1" Width="8" Grid.RowSpan="2" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="LightBlue" />
-        <TextBlock Name="Caption" Grid.Column="2" Grid.Row="0" VerticalAlignment="Center" TextAlignment="Center" FontSize="16" Text="No Image Selected"></TextBlock>
-        <Button Grid.Row="1" Grid.Column="2" MouseDoubleClick="addButton_Click" Background="White" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <Image x:Name="previewImage" MouseWheel="previewImage_MouseWheel"></Image>
+        <Button x:Name="addButton" Grid.Column="2" Grid.Row="0" Click="addButton_Click" HorizontalAlignment="Right" Padding="5">
+            <StackPanel Orientation="Horizontal">
+                <Image Source="Resources/plus.png"/>
+                <TextBlock Margin="2">Add Image</TextBlock>
+            </StackPanel>
         </Button>
-        <Button x:Name="addButton" Grid.Column="2" Grid.Row="2" Content="Add Image" Click="addButton_Click"></Button>
+        <Button Grid.Row="1" Grid.Column="2" MouseDoubleClick="addButton_Click" MouseWheel="previewImage_MouseWheel" Background="White">
+            <Image x:Name="previewImage"></Image>
+        </Button>
+        <TextBlock Name="Caption" Grid.Column="2" Grid.Row="2" VerticalAlignment="Center" TextAlignment="Center" FontSize="16" Text="No Image Selected"></TextBlock>
     </Grid>
 </Window>
