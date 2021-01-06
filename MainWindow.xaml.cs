@@ -18,6 +18,7 @@ using System.Windows.Documents;
  *  Load non-image file -> trouble.
  * 
  * To DO:  
+ * 
  *  Finder 
  *  - 
  *  Break up this file (drag and drop in own file?)
@@ -208,7 +209,6 @@ namespace KB30
             }
             slideControl.DeSelect();
             slides.Renumber();
-            slideControl.BringIntoView();
             return true;
         }
 
@@ -313,6 +313,7 @@ namespace KB30
                         selectSlide(insertIndex, true);
                     }
                     insertIndex++;
+                    newSlide.slideControl.BringIntoView();
                 }
                 Console.Beep(1000, 100);
                 Console.Beep(2000, 100);
@@ -406,10 +407,10 @@ namespace KB30
         }
 
         private void playFromHereClick(object sender, RoutedEventArgs e, Slide slide)
-        {
+        {   
             playIt(slides.IndexOf(slide));
         }
-
+ 
         private void slideContextMenuOpened(object sender, RoutedEventArgs e, Slide slide)
         {
             int numSelected = slides.Count(s => s.slideControl.IsChecked());
@@ -963,7 +964,7 @@ namespace KB30
             imageCropper.cropper.Visibility = Visibility.Collapsed;
             currentSlideIndex = 0;
             currentKeyframeIndex = 0;
-            caption.Text = "Add a slide to get started...";
+            caption.Text = "<---- Add a slide to get started...";
         }
         /*************
          * Drag and Drop

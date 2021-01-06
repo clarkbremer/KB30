@@ -18,6 +18,7 @@ namespace KB30
     {
         public Slides slides = new Slides();
         public MediaPlayer mediaPlayer = new MediaPlayer();
+        double mediaPlayerStartTime = 0;
 
         Image currentImage;
         Image otherImage;
@@ -90,14 +91,17 @@ namespace KB30
             this.UpdateLayout();
 
             transformImage(currentImage, slides[currentSlideIndex].keys[0]);
+
             if (soundtrack != "")
             {
+                mediaPlayer.MediaEnded += mediaPlayerEnded;
+                mediaPlayer.MediaOpened += mediaPlayerOpened;
                 if (mediaPlayer.Position == TimeSpan.FromSeconds(0)) {
                     mediaPlayer.Open(new Uri(soundtrack));
                 }
-                mediaPlayer.MediaEnded += mediaPlayerEnded;
-                mediaPlayer.Play();
+
             }
+
             frame1.Opacity = 1;
             frame2.Opacity = 0;
             beginPanZoom(currentImage, slides[currentSlideIndex].keys);
@@ -107,6 +111,14 @@ namespace KB30
         private void mediaPlayerEnded(object sender, EventArgs e)
         {
             mediaPlayer.Position = TimeSpan.Zero;
+            mediaPlayer.Play();
+        }
+        private void mediaPlayerOpened(object sender, EventArgs e)
+        {
+            double song_duration = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+            double offset = timeElapsed(currentSlideIndex);
+            double mediaPlayerStartTime = offset % song_duration;
+            mediaPlayer.Position = TimeSpan.FromSeconds(mediaPlayerStartTime);
             mediaPlayer.Play();
         }
 
@@ -461,6 +473,22 @@ namespace KB30
                 c.Controller.SkipToFill();
             });
         }
+
+        double timeElapsed(int start_slide_index)
+        {
+            double totalDuration = 0;
+            for (int s = 0; s < start_slide_index; s++)
+            {
+                for (int k = 0; k < slides[s].keys.Count; k++)
+                {
+                    totalDuration += slides[s].keys[k].duration;
+                }
+                totalDuration += 1.5; // for fade in out
+            }
+            totalDuration = totalDuration / speedFactor;
+            return totalDuration;
+        }
+
 
         string timeRemaining()
         {

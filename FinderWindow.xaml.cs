@@ -173,7 +173,7 @@ namespace KB30
 
         private static bool isHidden(string f)
         {
-            return ((File.GetAttributes(f) & FileAttributes.Hidden) == FileAttributes.Hidden);
+            return File.GetAttributes(f).HasFlag(FileAttributes.Hidden);
         }
 
         void loadThumbsInBackground(Tile tile)
