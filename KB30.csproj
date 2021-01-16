@@ -14,6 +14,7 @@
     <None Remove="Resources\arrow_right.png" />
     <None Remove="Resources\arrow_up.png" />
     <None Remove="Resources\drive.png" />
+    <None Remove="Resources\error.png" />
     <None Remove="Resources\folder.jpg" />
     <None Remove="Resources\hourglass.jpg" />
     <None Remove="Resources\image.png" />
@@ -34,6 +35,7 @@
     </Resource>
     <Resource Include="Resources\Archigraphs-Oldies-Old-House.ico" />
     <Resource Include="Resources\drive.png" />
+    <Resource Include="Resources\error.png" />
     <Resource Include="Resources\folder.jpg" />
     <Resource Include="Resources\hourglass.jpg" />
     <Resource Include="Resources\image.png" />

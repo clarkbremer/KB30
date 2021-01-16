@@ -67,10 +67,19 @@ namespace KB30
             slides.Clear();
             foreach (Slide slide in _slides)
             {
-                if (slide.keys.Count > 1 || slide.keys[0].duration > 0)
+                if (slide.keys.Count == 1 && slide.keys[0].duration == 0)
                 {
-                    slides.Add(slide);
+                    slide.keys[0].duration = 0.1;
                 }
+                slides.Add(slide);
+
+            }
+            if (slides.Count == 0)
+            {
+                MessageBox.Show("At least one slide must have non-zero duration.");
+                exitOnClose = true;
+                this.Close();
+                return;
             }
             soundtrack = _soundtrack;
             startAnimation(_start);
@@ -83,10 +92,8 @@ namespace KB30
             nextSlideIndex = currentSlideIndex + 1;
             if (nextSlideIndex >= slides.Count) { nextSlideIndex = 0; }
 
-            var bitmap = new BitmapImage(slides[currentSlideIndex].uri);
-            currentImage.Source = bitmap;
-            bitmap = new BitmapImage(slides[nextSlideIndex].uri);
-            otherImage.Source = bitmap;
+            currentImage.Source = Util.BitmapFromUri(slides[currentSlideIndex].uri);
+            otherImage.Source = Util.BitmapFromUri(slides[nextSlideIndex].uri);
 
             this.UpdateLayout();
 
@@ -115,11 +122,19 @@ namespace KB30
         }
         private void mediaPlayerOpened(object sender, EventArgs e)
         {
-            double song_duration = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
-            double offset = timeElapsed(currentSlideIndex);
-            double mediaPlayerStartTime = offset % song_duration;
-            mediaPlayer.Position = TimeSpan.FromSeconds(mediaPlayerStartTime);
+            syncMediaPlayerPosition(currentSlideIndex);
             mediaPlayer.Play();
+        }
+
+        private void syncMediaPlayerPosition(int slideIndex)
+        {
+            if (soundtrack != "")
+            {
+                double song_duration = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                double offset = timeElapsed(slideIndex);
+                double mediaPlayerStartTime = offset % song_duration;
+                mediaPlayer.Position = TimeSpan.FromSeconds(mediaPlayerStartTime);
+            }
         }
 
         private void transformImage(Image image, Keyframe kf)
@@ -195,8 +210,7 @@ namespace KB30
             beginPanZoom(currentImage, slides[currentSlideIndex].keys);
 
             // Load next image *after* we start pan/zoom, for smoother transititions.
-            var bitmap = new BitmapImage(slides[nextSlideIndex].uri);
-            otherImage.Source = bitmap;
+            otherImage.Source = Util.BitmapFromUri(slides[nextSlideIndex].uri);
         }
 
         private void beginPanZoom(Image image, List<Keyframe> keys)
@@ -290,6 +304,7 @@ namespace KB30
         {
             skip_fade = true;
             fillAllClocks();
+            syncMediaPlayerPosition(nextSlideIndex);
         }
 
         void skipBack()
@@ -302,6 +317,7 @@ namespace KB30
                     {
                         c.Controller.Begin();
                     });
+                    syncMediaPlayerPosition(currentSlideIndex);
                 }
                 else
                 {
@@ -312,13 +328,13 @@ namespace KB30
                     }
                     nextSlideIndex = currentSlideIndex + 1;
                     if (nextSlideIndex >= slides.Count) { nextSlideIndex = 0; }
-                    var bitmap = new BitmapImage(slides[nextSlideIndex].uri);
-                    otherImage.Source = bitmap;
+                    otherImage.Source = Util.BitmapFromUri(slides[nextSlideIndex].uri);
                     skip_fade = true;
                     fillAllClocks();
+                    syncMediaPlayerPosition(nextSlideIndex);
                 }
             }
-            else
+            else  // fade inout
             {
                 currentSlideIndex = currentSlideIndex - 1;
                 if (currentSlideIndex < 0)
@@ -328,9 +344,9 @@ namespace KB30
                 nextSlideIndex = currentSlideIndex + 1;
                 if (nextSlideIndex >= slides.Count) { nextSlideIndex = 0; }
 
-                var bitmap = new BitmapImage(slides[nextSlideIndex].uri);
-                currentImage.Source = bitmap;
+                currentImage.Source = Util.BitmapFromUri(slides[nextSlideIndex].uri);
                 fillAllClocks();
+                syncMediaPlayerPosition(nextSlideIndex);
             }
         }
         void speedUp()

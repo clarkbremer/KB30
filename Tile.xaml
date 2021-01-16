@@ -6,9 +6,11 @@
              xmlns:local="clr-namespace:KB30"
              mc:Ignorable="d" >
     <Grid>
-        <StackPanel Orientation="Vertical" Margin="5">
-            <Image x:Name="Thumbnail" Height="150" Width="150" Source="resources/hourglass.jpg"></Image>
-            <TextBlock x:Name="Caption" Height="Auto" Width="150" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center" Text="This is way too long to fit on a single line in the control."></TextBlock>
-        </StackPanel>
+        <Border x:Name="border" BorderBrush="Transparent" BorderThickness="4">
+            <StackPanel Orientation="Vertical" Margin="5">
+                <Image x:Name="Thumbnail" Height="150" Width="150" Source="resources/hourglass.jpg"></Image>
+                <TextBlock x:Name="Caption" Height="Auto" Width="150" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center" Text="This is way too long to fit on a single line in the control."></TextBlock>
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>

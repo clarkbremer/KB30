@@ -15,12 +15,8 @@ using System.Windows.Documents;
 
 /*
  * Bugs:
- *  Load non-image file -> trouble.
- * 
  * To DO:  
- * 
- *  Finder 
- *  - 
+ *  - Option to lock cropper within bounds of image
  *  Break up this file (drag and drop in own file?)
  *  Config options both global and local to this album:
  *   - Absolute/Relative paths 
@@ -107,22 +103,8 @@ namespace KB30
             Slide slide = (Slide)e.Argument;
             WorkerResult workerResult = new WorkerResult();
 
-            BitmapImage bmp = new BitmapImage();
-            try
-            {
-                bmp.BeginInit();
-                bmp.UriSource = slide.uri;
-                bmp.DecodePixelWidth = 200;
-                bmp.EndInit();
-                bmp.Freeze();
-            }
-            catch (NotSupportedException ex)
-            {
-                MessageBox.Show("Error loading image file: " + slide.fileName, "Call the doctor, I think I'm gonna crash!");
-            }
-
             workerResult.slide = slide;
-            workerResult.bmp = bmp;
+            workerResult.bmp = Util.BitmapFromUri(slide.uri);
             e.Result = workerResult;
         }
 
@@ -166,26 +148,14 @@ namespace KB30
 
             if (bmp == null)
             {
-                bmp = new BitmapImage();
-                try
-                {
-                    bmp.BeginInit();
-                    bmp.UriSource = slide.uri;
-                    bmp.DecodePixelWidth = 200;
-                    bmp.EndInit();
-                    bmp.Freeze();
-                }
-                catch (NotSupportedException ex)
-                {
-                    MessageBox.Show("Error loading image file: " + slide.fileName, "Call the doctor, I think I'm gonna crash!");
-                    return false;
-                }
+                bmp = Util.BitmapFromUri(slide.uri);
             }
             slideControl.image.Source = bmp;
             slideControl.caption.Text = System.IO.Path.GetFileName(slide.fileName);
 
             slideControl.MouseMove += delegate (object sender, MouseEventArgs e) { slideMouseMove(sender, e, slide); };
-            slideControl.MouseLeftButtonUp += delegate (object sender, MouseButtonEventArgs e) { slideClick(sender, e, slide); };
+            slideControl.MouseLeftButtonDown += delegate (object sender, MouseButtonEventArgs e) { slideClick(sender, e, slide); };
+            slideControl.MouseRightButtonDown += delegate (object sender, MouseButtonEventArgs e) { slideClick(sender, e, slide); };
             slideControl.PreviewMouseDown += delegate (object sender, MouseButtonEventArgs e) { slidePreviewMouseDown(sender, e, slide); };
             slideControl.Drop += delegate (object sender, DragEventArgs e) { slideDrop(sender, e, slide); };
             slideControl.DragOver += delegate (object sender, DragEventArgs e) { slideDragOver(sender, e, slide); };
@@ -224,8 +194,7 @@ namespace KB30
                 KeyframeControl oldKFControl = oldKey.keyframeControl;
                 unBindKFC(oldKFControl, oldKey);
             }
-            currentSlideIndex = slideIndex;
-            var bitmap = new BitmapImage(slides[slideIndex].uri);
+            var bitmap = Util.BitmapFromUri(slides[slideIndex].uri);
             imageCropper.image.Source = bitmap;
 
             if (!Keyboard.IsKeyDown(Key.LeftCtrl) && !Keyboard.IsKeyDown(Key.RightCtrl) && unCheckAll)
@@ -233,8 +202,28 @@ namespace KB30
                 foreach (SlideControl sc in slidePanel.Children) { sc.UnCheck(); }
             }
 
-            currentSlide.slideControl.Select();
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            {
+                foreach (SlideControl sc in slidePanel.Children) { sc.UnCheck(); }
 
+                if (currentSlideIndex < slideIndex)
+                {
+                    for (int i = currentSlideIndex; i <= slideIndex; i++)
+                    {
+                        slides[i].Check();
+                    }
+                }
+                else
+                {
+                    for (int i = slideIndex; i <= currentSlideIndex; i++)
+                    {
+                        slides[i].Check();
+                    }
+                }
+            }
+
+            currentSlideIndex = slideIndex;
+            currentSlide.slideControl.Select();
             currentKeyframeIndex = 0;
             initializeKeysUI(currentSlide);
             caption.Text = currentSlide.fileName + " (" + bitmap.PixelWidth + " x " + bitmap.PixelHeight + ")  " + (slideIndex + 1) + " of " + slides.Count;
@@ -245,7 +234,7 @@ namespace KB30
             foreach (String fname in fileNames)
             {
                 Slide newSlide = new Slide(fname);
-                newSlide.keys.Add(new Keyframe(2.0, 0.5, 0.5, 1));
+                newSlide.keys.Add(new Keyframe(2.0, 0.5, 0.5, 0.1));
                 if (addSlideControl(newSlide))
                 {
                     slides.Add(newSlide);
@@ -300,7 +289,7 @@ namespace KB30
             foreach (String fname in fileNames)
             {
                 Slide newSlide = new Slide(fname);
-                newSlide.keys.Add(new Keyframe(2.0, 0.5, 0.5, 1));
+                newSlide.keys.Add(new Keyframe(2.0, 0.5, 0.5, 0.1));
                 if (addSlideControl(newSlide, null, insertIndex))
                 {
                     slides.Insert(insertIndex, newSlide);

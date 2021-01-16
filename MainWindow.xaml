@@ -19,7 +19,7 @@
             <ColumnDefinition Width="1*" />
             <ColumnDefinition Width="8" />
             <ColumnDefinition Width="5*" />
-            <ColumnDefinition Width="30" />
+            <ColumnDefinition Width="60" />
         </Grid.ColumnDefinitions>
         <Menu Grid.Row="0" Grid.Column="0"  Grid.ColumnSpan="7" Background="AliceBlue" >
             <MenuItem Header="_File">
@@ -51,13 +51,13 @@
             <Button Name="playButton" Click="playClick" Grid.Column="0">
                 <StackPanel Orientation="Horizontal">
                     <Image Source="Resources/PlayVideo_16x.png"/>
-                    <TextBlock Margin="2">Play</TextBlock>
+                    <TextBlock Margin="2">Play All</TextBlock>
                 </StackPanel>
             </Button>
             <Button Name="addSlideButton" Click="addSlideClick" Grid.Column="1">
                 <StackPanel Orientation="Horizontal">
                     <Image Source="Resources/Add_16x.png"/>
-                    <TextBlock Margin="2">Add</TextBlock>
+                    <TextBlock Margin="2">Add Slide</TextBlock>
                 </StackPanel>
             </Button>
         </Grid>
@@ -67,16 +67,24 @@
                 <RowDefinition Height="1*"></RowDefinition>
             </Grid.RowDefinitions>
             <Button Grid.Row ="0" Grid.Column="0" Name="playSlideframeButton" Click="playSlideClick">
-                <StackPanel Orientation="Vertical">
-                    <Image Source="Resources/PlayVideo_16x.png"/>
-                    <TextBlock Margin="2">Play</TextBlock>
-                </StackPanel>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"></RowDefinition>
+                        <RowDefinition Height="1*"></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <Image Grid.Row="0" Source="Resources/PlayVideo_16x.png"/>
+                    <TextBlock Grid.Row="1" Margin="2">Play This</TextBlock>
+                </Grid>
             </Button>
             <Button Grid.Row ="1" Grid.Column="0" Name="addKeyframeButton" Click="addKeyframeClick">
-                <StackPanel Orientation="Vertical">
-                    <Image Source="Resources/Add_16x.png"/>
-                    <TextBlock Margin="2">Add</TextBlock>
-                </StackPanel>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"></RowDefinition>
+                        <RowDefinition Height="1*"></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <Image Grid.Row="0" Source="Resources/Add_16x.png"/>
+                    <TextBlock Grid.Row="1" Margin="2">Add Key</TextBlock>
+                </Grid>
             </Button>
         </Grid>
     </Grid>

@@ -49,13 +49,13 @@ namespace KB30
                 driveTile.Caption.Text = drive.Name + Environment.NewLine + drive.VolumeLabel;
                 driveTile.Thumbnail.Source = ThumbnailFromUri(new Uri(@"pack://application:,,,/Resources/drive.png", UriKind.Absolute));
                 driveTile.Thumbnail.Height = 75;
-                driveTile.MouseLeftButtonUp += folderButtonClick;
+                driveTile.MouseDoubleClick += folderClick;
                 filePanel.Children.Add(driveTile);
             }
             updateNavButtons();
         }
 
-        private void folderButtonClick(object sender, RoutedEventArgs e)
+        private void folderClick(object sender, RoutedEventArgs e)
         {
             loadFolder((sender as Tile).fullPath);
         }
@@ -101,10 +101,11 @@ namespace KB30
                 folderTile.Caption.Text = Path.GetFileName(folderName);
                 folderTile.Thumbnail.Source = ThumbnailFromUri(new Uri(@"pack://application:,,,/Resources/folder.jpg", UriKind.Absolute));
                 folderTile.Thumbnail.Height = 75;
-                folderTile.MouseLeftButtonUp += folderButtonClick;
+                folderTile.MouseDoubleClick += folderClick;
                 filePanel.Children.Add(folderTile);
             }
             current_image_tiles.Clear();
+            current_file_index = -1;
             foreach (String fname in Directory.GetFiles(current_folder))  {
                    
                 if (image_extensions.IndexOf(Path.GetExtension(fname).ToLower()) > 0 ) {
@@ -113,6 +114,7 @@ namespace KB30
                     imageTile.fullPath = fname;
                     imageTile.Caption.Text = Path.GetFileName(fname);
                     imageTile.MouseLeftButtonUp += thumbnailButtonClick;
+                    imageTile.MouseDoubleClick += thumbnailDoubleClick;
                     filePanel.Children.Add(imageTile);
                     current_image_tiles.Add(imageTile);
  
@@ -121,7 +123,7 @@ namespace KB30
             if (current_image_tiles.Count > 0)
             {
                 loadThumbsInBackground(current_image_tiles[0]);
-                loadImage(current_image_tiles[0]);
+                selectTile(current_image_tiles[0]);
             }
             else
             {
@@ -220,48 +222,52 @@ namespace KB30
 
         private void thumbnailButtonClick(object sender, RoutedEventArgs e)
         {
-            loadImage(sender as Tile);
+            Tile tile = sender as Tile;
+            selectTile(tile);
+        }
+        private void thumbnailDoubleClick(object sender, RoutedEventArgs e)
+        {
+            Tile tile = sender as Tile;
+            ((MainWindow)this.Owner).insertSlide(tile.fullPath);
         }
 
-        private void loadImage(Tile tile) { 
-            BitmapImage bmp = new BitmapImage();
-            try
+        private void selectTile(Tile tile) {
+            if ((current_file_index >= 0) && (current_file_index < current_image_tiles.Count))
             {
-                bmp.BeginInit();
-                bmp.UriSource = new Uri(tile.fullPath); ;
-                bmp.EndInit();
-                bmp.Freeze();
+                current_image_tiles[current_file_index].unhighlight();
             }
-            catch (NotSupportedException ex)
-            {
-                MessageBox.Show("Error loading image file: " + tile.fullPath, "Call the doctor, I think I'm gonna crash!");
-            }
+            BitmapImage bmp = Util.BitmapFromUri(new Uri(tile.fullPath));
             previewImage.Source = bmp;
             current_folder = Path.GetDirectoryName(tile.fullPath);
             current_file_index = current_image_tiles.IndexOf(tile);
+            current_image_tiles[current_file_index].highlight();
             Caption.Text = Path.GetFileName(tile.fullPath) + " (" + bmp.PixelWidth + " x " + bmp.PixelHeight + ")  (" + (current_file_index + 1) + " of " + current_image_tiles.Count + ")";
         }
 
         public void addButton_Click(object sender, RoutedEventArgs e)
         {
-            if (previewImage.Source != null)
+            if (current_file_index >= 0)
             {
                 String fname = current_image_tiles[current_file_index].fullPath;
                 ((MainWindow)this.Owner).insertSlide(fname);
                 if (current_file_index < (current_image_tiles.Count - 1))
                 {
-                    loadImage(current_image_tiles[current_file_index + 1]);
+                    selectTile(current_image_tiles[current_file_index + 1]);
                 }
             }
         }
 
         private void previewImage_MouseWheel(object sender, MouseWheelEventArgs e)
         {
+            if (current_image_tiles.Count == 0)
+            {
+                return;
+            }
             if (e.Delta < 0)
             {
                 if (current_file_index < (current_image_tiles.Count - 1))
                 {
-                    loadImage(current_image_tiles[current_file_index + 1]);
+                    selectTile(current_image_tiles[current_file_index + 1]);
                 }
             }
 
@@ -269,29 +275,16 @@ namespace KB30
             {
                 if (current_file_index > 0)
                 {
-                    loadImage(current_image_tiles[current_file_index - 1]);
+                    selectTile(current_image_tiles[current_file_index - 1]);
                 }
             }
         }
 
         private BitmapImage ThumbnailFromUri(Uri uri)
         {
-            BitmapImage bmp = new BitmapImage();
-            try
-            {
-                bmp.BeginInit();
-                bmp.UriSource = uri;
-                bmp.DecodePixelHeight = 150;
-                bmp.EndInit();
-                bmp.Freeze();
-            }
-            catch (NotSupportedException ex)
-            {
-                MessageBox.Show("Error loading image file: " + uri.ToString(), "Call the doctor, I think I'm gonna crash!");
-                return null;
-            }
-            return bmp;
+            return Util.BitmapFromUri(uri, 150);
         }
+
 
         private void upDirButtonClick(object sender, RoutedEventArgs e)
         {

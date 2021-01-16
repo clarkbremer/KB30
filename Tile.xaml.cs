@@ -31,5 +31,14 @@ namespace KB30
         {
             InitializeComponent();
         }
+
+        public void highlight ()
+        {
+            border.BorderBrush = Brushes.Blue;
+        }
+        public void unhighlight()
+        {
+            border.BorderBrush = Brushes.Transparent;
+        }
     }
 }
