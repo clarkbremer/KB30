@@ -15,7 +15,9 @@ using System.Windows.Documents;
 
 /*
  * Bugs:
- * To DO:  
+ * To DO:
+ *  - Copy (duplicate) slide
+ *  - Edit Soundtrack (maybe multiple tracks)
  *  - Option to lock cropper within bounds of image
  *  Break up this file (drag and drop in own file?)
  *  Config options both global and local to this album:
@@ -33,7 +35,7 @@ namespace KB30
     public partial class MainWindow : Window
     {
         const double CONFIG_VERSION = 1.0;
-        const double DEFAULT_DURATION = 10.0;
+        const double DEFAULT_DURATION = 9.0;
 
         const int ABOVE = 1;
         const int BELOW = 2;
@@ -50,12 +52,15 @@ namespace KB30
         private String soundtrack = "";
         private Boolean playWithArgumentFile = false;
         private Boolean uiLoaded = false;
+        private Slide startDragSlide = null;
         private Point initialSlideMousePosition;
+        private Keyframe startDragKeyframe = null;
         private Point initialKeyframeMousePosition;
 
         public MainWindow()
         {
             InitializeComponent();
+            this.Title = "KB30 - " + currentFileName;
         }
 
         public class Album
@@ -104,7 +109,7 @@ namespace KB30
             WorkerResult workerResult = new WorkerResult();
 
             workerResult.slide = slide;
-            workerResult.bmp = Util.BitmapFromUri(slide.uri);
+            workerResult.bmp = Util.BitmapFromUri(slide.uri, 200, true);
             e.Result = workerResult;
         }
 
@@ -148,14 +153,15 @@ namespace KB30
 
             if (bmp == null)
             {
-                bmp = Util.BitmapFromUri(slide.uri);
+                bmp = Util.BitmapFromUri(slide.uri, 200, true);
             }
             slideControl.image.Source = bmp;
             slideControl.caption.Text = System.IO.Path.GetFileName(slide.fileName);
 
             slideControl.MouseMove += delegate (object sender, MouseEventArgs e) { slideMouseMove(sender, e, slide); };
-            slideControl.MouseLeftButtonDown += delegate (object sender, MouseButtonEventArgs e) { slideClick(sender, e, slide); };
-            slideControl.MouseRightButtonDown += delegate (object sender, MouseButtonEventArgs e) { slideClick(sender, e, slide); };
+            slideControl.MouseLeftButtonDown += delegate (object sender, MouseButtonEventArgs e) { slideMouseLeftButtonDown(sender, e, slide); };
+            slideControl.MouseRightButtonDown += delegate (object sender, MouseButtonEventArgs e) { slideMouseRightButtonDown(sender, e, slide); };
+            slideControl.MouseLeftButtonUp += delegate (object sender, MouseButtonEventArgs e) { slideMouseLeftButtonUp(sender, e, slide); };
             slideControl.PreviewMouseDown += delegate (object sender, MouseButtonEventArgs e) { slidePreviewMouseDown(sender, e, slide); };
             slideControl.Drop += delegate (object sender, DragEventArgs e) { slideDrop(sender, e, slide); };
             slideControl.DragOver += delegate (object sender, DragEventArgs e) { slideDragOver(sender, e, slide); };
@@ -182,24 +188,56 @@ namespace KB30
             return true;
         }
 
-        public void selectSlide(Slide slide, Boolean unbindOld = true, Boolean unCheckAll = true) { selectSlide(slides.IndexOf(slide), unbindOld, unCheckAll); }
-        public void selectSlide(int slideIndex, Boolean unbindOld = true, Boolean unCheckAll = true)
+        public void selectSlide(Slide slide, Boolean unbindOld = true) { selectSlide(slides.IndexOf(slide), unbindOld); }
+        public void selectSlide(int slideIndex, Boolean unbindOld = true)
         {
             if (slideIndex < 0) { return; }
 
-            currentSlide.slideControl.DeSelect(unCheckAll);
+            currentSlide.slideControl.DeSelect();
             if (unbindOld)
             {
                 Keyframe oldKey = currentSlide.keys[currentKeyframeIndex];
                 KeyframeControl oldKFControl = oldKey.keyframeControl;
                 unBindKFC(oldKFControl, oldKey);
             }
+            currentSlideIndex = slideIndex;
+            currentSlide.slideControl.Select();
+            currentKeyframeIndex = 0;
             var bitmap = Util.BitmapFromUri(slides[slideIndex].uri);
             imageCropper.image.Source = bitmap;
 
-            if (!Keyboard.IsKeyDown(Key.LeftCtrl) && !Keyboard.IsKeyDown(Key.RightCtrl) && unCheckAll)
+            initializeKeysUI(currentSlide);
+            caption.Text = currentSlide.fileName + " (" + bitmap.PixelWidth + " x " + bitmap.PixelHeight + ")  " + (slideIndex + 1) + " of " + slides.Count;
+        }
+
+        internal void addSlides(string[] fileNames)
+        {
+            foreach (String fname in fileNames)
             {
-                foreach (SlideControl sc in slidePanel.Children) { sc.UnCheck(); }
+                Slide newSlide = new Slide(fname);
+                if (addSlideControl(newSlide))
+                {
+                    newSlide.SetupDefaultKeyframes();
+                    slides.Add(newSlide);
+                    if (fname == fileNames.First())
+                    {
+                        selectSlide(slides.Count - 1);
+                    }
+                }
+                Console.Beep(1000, 100);
+                Console.Beep(2000, 100);
+            }
+            slides.Renumber();
+        }
+        private void slideMouseLeftButtonDown(object sender, RoutedEventArgs e, Slide slide)
+        {
+            if (e.OriginalSource is CheckBox) { return; }
+
+            int slideIndex = slides.IndexOf(slide);
+            if (!slide.IsChecked() && !Keyboard.IsKeyDown(Key.LeftCtrl) && !Keyboard.IsKeyDown(Key.RightCtrl))
+            {
+                slides.UncheckAll();
+                slide.Check();
             }
 
             if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
@@ -221,39 +259,26 @@ namespace KB30
                     }
                 }
             }
-
-            currentSlideIndex = slideIndex;
-            currentSlide.slideControl.Select();
-            currentKeyframeIndex = 0;
-            initializeKeysUI(currentSlide);
-            caption.Text = currentSlide.fileName + " (" + bitmap.PixelWidth + " x " + bitmap.PixelHeight + ")  " + (slideIndex + 1) + " of " + slides.Count;
+            selectSlide(slide);
         }
-
-        internal void addSlides(string[] fileNames)
-        {
-            foreach (String fname in fileNames)
-            {
-                Slide newSlide = new Slide(fname);
-                newSlide.keys.Add(new Keyframe(2.0, 0.5, 0.5, 0.1));
-                if (addSlideControl(newSlide))
-                {
-                    slides.Add(newSlide);
-                    if (fname == fileNames.First())
-                    {
-                        selectSlide(slides.Count - 1);
-                    }
-                }
-                Console.Beep(1000, 100);
-                Console.Beep(2000, 100);
-            }
-            slides.Renumber();
-        }
-        private void slideClick(object sender, RoutedEventArgs e, Slide slide)
+        private void slideMouseRightButtonDown(object sender, RoutedEventArgs e, Slide slide)
         {
             if (e.OriginalSource is CheckBox) { return; }
 
-            int index = slides.IndexOf(slide, 0);
             selectSlide(slide);
+        }
+        private void slideMouseLeftButtonUp(object sender, RoutedEventArgs e, Slide slide)
+        {
+            if (e.OriginalSource is CheckBox) { return; }
+            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+            {
+                slide.ToggleCheck();
+            }
+            else if (slide.IsChecked() && !Keyboard.IsKeyDown(Key.LeftShift) && !Keyboard.IsKeyDown(Key.RightShift))
+            {
+                slides.UncheckAll();
+                slide.Check();
+            }
         }
 
         private void addSlideClick(object sender, RoutedEventArgs e)
@@ -289,9 +314,9 @@ namespace KB30
             foreach (String fname in fileNames)
             {
                 Slide newSlide = new Slide(fname);
-                newSlide.keys.Add(new Keyframe(2.0, 0.5, 0.5, 0.1));
                 if (addSlideControl(newSlide, null, insertIndex))
                 {
+                    newSlide.SetupDefaultKeyframes();
                     slides.Insert(insertIndex, newSlide);
                     if (currentSlideIndex >= insertIndex)
                     {
@@ -299,7 +324,7 @@ namespace KB30
                     }
                     if (fname == fileNames.First())
                     {
-                        selectSlide(insertIndex, true);
+                        selectSlide(insertIndex);
                     }
                     insertIndex++;
                     newSlide.slideControl.BringIntoView();
@@ -341,7 +366,7 @@ namespace KB30
                 }
                 if (slide == clipboardSlides.First())
                 {
-                    selectSlide(insertIndex, true);
+                    selectSlide(insertIndex);
                 }
                 insertIndex++;
             }
@@ -734,14 +759,14 @@ namespace KB30
                 loadIt(filenameArgument);
                 playIt();
             }
-            /* debug 
+            /* debug */
             else
             {
-                loadIt("C:\\Users\\clark\\source\\repos\\pictures\\cards.kb30");
+                loadIt("C:\\Users\\clark\\source\\repos\\pictures\\cardZERO.kb30");
                 initializeSlidesUI();
 
             }
-            */
+           /**/
         }
 
 
@@ -762,6 +787,7 @@ namespace KB30
                 currentFileName = "untitled";
                 soundtrack = "";
                 lastSavedAlbum = serializeCurrentAlbum();
+                this.Title = "KB30 - " + currentFileName;
             }
         }
 
@@ -877,10 +903,11 @@ namespace KB30
                 currentFileName = filename;
                 foreach (Slide slide in slides)
                 {
-                    slide.basePath = Path.GetDirectoryName(filename);
+                    slide.basePath = Path.GetDirectoryName(currentFileName);
                 }
                 lastSavedAlbum = serializeCurrentAlbum();
-                File.WriteAllText(filename, lastSavedAlbum);
+                File.WriteAllText(currentFileName, lastSavedAlbum);
+                this.Title = "KB30 - " + currentFileName;
                 return true;
             }
             return false;
@@ -892,8 +919,8 @@ namespace KB30
             saveFileDialog.Filter = "KB30 files (*.kb30)|*.kb30|All files (*.*)|*.*";
             if (saveFileDialog.ShowDialog() == true)
             {
-                saveIt(saveFileDialog.FileName);
                 currentFileName = saveFileDialog.FileName;
+                saveIt(currentFileName);
             }
         }
 
@@ -963,6 +990,7 @@ namespace KB30
         private void slidePreviewMouseDown(object sender, MouseButtonEventArgs e, Slide slide)
         {
             initialSlideMousePosition = e.GetPosition(slide.slideControl);
+            startDragSlide = slide;
         }
 
         private SlideAdorner slideAdorner;
@@ -971,19 +999,33 @@ namespace KB30
             if (e.LeftButton == MouseButtonState.Pressed)
             {
                 var movedDistance = Point.Subtract(initialSlideMousePosition, e.GetPosition(slide.slideControl)).Length;
-                if (movedDistance > 10)
+                if (movedDistance > 15 && initialSlideMousePosition != new Point(0,0))
                 {
+                    // What happened here is that the drag started on one slide, but we detected it on another. 
+                    if (slide != startDragSlide)
+                    {
+                        Console.Beep(400, 100);
+                        slide = startDragSlide;
+                    }
                     // package the data
                     DataObject data = new DataObject();
                     data.SetData("SlideControl", slide);
 
-                    // If this slide is already checked, then we move all checked slides.  If its not checked, then we move only this one. 
-                    if (!slide.IsChecked())
+                    // If this slide is already checked, then we move all checked slides.  
+                    // If its not checked, then we move only this one.
+                    // Unless ctrl is pressed, then we check this one and move them all.
+                    if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
                     {
-                        slides.UncheckAll();
+                        slide.Check();
+                    }
+                    else
+                    {
+                        if (!slide.IsChecked())
+                        {
+                            slides.UncheckAll();
+                        }
                     }
                     // dim and count all the slides that will be dragged
-                    selectSlide(slide, true, false);
                     int numChecked = 0;
                     foreach (Slide s in slides)
                     {
@@ -1067,9 +1109,14 @@ namespace KB30
             {
                 if (target_slide == null) { return; }
                 Slide source_slide = e.Data.GetData(typeof(Slide)) as Slide;
-                if (target_slide.IsChecked())
+                if(source_slide != startDragSlide)
+                {
+                    Console.Beep(600, 400);
+                }
+                if (target_slide.IsChecked() || (target_slide == source_slide))
                 {
                     Console.Beep(600, 200);
+                    e.Effects = DragDropEffects.None;
                     return;  // don't drop on self
                 }
                 if (!source_slide.slideControl.IsChecked())
@@ -1143,6 +1190,7 @@ namespace KB30
         private void keyframePreviewMouseDown(object sender, MouseButtonEventArgs e, Keyframe key)
         {
             initialKeyframeMousePosition = e.GetPosition(key.keyframeControl);
+            startDragKeyframe = key;
         }
 
         private KeyframeAdorner keyAdorner;
@@ -1151,8 +1199,15 @@ namespace KB30
             if (e.LeftButton == MouseButtonState.Pressed)
             {
                 var movedDistance = Point.Subtract(initialKeyframeMousePosition, e.GetPosition(key.keyframeControl)).Length;
-                if (movedDistance > 10)
+                if (movedDistance > 15)
                 {
+                    // What happened here is that the drag started on one slide, but we detected it on another. 
+                    if (key != startDragKeyframe)
+                    {
+                        Console.Beep(400, 100);
+                        key = startDragKeyframe;
+                    }
+
                     // package the data
                     DataObject data = new DataObject();
                     data.SetData("Keyframe", key);

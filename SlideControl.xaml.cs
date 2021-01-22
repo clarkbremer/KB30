@@ -25,15 +25,10 @@ namespace KB30
         public void Select()
         {
             SelectBorder.BorderBrush = Brushes.Blue;
-            Check();
         }
-        public void DeSelect(Boolean unCheck = true)
+        public void DeSelect()
         {
             SelectBorder.BorderBrush = Brushes.LightBlue;
-            if (!Keyboard.IsKeyDown(Key.LeftCtrl) && !Keyboard.IsKeyDown(Key.RightCtrl) && unCheck)
-            {
-                UnCheck();
-            }
         }
 
         public void highlightAbove()

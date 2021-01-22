@@ -75,12 +75,31 @@ namespace KB30
             }
         }
 
+        public void SetupDefaultKeyframes()
+        {
+            var bmp = slideControl.image.Source;
+            double w = bmp.Width;
+            double h = bmp.Height;
+            if (w > h) 
+            {
+                // Lansdcape
+                keys.Add(new Keyframe(1.3, 0.5, 0.5, 0));
+                keys.Add(new Keyframe(2.0, 0.5, 0.5, 9));
+            }
+            else
+            {
+                // Portrait
+                keys.Add(new Keyframe(3.0, 0.5, 0.2, 0));
+                keys.Add(new Keyframe(3.0, 0.5, 0.8, 9));
+            }
+        }
         public void Dim() { slideControl.image.Opacity = 0.4; }
         public void UnDim() { slideControl.image.Opacity = 1.0; }
 
         public bool IsChecked() { return (bool)(slideControl?.IsChecked()); }
         public void Check() { slideControl?.Check(); }
         public void UnCheck() { slideControl?.UnCheck(); }
+        public void ToggleCheck() { slideControl?.ToggleCheck(); }
         public void highlightAbove() { slideControl.highlightAbove(); }
         public void highlightBelow() { slideControl.highlightBelow(); }
         public void highlightClear() { slideControl.highlightClear(); }

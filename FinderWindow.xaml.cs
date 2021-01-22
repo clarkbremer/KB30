@@ -282,7 +282,7 @@ namespace KB30
 
         private BitmapImage ThumbnailFromUri(Uri uri)
         {
-            return Util.BitmapFromUri(uri, 150);
+            return Util.BitmapFromUri(uri, 150, true);
         }
 
 

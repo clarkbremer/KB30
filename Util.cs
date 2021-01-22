@@ -8,7 +8,7 @@ namespace KB30
 {
     class Util
     {
-        public static BitmapImage BitmapFromUri(Uri uri, int decode_pixel_height = 0)
+        public static BitmapImage BitmapFromUri(Uri uri, int decode_pixel_height = 0, bool freeze = false)
         {
             BitmapImage bmp = new BitmapImage();
             try
@@ -20,7 +20,10 @@ namespace KB30
                     bmp.DecodePixelHeight = decode_pixel_height;
                 }
                 bmp.EndInit();
-                bmp.Freeze();
+                if (freeze)
+                {
+                    bmp.Freeze();
+                }
             }
             catch (Exception)
             {
@@ -34,7 +37,10 @@ namespace KB30
                         bmp2.DecodePixelHeight = decode_pixel_height;
                     }
                     bmp2.EndInit();
-                    bmp2.Freeze();
+                    if (freeze)
+                    {
+                        bmp2.Freeze();
+                    }
                     return bmp2;
                 }
                 catch (Exception e2)
