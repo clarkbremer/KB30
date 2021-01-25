@@ -300,20 +300,21 @@ namespace KB30
         }
 
 
-        internal void insertSlides(string[] fileNames, Slide slide, int direction)
+        internal Slide insertSlides(string[] fileNames, Slide slide, int direction)
         {
             var insertIndex = slides.IndexOf(slide);
-            insertSlides(fileNames, insertIndex, direction);
+            return insertSlides(fileNames, insertIndex, direction);
         }
 
-        internal void insertSlides(string[] fileNames, int insertIndex, int direction) {
+        internal Slide insertSlides(string[] fileNames, int insertIndex, int direction) {
+            Slide newSlide = null;
             if (direction == BELOW)
             {
                 insertIndex += 1;
             }
             foreach (String fname in fileNames)
             {
-                Slide newSlide = new Slide(fname);
+                newSlide = new Slide(fname);
                 if (addSlideControl(newSlide, null, insertIndex))
                 {
                     newSlide.SetupDefaultKeyframes();
@@ -328,11 +329,12 @@ namespace KB30
                     }
                     insertIndex++;
                     newSlide.slideControl.BringIntoView();
+                    Console.Beep(1000, 100);
+                    Console.Beep(2000, 100);
                 }
-                Console.Beep(1000, 100);
-                Console.Beep(2000, 100);
             }
             slides.Renumber();
+            return (newSlide);
         }
 
         private void insertSlideClick(object sender, RoutedEventArgs e, Slide slide, int position)
@@ -348,9 +350,10 @@ namespace KB30
         }
 
         private void pasteSlideClick(object sender, RoutedEventArgs e, Slide insertSlide, int direction) { pasteSlides(insertSlide, direction); }
-        private void pasteSlides(Slide insertSlide, int direction)
+
+        private void pasteSlides(Slide targetSlide, int direction)
         {
-            var insertIndex = slides.IndexOf(insertSlide);
+            var insertIndex = slides.IndexOf(targetSlide);
             if (direction == BELOW)
             {
                 insertIndex += 1;
@@ -382,7 +385,7 @@ namespace KB30
             clipboardSlides.Clear();
             foreach (Slide slide in slides)
             {
-                if (slide.slideControl.IsChecked())
+                if (slide.IsChecked())
                 {
                     clipboardSlides.Add(slide);
                 }
@@ -420,6 +423,40 @@ namespace KB30
             }
         }
 
+        private void copySlides(Slide targetSlide, int direction)
+        {
+            var insertIndex = slides.IndexOf(targetSlide);
+            Slides duplicates = new Slides();
+            if (direction == BELOW)
+            {
+                insertIndex += 1;
+            }
+
+            foreach (Slide s in slides)
+            {
+                if (s.IsChecked())
+                {
+                    duplicates.Add(s);
+                }
+            }
+
+            foreach (Slide s in duplicates)
+            {
+                Slide newSlide = s.Clone();
+                if (addSlideControl(newSlide, null, insertIndex))
+                {
+                    slides.Insert(insertIndex, newSlide);
+                    if (currentSlideIndex >= insertIndex)
+                    {
+                        currentSlideIndex++;
+                    }
+                    insertIndex++;
+                    Console.Beep(1000, 100);
+                    Console.Beep(2000, 100);
+                }
+            }
+        }
+
         private void playFromHereClick(object sender, RoutedEventArgs e, Slide slide)
         {   
             playIt(slides.IndexOf(slide));
@@ -427,7 +464,7 @@ namespace KB30
  
         private void slideContextMenuOpened(object sender, RoutedEventArgs e, Slide slide)
         {
-            int numSelected = slides.Count(s => s.slideControl.IsChecked());
+            int numSelected = slides.Count(s => s.IsChecked());
             slide.slideControl.CMCut.Header = "Cut " + numSelected + " Slide(s)";
             if (clipboardSlides.Count == 0)
             {
@@ -759,7 +796,7 @@ namespace KB30
                 loadIt(filenameArgument);
                 playIt();
             }
-            /* debug */
+            /* debug 
             else
             {
                 loadIt("C:\\Users\\clark\\source\\repos\\pictures\\cardZERO.kb30");
@@ -1046,15 +1083,8 @@ namespace KB30
 
                     // do it!
                     DragDropEffects result = DragDrop.DoDragDrop(slide.slideControl, slide, DragDropEffects.Copy | DragDropEffects.Move);
-                    if (result.HasFlag(DragDropEffects.Move))
-                    {
-                        Console.Beep(2000, 50);
-                    }
-                    else
-                    {
-                        Console.Beep(600, 50);
-                        Console.Beep(600, 50);
-                    }
+
+                    // Techically, this is where we would delete the dragged items if result.HasFlag(DragDropEffects.Move).
                     // clean up
                     adLayer.Remove(slideAdorner);
                     slides.UnDimAll();
@@ -1119,12 +1149,21 @@ namespace KB30
                     e.Effects = DragDropEffects.None;
                     return;  // don't drop on self
                 }
-                if (!source_slide.slideControl.IsChecked())
+                if (!source_slide.IsChecked())
                 {
                     source_slide.slideControl.Check();
                 }
-                cutSlides(source_slide);
-                pasteSlides(target_slide, dropDirection(e, target_slide));
+                if (e.KeyStates.HasFlag(DragDropKeyStates.ControlKey))
+                {
+                    e.Effects = DragDropEffects.Copy;
+                    copySlides(target_slide, dropDirection(e, target_slide));
+                }
+                else
+                {
+                    e.Effects = DragDropEffects.Move;
+                    cutSlides(source_slide);
+                    pasteSlides(target_slide, dropDirection(e, target_slide));
+                }
                 target_slide.highlightClear();
             }
         }
@@ -1167,19 +1206,32 @@ namespace KB30
                     slide.highlightBelow();
                 }
 
-                e.Effects = DragDropEffects.Move;
+                if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+                {
+                    e.Effects = DragDropEffects.Copy;
+                }
+                else
+                {
+                    e.Effects = DragDropEffects.Move;
+                }
             }
         }
 
         private void slideGiveFeedback(object sender, GiveFeedbackEventArgs e, Slide s)
         {
             // These Effects values are set in the drop target's DragOver event handler.
-            if (e.Effects.HasFlag(DragDropEffects.Move) || e.Effects.HasFlag(DragDropEffects.Copy))
+            if (e.Effects.HasFlag(DragDropEffects.Move))
             {
+                slideAdorner.SetHint("-> Move");
+                Mouse.SetCursor(Cursors.Hand);
+            } else if (e.Effects.HasFlag(DragDropEffects.Copy))
+            {
+                slideAdorner.SetHint("+ Copy");
                 Mouse.SetCursor(Cursors.Hand);
             }
             else
             {
+                slideAdorner.SetHint("");
                 Mouse.SetCursor(Cursors.No);
             }
             e.Handled = true;

@@ -93,16 +93,27 @@ namespace KB30
                 keys.Add(new Keyframe(3.0, 0.5, 0.8, 9));
             }
         }
-        public void Dim() { slideControl.image.Opacity = 0.4; }
-        public void UnDim() { slideControl.image.Opacity = 1.0; }
 
-        public bool IsChecked() { return (bool)(slideControl?.IsChecked()); }
+        public Slide Clone()
+        {
+            Slide clone = new Slide(fileName);
+            foreach (Keyframe k in keys)
+            {
+                clone.keys.Add(new Keyframe(k.zoomFactor, k.x, k.y, k.duration));
+            }
+            return clone;
+        }
+
+        public void Dim() { if (slideControl != null) { slideControl.image.Opacity = 0.4; } }
+        public void UnDim() { if (slideControl != null) { slideControl.image.Opacity = 1.0; } }
+
+        public bool IsChecked() { return (bool)(slideControl?.IsChecked() ?? false); }
         public void Check() { slideControl?.Check(); }
         public void UnCheck() { slideControl?.UnCheck(); }
         public void ToggleCheck() { slideControl?.ToggleCheck(); }
-        public void highlightAbove() { slideControl.highlightAbove(); }
-        public void highlightBelow() { slideControl.highlightBelow(); }
-        public void highlightClear() { slideControl.highlightClear(); }
+        public void highlightAbove() { slideControl?.highlightAbove(); }
+        public void highlightBelow() { slideControl?.highlightBelow(); }
+        public void highlightClear() { slideControl?.highlightClear(); }
 
     }
 
@@ -110,7 +121,7 @@ namespace KB30
     {
         public void UncheckAll()
         {
-            foreach (Slide slide in this) { slide.slideControl.UnCheck(); }
+            foreach (Slide slide in this) { slide.UnCheck(); }
         }
 
         public void Renumber()
@@ -145,6 +156,4 @@ namespace KB30
         }
 
     }
-
-  
 }

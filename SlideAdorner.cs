@@ -12,6 +12,7 @@ namespace KB30
         public Point Center;
         public ImageSource imageSource;
         private int numDragging = 99;
+        string hint = "hint hint";
         public SlideAdorner(ScrollViewer adornedElement, int _numDragging, ImageSource imgSource, Rect rRect) : base(adornedElement)
         {
             numDragging = _numDragging;
@@ -21,16 +22,27 @@ namespace KB30
             Center = new Point(renderRect.Width / 2, renderRect.Height / 2);
             imageSource = imgSource;
         }
+
+        public void SetHint(string _hint)
+        {
+            hint = _hint;
+            InvalidateVisual();
+        }
         protected override void OnRender(DrawingContext drawingContext)
         {
             drawingContext.DrawImage(imageSource, renderRect);
             if (numDragging > 1)
             {
-                FormattedText formattedText = new FormattedText(numDragging.ToString(), CultureInfo.GetCultureInfo("en-us"), FlowDirection.LeftToRight, new Typeface("Verdana"), 24, Brushes.White, VisualTreeHelper.GetDpi(this).PixelsPerDip);
-                Point textLocation = new Point(Center.X - formattedText.Width / 2, Center.Y - formattedText.Height / 2);
-                drawingContext.DrawRectangle(Brushes.Blue, null, new Rect(textLocation.X, textLocation.Y, formattedText.Width, formattedText.Height));
-                drawingContext.DrawText(formattedText, textLocation);
+                FormattedText countText = new FormattedText(numDragging.ToString(), CultureInfo.GetCultureInfo("en-us"), FlowDirection.LeftToRight, new Typeface("Verdana"), 24, Brushes.White, VisualTreeHelper.GetDpi(this).PixelsPerDip);
+                Point countLocation = new Point(Center.X - countText.Width / 2, Center.Y - countText.Height / 2);
+                drawingContext.DrawRectangle(Brushes.Blue, null, new Rect(countLocation.X, countLocation.Y, countText.Width, countText.Height));
+                drawingContext.DrawText(countText, countLocation);
             }
+
+            FormattedText hintText = new FormattedText(hint, CultureInfo.GetCultureInfo("en-us"), FlowDirection.LeftToRight, new Typeface("Verdana"), 12, Brushes.Black, VisualTreeHelper.GetDpi(this).PixelsPerDip);
+            Point hintLocation = new Point(Center.X - hintText.Width / 2, renderRect.Height - hintText.Height);
+            drawingContext.DrawRectangle(Brushes.White, null, new Rect(hintLocation.X, hintLocation.Y, hintText.Width, hintText.Height));
+            drawingContext.DrawText(hintText, hintLocation);
         }
     }
 }
