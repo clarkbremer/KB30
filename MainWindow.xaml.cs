@@ -16,7 +16,8 @@ using System.Windows.Documents;
 /*
  * Bugs:
  * To DO:
- *  - Copy (duplicate) slide
+ *  - Undo
+ *  - Drag and Drop from finder left panel.
  *  - Edit Soundtrack (maybe multiple tracks)
  *  - Option to lock cropper within bounds of image
  *  Break up this file (drag and drop in own file?)
@@ -264,8 +265,19 @@ namespace KB30
         private void slideMouseRightButtonDown(object sender, RoutedEventArgs e, Slide slide)
         {
             if (e.OriginalSource is CheckBox) { return; }
-
             selectSlide(slide);
+            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+            {
+                slide.ToggleCheck();
+            }
+            else
+            {
+                if (!slide.IsChecked())
+                {
+                    slides.UncheckAll();
+                    slide.Check();
+                }
+            }
         }
         private void slideMouseLeftButtonUp(object sender, RoutedEventArgs e, Slide slide)
         {
@@ -1041,8 +1053,7 @@ namespace KB30
                     // What happened here is that the drag started on one slide, but we detected it on another. 
                     if (slide != startDragSlide)
                     {
-                        Console.Beep(400, 100);
-                        slide = startDragSlide;
+                        return;
                     }
                     // package the data
                     DataObject data = new DataObject();

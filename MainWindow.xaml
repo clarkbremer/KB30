@@ -57,7 +57,7 @@
             <Button Name="addSlideButton" Click="addSlideClick" Grid.Column="1">
                 <StackPanel Orientation="Horizontal">
                     <Image Source="Resources/Add_16x.png"/>
-                    <TextBlock Margin="2">Add Slide</TextBlock>
+                    <TextBlock Margin="2">Add Slides</TextBlock>
                 </StackPanel>
             </Button>
         </Grid>
