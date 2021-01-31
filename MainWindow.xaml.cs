@@ -16,8 +16,10 @@ using System.Windows.Documents;
 /*
  * Bugs:
  * To DO:
- *  - Undo
- *  - Drag and Drop from finder left panel.
+ *  - Add copy to context menu.
+ *  - Up Down arrows to change selected slide (clear prev selected unless shift, then extend selection).
+ *  - Undo/Redo
+ *  - Drag and Drop from finder left panel into main window left panel.
  *  - Edit Soundtrack (maybe multiple tracks)
  *  - Option to lock cropper within bounds of image
  *  Break up this file (drag and drop in own file?)
@@ -91,7 +93,8 @@ namespace KB30
             uiLoaded = true;
         }
 
-        private Slide currentSlide {
+        private Slide currentSlide
+        {
             get
             {
                 return slides[currentSlideIndex];
@@ -138,7 +141,7 @@ namespace KB30
             }
         }
 
- 
+
         void addSlideControlInBackground(Slide slide)
         {
             BackgroundWorker worker = new BackgroundWorker();
@@ -168,6 +171,7 @@ namespace KB30
             slideControl.DragOver += delegate (object sender, DragEventArgs e) { slideDragOver(sender, e, slide); };
             slideControl.GiveFeedback += delegate (object sender, GiveFeedbackEventArgs e) { slideGiveFeedback(sender, e, slide); };
             slideControl.CMCut.Click += delegate (object sender, RoutedEventArgs e) { cutSlideClick(sender, e, slide); };
+            slideControl.CMCopy.Click += delegate (object sender, RoutedEventArgs e) { copySlideClick(sender, e, slide); };
             slideControl.CMPasteAbove.Click += delegate (object sender, RoutedEventArgs e) { pasteSlideClick(sender, e, slide, ABOVE); };
             slideControl.CMPasteBelow.Click += delegate (object sender, RoutedEventArgs e) { pasteSlideClick(sender, e, slide, BELOW); };
             slideControl.CMInsertAbove.Click += delegate (object sender, RoutedEventArgs e) { insertSlideClick(sender, e, slide, ABOVE); };
@@ -305,7 +309,8 @@ namespace KB30
             if (slides.Count == 0)
             {
                 addSlides(new string[] { fileName });
-            } else
+            }
+            else
             {
                 insertSlides(new string[] { fileName }, currentSlideIndex, direction);
             }
@@ -318,7 +323,8 @@ namespace KB30
             return insertSlides(fileNames, insertIndex, direction);
         }
 
-        internal Slide insertSlides(string[] fileNames, int insertIndex, int direction) {
+        internal Slide insertSlides(string[] fileNames, int insertIndex, int direction)
+        {
             Slide newSlide = null;
             if (direction == BELOW)
             {
@@ -340,7 +346,7 @@ namespace KB30
                         selectSlide(insertIndex);
                     }
                     insertIndex++;
-                    newSlide.slideControl.BringIntoView();
+                    newSlide.BringIntoView();
                     Console.Beep(1000, 100);
                     Console.Beep(2000, 100);
                 }
@@ -361,9 +367,9 @@ namespace KB30
             }
         }
 
-        private void pasteSlideClick(object sender, RoutedEventArgs e, Slide insertSlide, int direction) { pasteSlides(insertSlide, direction); }
+        private void pasteSlideClick(object sender, RoutedEventArgs e, Slide insertSlide, int direction) { pasteClipboardSlides(insertSlide, direction); }
 
-        private void pasteSlides(Slide targetSlide, int direction)
+        private void pasteClipboardSlides(Slide targetSlide, int direction = ABOVE)
         {
             var insertIndex = slides.IndexOf(targetSlide);
             if (direction == BELOW)
@@ -374,7 +380,14 @@ namespace KB30
             foreach (Slide slide in clipboardSlides)
             {
                 slides.Insert(insertIndex, slide);
-                slidePanel.Children.Insert(insertIndex, slide.slideControl);
+                if (slide.slideControl == null)
+                {
+                    addSlideControl(slide, null, insertIndex);
+                }
+                else
+                {
+                    slidePanel.Children.Insert(insertIndex, slide.slideControl);
+                }
                 if (currentSlideIndex >= insertIndex)
                 {
                     currentSlideIndex++;
@@ -391,8 +404,8 @@ namespace KB30
         }
 
 
-        private void cutSlideClick(object sender, RoutedEventArgs e, Slide s) { cutSlides(s); }
-        private void cutSlides(Slide s)
+        private void cutSlideClick(object sender, RoutedEventArgs e, Slide s) { cutSlidesToClipboard(s); }
+        private void cutSlidesToClipboard(Slide s)
         {
             clipboardSlides.Clear();
             foreach (Slide slide in slides)
@@ -435,49 +448,34 @@ namespace KB30
             }
         }
 
-        private void copySlides(Slide targetSlide, int direction)
-        {
-            var insertIndex = slides.IndexOf(targetSlide);
-            Slides duplicates = new Slides();
-            if (direction == BELOW)
-            {
-                insertIndex += 1;
-            }
+        private void copySlideClick(object sender, RoutedEventArgs e, Slide s) { copySlidesToClipboard(s); }
 
+        private void copySlidesToClipboard(Slide targetSlide, int direction = ABOVE)
+        {
+            clipboardSlides.Clear();
             foreach (Slide s in slides)
             {
                 if (s.IsChecked())
                 {
-                    duplicates.Add(s);
+                    clipboardSlides.Add(s.Clone());
                 }
             }
-
-            foreach (Slide s in duplicates)
+            if (clipboardSlides.Count == 0)
             {
-                Slide newSlide = s.Clone();
-                if (addSlideControl(newSlide, null, insertIndex))
-                {
-                    slides.Insert(insertIndex, newSlide);
-                    if (currentSlideIndex >= insertIndex)
-                    {
-                        currentSlideIndex++;
-                    }
-                    insertIndex++;
-                    Console.Beep(1000, 100);
-                    Console.Beep(2000, 100);
-                }
+                clipboardSlides.Add(targetSlide.Clone());
             }
         }
 
         private void playFromHereClick(object sender, RoutedEventArgs e, Slide slide)
-        {   
+        {
             playIt(slides.IndexOf(slide));
         }
- 
+
         private void slideContextMenuOpened(object sender, RoutedEventArgs e, Slide slide)
         {
             int numSelected = slides.Count(s => s.IsChecked());
             slide.slideControl.CMCut.Header = "Cut " + numSelected + " Slide(s)";
+            slide.slideControl.CMCopy.Header = "Copy " + numSelected + " Slide(s)";
             if (clipboardSlides.Count == 0)
             {
                 slide.slideControl.CMPasteAbove.Header = "Paste Slide(s) Above";
@@ -549,7 +547,7 @@ namespace KB30
             kfControl.KeyframeContextMenu.Opened += delegate (object sender, RoutedEventArgs e) { keyframeContextMenuOpened(sender, e, key); };
         }
 
- 
+
         private void unBindKFC(KeyframeControl kfc, Keyframe key)
         {
             if (kfc == null)
@@ -677,7 +675,7 @@ namespace KB30
             if (clipboardKey == null) { return; }
 
             Keyframes keys = currentSlide.keys;
-            
+
             var insertIndex = keys.IndexOf(insertKey);
             if (direction == RIGHT)
             {
@@ -808,7 +806,7 @@ namespace KB30
                 loadIt(filenameArgument);
                 playIt();
             }
-            /* debug 
+            /* debug */
             else
             {
                 loadIt("C:\\Users\\clark\\source\\repos\\pictures\\cardZERO.kb30");
@@ -1048,7 +1046,7 @@ namespace KB30
             if (e.LeftButton == MouseButtonState.Pressed)
             {
                 var movedDistance = Point.Subtract(initialSlideMousePosition, e.GetPosition(slide.slideControl)).Length;
-                if (movedDistance > 15 && initialSlideMousePosition != new Point(0,0))
+                if (movedDistance > 15 && initialSlideMousePosition != new Point(0, 0))
                 {
                     // What happened here is that the drag started on one slide, but we detected it on another. 
                     if (slide != startDragSlide)
@@ -1089,7 +1087,7 @@ namespace KB30
                     Rect renderRect = new Rect(slide.slideControl.RenderSize);
                     renderRect.Height = renderRect.Height / 2;
                     renderRect.Width = renderRect.Width / 2;
-                    slideAdorner = new SlideAdorner(slideScrollViewer, numChecked, slide.slideControl.image.Source, renderRect); 
+                    slideAdorner = new SlideAdorner(slideScrollViewer, numChecked, slide.slideControl.image.Source, renderRect);
                     adLayer.Add(slideAdorner);
 
                     // do it!
@@ -1150,7 +1148,7 @@ namespace KB30
             {
                 if (target_slide == null) { return; }
                 Slide source_slide = e.Data.GetData(typeof(Slide)) as Slide;
-                if(source_slide != startDragSlide)
+                if (source_slide != startDragSlide)
                 {
                     Console.Beep(600, 400);
                 }
@@ -1167,13 +1165,14 @@ namespace KB30
                 if (e.KeyStates.HasFlag(DragDropKeyStates.ControlKey))
                 {
                     e.Effects = DragDropEffects.Copy;
-                    copySlides(target_slide, dropDirection(e, target_slide));
+                    copySlidesToClipboard(target_slide, dropDirection(e, target_slide));
+                    pasteClipboardSlides(target_slide, dropDirection(e, target_slide));
                 }
                 else
                 {
                     e.Effects = DragDropEffects.Move;
-                    cutSlides(source_slide);
-                    pasteSlides(target_slide, dropDirection(e, target_slide));
+                    cutSlidesToClipboard(source_slide);
+                    pasteClipboardSlides(target_slide, dropDirection(e, target_slide));
                 }
                 target_slide.highlightClear();
             }
@@ -1235,7 +1234,8 @@ namespace KB30
             {
                 slideAdorner.SetHint("-> Move");
                 Mouse.SetCursor(Cursors.Hand);
-            } else if (e.Effects.HasFlag(DragDropEffects.Copy))
+            }
+            else if (e.Effects.HasFlag(DragDropEffects.Copy))
             {
                 slideAdorner.SetHint("+ Copy");
                 Mouse.SetCursor(Cursors.Hand);
@@ -1402,8 +1402,61 @@ namespace KB30
 
         private void mainWindowActivated(object sender, EventArgs e)
         {
-     //       Topmost = true;
+            //       Topmost = true;
+        }
+
+        private void mainWindowPreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+            {
+                switch (e.Key)
+                {
+                    case Key.X:
+                        cutSlidesToClipboard(currentSlide);
+                        e.Handled = true;
+                        break;
+                    case Key.C:
+                        copySlidesToClipboard(currentSlide);
+                        e.Handled = true;
+                        break;
+                    case Key.V:
+                        pasteClipboardSlides(currentSlide);
+                        e.Handled = true;
+                        break;
+                }
+            }
+            else
+            {
+                switch (e.Key)
+                {
+                    case Key.Up:
+                        if (currentSlideIndex > 0)
+                        {
+                            if (!Keyboard.IsKeyDown(Key.LeftShift) && !Keyboard.IsKeyDown(Key.RightShift))
+                            {
+                                slides.UncheckAll();
+                            }
+                            selectSlide(currentSlideIndex - 1);
+                            currentSlide.Check();
+                            currentSlide.BringIntoView();
+                        }
+                        e.Handled = true;
+                        break;
+                    case Key.Down:
+                        if (currentSlideIndex < slides.Count - 1)
+                        {
+                            if (!Keyboard.IsKeyDown(Key.LeftShift) && !Keyboard.IsKeyDown(Key.RightShift))
+                            {
+                                slides.UncheckAll();
+                            }
+                            selectSlide(currentSlideIndex + 1);
+                            currentSlide.Check();
+                            currentSlide.BringIntoView();
+                        }
+                        e.Handled = true;
+                        break;
+                }
+            }
         }
     }
 }
-

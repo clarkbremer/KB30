@@ -115,6 +115,8 @@ namespace KB30
         public void highlightBelow() { slideControl?.highlightBelow(); }
         public void highlightClear() { slideControl?.highlightClear(); }
 
+        public void BringIntoView() { slideControl?.BringIntoView(); }
+
     }
 
     public class Slides : List<Slide>

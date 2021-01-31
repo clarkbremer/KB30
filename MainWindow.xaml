@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:KB30"
         
         mc:Ignorable="d"
-        Title="KB30" Height="675" Width="1200" Loaded="mainWindowLoaded" Closing="mainWindowClosing" Activated="mainWindowActivated">
+        Title="KB30" Height="675" Width="1200" Loaded="mainWindowLoaded" Closing="mainWindowClosing" Activated="mainWindowActivated" PreviewKeyDown="mainWindowPreviewKeyDown">
     <Grid x:Name="mainGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
