@@ -334,14 +334,12 @@ namespace KB30
 
         private void cropperKeyDown(object sender, KeyEventArgs e)
         {
-            switch (e.Key)
+            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
             {
-                case Key.Left:
-                case Key.Right:
-                    // Get the rectangle's current position.
-
-                    if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
-                    {
+                switch (e.Key)
+                {
+                    case Key.Up:
+                        // Set rectangle to full width of the image
                         double old_height = cropper.Height;
                         double new_y = Canvas.GetTop(cropper);
                         double new_x = (cropperCanvas.ActualWidth - image.ActualWidth) / 2;
@@ -350,12 +348,24 @@ namespace KB30
                         new_y += (old_height - new_height) / 2;
                         updateCropper(new_x, new_y, new_width, new_height);
                         e.Handled = true;
-                    }
-                    break;
+                        break;
 
-                default:
-                    e.Handled = false;
-                    break;
+                    case Key.Down:
+                        // Set rectangle to 2k pixels wide
+                        BitmapSource bms = image.Source as BitmapSource;
+                        double scale = image.ActualWidth / bms.PixelWidth;
+                        old_height = cropper.Height;
+                        double old_width = cropper.Width;
+                        new_width = 2048 * scale;
+                        new_height = new_width * 9 / 16;
+                        new_y = Canvas.GetTop(cropper);
+                        new_y += (old_height - new_height) / 2;
+                        new_x = Canvas.GetLeft(cropper);
+                        new_x += (old_width - new_width) / 2;
+                        updateCropper(new_x, new_y, new_width, new_height);
+                        e.Handled = true;
+                        break;
+                }
             }
         }
     }

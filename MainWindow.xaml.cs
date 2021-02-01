@@ -16,8 +16,6 @@ using System.Windows.Documents;
 /*
  * Bugs:
  * To DO:
- *  - Add copy to context menu.
- *  - Up Down arrows to change selected slide (clear prev selected unless shift, then extend selection).
  *  - Undo/Redo
  *  - Drag and Drop from finder left panel into main window left panel.
  *  - Edit Soundtrack (maybe multiple tracks)
