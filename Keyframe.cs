@@ -34,6 +34,15 @@ namespace KB30
 
         public KeyframeControl keyframeControl { get; set; }
 
+        public Keyframe Clone()
+        {
+            return new Keyframe(zoomFactor, x, y, duration);
+        }
+        public Keyframe Clone(double override_duration)
+        {
+            return new Keyframe(zoomFactor, x, y, override_duration);
+        }
+
         public void Dim()
         {
             keyframeControl.Opacity = 0.5;

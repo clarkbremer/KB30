@@ -163,7 +163,7 @@ namespace KB30
         {
             if (slides.Count == 0) { return; }
             Keyframe currentKey = currentSlide.keys[currentKeyframeIndex];
-            Keyframe newKey = new Keyframe(currentKey.zoomFactor, currentKey.x, currentKey.y, DEFAULT_DURATION);
+            Keyframe newKey = currentKey.Clone(DEFAULT_DURATION);
             currentSlide.keys.Add(newKey);
             addKeyframeControl(newKey);
             newKey.keyframeControl.durTb.Focus();
@@ -174,7 +174,7 @@ namespace KB30
         {
             Keyframes keys = currentSlide.keys;
             var insertIndex = keys.IndexOf(key);
-            Keyframe newKey = new Keyframe(key.zoomFactor, key.x, key.y, DEFAULT_DURATION);
+            Keyframe newKey = key.Clone(DEFAULT_DURATION);
             keys.Insert(insertIndex, newKey);
             addKeyframeControl(newKey, insertIndex);
             if (currentKeyframeIndex >= insertIndex)

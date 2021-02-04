@@ -99,7 +99,7 @@ namespace KB30
             Slide clone = new Slide(fileName);
             foreach (Keyframe k in keys)
             {
-                clone.keys.Add(new Keyframe(k.zoomFactor, k.x, k.y, k.duration));
+                clone.keys.Add(k.Clone());
             }
             return clone;
         }
