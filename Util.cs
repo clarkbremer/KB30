@@ -8,6 +8,8 @@ namespace KB30
 {
     class Util
     {
+
+
         public static BitmapImage BitmapFromUri(Uri uri, int decode_pixel_height = 0, bool freeze = false)
         {
             BitmapImage bmp = new BitmapImage();
@@ -43,7 +45,7 @@ namespace KB30
                     }
                     return bmp2;
                 }
-                catch (Exception e2)
+                catch (Exception _e2)
                 {
                     MessageBox.Show("Error loading image file: " + uri.ToString(), "Call the doctor, I think I'm gonna crash!");
                     return null;
@@ -51,7 +53,5 @@ namespace KB30
             }
             return bmp;
         }
-
-
     }
 }

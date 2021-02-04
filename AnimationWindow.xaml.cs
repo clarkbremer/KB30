@@ -18,7 +18,6 @@ namespace KB30
     {
         public Slides slides = new Slides();
         public MediaPlayer mediaPlayer = new MediaPlayer();
-        double mediaPlayerStartTime = 0;
 
         Image currentImage;
         Image otherImage;
