@@ -157,5 +157,12 @@ namespace KB30
             }
         }
 
+        public void SetBasePath(string basePath)
+        {
+            foreach (Slide slide in this)
+            {
+                slide.basePath = basePath;
+            }
+        }
     }
 }

@@ -11,6 +11,7 @@ using Microsoft.Win32;
 using System.ComponentModel;
 using Newtonsoft.Json;
 using System.Windows.Documents;
+using System.Diagnostics;
 
 
 /*
@@ -33,9 +34,10 @@ namespace KB30
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
+    /// 
+
     public partial class MainWindow : Window
     {
-        const double CONFIG_VERSION = 1.0;
         const double DEFAULT_DURATION = 9.0;
 
         const int ABOVE = 1;
@@ -45,14 +47,14 @@ namespace KB30
 
         public int currentSlideIndex = 0;
         public int currentKeyframeIndex = 0;
-        private String currentFileName = "untitled";
         public Slides slides = new Slides();
-        public Slides clipboardSlides = new Slides();
-        public Keyframe clipboardKey = null;
+        public Album album;
         private String lastSavedAlbum;
-        private String soundtrack = "";
+        public History history;
         private Boolean playWithArgumentFile = false;
         private Boolean uiLoaded = false;
+        public Slides clipboardSlides = new Slides();
+        public Keyframe clipboardKey = null;
         private Slide startDragSlide = null;
         private Point initialSlideMousePosition;
         private Keyframe startDragKeyframe = null;
@@ -61,16 +63,11 @@ namespace KB30
         public MainWindow()
         {
             InitializeComponent();
-            this.Title = "KB30 - " + currentFileName;
+            album = new Album(slides, "", "untitled");
+            this.Title = "KB30 - " + album.Filename;
+            history = new History(this);
         }
-
-        public class Album
-        {
-            public string version { get; set; }
-            public string soundtrack { get; set; }
-            public Slides slides { get; set; }
-        }
-
+ 
 
         /************
          *  Animate!
@@ -81,18 +78,18 @@ namespace KB30
             AnimationWindow animationWindow = new AnimationWindow();
             animationWindow.Closed += animationWindow_Closed;
             animationWindow.Show();
-            animationWindow.animate(slides, start, soundtrack);
+            animationWindow.animate(slides, start, album.Soundtrack);
         }
         private void playClick(object sender, RoutedEventArgs e)
         {
-            if (albumValid())
+            if (album.Valid())
             {
                 playIt();
             }
         }
         private void playSlideClick(object sender, RoutedEventArgs e)
         {
-            if (albumValid())
+            if (album.Valid())
             {
                 Slides oneSlide = new Slides();
                 oneSlide.Add(currentSlide);
@@ -123,14 +120,16 @@ namespace KB30
 
         private void mainWindowLoaded(object sender, RoutedEventArgs e)
         {
-            lastSavedAlbum = serializeCurrentAlbum();
+            lastSavedAlbum = album.ToJson();
             var allArgs = Environment.GetCommandLineArgs();
             if (allArgs.Length > 1)
             {
                 var filenameArgument = allArgs[1];
                 playWithArgumentFile = true;
-                loadIt(filenameArgument);
-                playIt();
+                if (loadIt(filenameArgument))
+                {
+                    playIt();
+                }
             }
             /* debug */
             else
@@ -157,49 +156,28 @@ namespace KB30
             if (saveIfDirty())
             {
                 blankUI();
-                currentFileName = "untitled";
-                soundtrack = "";
-                lastSavedAlbum = serializeCurrentAlbum();
-                this.Title = "KB30 - " + currentFileName;
+                album = new Album(slides, "", "untitled");
+                lastSavedAlbum = album.ToJson();
+                this.Title = "KB30 - " + album.Filename;
             }
         }
 
-        private void loadIt(string filename)
+        private bool loadIt(string filename)
         {
-            Album album = new Album();
-            string jsonString;
+            Album old_album = album;  // just in case
 
-            jsonString = File.ReadAllText(filename);
-            album = JsonConvert.DeserializeObject<Album>(jsonString);
-            if (Convert.ToDouble(album.version) > CONFIG_VERSION)
+            try { 
+                album = Album.LoadFromFile(filename);
+            } catch (Exception e)
             {
-                MessageBox.Show("Album File version is newer than this version of the program.");
-                return;
-            }
-            if (album.soundtrack != null)
-            {
-                if (Path.IsPathFullyQualified(album.soundtrack))
-                {
-                    soundtrack = album.soundtrack;
-                }
-                else
-                {
-                    soundtrack = Path.GetFullPath(album.soundtrack, Path.GetDirectoryName(filename));
-                }
+                MessageBox.Show(e.Message);
+                return false;
             }
             slides = album.slides;
-            for (int i = slides.Count - 1; i >= 0; i--)
-            {
-                slides[i].basePath = Path.GetDirectoryName(filename);
-                if (!File.Exists(slides[i].fileName))
-                {
-                    MessageBox.Show("File Not Found: " + slides[i].fileName, "File Not Found");
-                    slides.RemoveAt(i);
-                }
-            }
-            lastSavedAlbum = jsonString;
-            currentFileName = filename;
-            this.Title = "KB30 - " + currentFileName;
+
+            lastSavedAlbum = album.ToJson();
+            this.Title = "KB30 - " + album.Filename;
+            return true;
         }
 
         private void fileOpenClick(object sender, RoutedEventArgs e)
@@ -211,22 +189,28 @@ namespace KB30
                 if (openFileDialog.ShowDialog() == true)
                 {
                     caption.Text = "Loading Slides...";
-                    loadIt(openFileDialog.FileName);
-                    initializeSlidesUI();
+                    if (loadIt(openFileDialog.FileName)){ 
+                        initializeSlidesUI();
+                    }
                 }
             }
         }
 
         private Boolean saveIfDirty()
         {
-            String snapshot = serializeCurrentAlbum();
+            String snapshot = album.ToJson();
             if (snapshot != lastSavedAlbum)
             {
-                MessageBoxResult result = MessageBox.Show("Save changes to " + currentFileName + "?", "KB30", MessageBoxButton.YesNoCancel);
+                MessageBoxResult result = MessageBox.Show("Save changes to " + album.Filename + "?", "KB30", MessageBoxButton.YesNoCancel);
                 switch (result)
                 {
                     case MessageBoxResult.Yes:
-                        return saveIt(currentFileName);
+                        lastSavedAlbum = album.SaveToFile();
+                        if (lastSavedAlbum == "")
+                        {
+                            return false;
+                        } 
+                        return true;
                     case MessageBoxResult.No:
                         return true;
                     case MessageBoxResult.Cancel:
@@ -236,55 +220,6 @@ namespace KB30
             return true;
         }
 
-        private Boolean albumValid()
-        {
-            if (slides.Count <= 0)
-            {
-                MessageBox.Show("Must have at least 1 slide.");
-                return false;
-            }
-            for (int s = 0; s < slides.Count; s++)
-            {
-                Slide slide = slides[s];
-                if (slide.keys.Count <= 0)
-                {
-                    MessageBox.Show("Slide " + s.ToString() + " must have at least 1 keyframe.");
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        private String serializeCurrentAlbum()
-        {
-            Album album = new Album();
-
-            album.version = CONFIG_VERSION.ToString();
-            if (soundtrack.Length > 0)
-            {
-                album.soundtrack = Path.GetRelativePath(Path.GetDirectoryName(currentFileName), soundtrack);
-            }
-            album.slides = slides;
-
-            return JsonConvert.SerializeObject(album, Formatting.Indented);
-        }
-
-        private Boolean saveIt(String filename)
-        {
-            if (albumValid())
-            {
-                currentFileName = filename;
-                foreach (Slide slide in slides)
-                {
-                    slide.basePath = Path.GetDirectoryName(currentFileName);
-                }
-                lastSavedAlbum = serializeCurrentAlbum();
-                File.WriteAllText(currentFileName, lastSavedAlbum);
-                this.Title = "KB30 - " + currentFileName;
-                return true;
-            }
-            return false;
-        }
 
         private void fileSaveAsClick(object sender, RoutedEventArgs e)
         {
@@ -292,20 +227,21 @@ namespace KB30
             saveFileDialog.Filter = "KB30 files (*.kb30)|*.kb30|All files (*.*)|*.*";
             if (saveFileDialog.ShowDialog() == true)
             {
-                currentFileName = saveFileDialog.FileName;
-                saveIt(currentFileName);
+                album.Filename = saveFileDialog.FileName;
+                this.Title = "KB30 - " + album.Filename;
+                lastSavedAlbum = album.SaveToFile();
             }
         }
 
         private void fileSaveClick(object sender, RoutedEventArgs e)
         {
-            if (currentFileName == "" || currentFileName == "untitled")
+            if (album.Filename == "" || album.Filename == "untitled")
             {
                 fileSaveAsClick(sender, e);
             }
             else
             {
-                saveIt(currentFileName);
+                lastSavedAlbum = album.SaveToFile();
             }
         }
         private void fileDetailsClick(object sender, RoutedEventArgs e)
@@ -323,7 +259,7 @@ namespace KB30
             int durationSecs = (int)(totalDuration % 60);
             MessageBox.Show(slides.Count + " slides." + Environment.NewLine +
                             "Total duration " + durationMins + ":" + durationSecs.ToString("D2") + Environment.NewLine +
-                            "Soundtrack: " + soundtrack, "File Info");
+                            "Soundtrack: " + album.Soundtrack, "File Info");
         }
 
         private void mainWindowClosing(object sender, CancelEventArgs e)
@@ -340,7 +276,7 @@ namespace KB30
             openFileDialog.Filter = "Sound files (*.mp3)|*.mp3|All files (*.*)|*.*";
             if (openFileDialog.ShowDialog() == true)
             {
-                soundtrack = openFileDialog.FileName;
+                album.Soundtrack = openFileDialog.FileName;
             }
         }
 
@@ -378,6 +314,10 @@ namespace KB30
                         break;
                     case Key.V:
                         pasteClipboardSlides(currentSlide);
+                        e.Handled = true;
+                        break;
+                    case Key.Z:
+                        
                         e.Handled = true;
                         break;
                 }
