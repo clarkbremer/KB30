@@ -28,7 +28,7 @@ namespace KB30
         [JsonIgnore]
         public Uri uri;
 
-        public bool ShouldSerializefileName() { return false; }
+        public bool ShouldSerializefileName() { return false; }  // this tells Newtonsoft it's ok to deserialize if found in json, but don't serialize it when creating json.
 
         private string _fileName;
         public string fileName
@@ -103,6 +103,20 @@ namespace KB30
             }
             return clone;
         }
+
+        public bool SameAs(Slide other)
+        {
+            if (uri != other.uri)
+            {
+                return false;
+            }
+            if (!keys.SameAs(other.keys))
+            {
+                return false;
+            }
+            return true;
+        }
+
 
         public void Dim() { if (slideControl != null) { slideControl.image.Opacity = 0.4; } }
         public void UnDim() { if (slideControl != null) { slideControl.image.Opacity = 1.0; } }

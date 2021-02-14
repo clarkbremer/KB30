@@ -78,6 +78,7 @@ namespace KB30
                 caption.Text = "Done Loading";
                 selectSlide(0, true);
                 slides[0].UnCheck();
+                history.Reset();
             }
         }
 
@@ -154,26 +155,7 @@ namespace KB30
             initializeKeysUI(currentSlide);
             caption.Text = currentSlide.fileName + " (" + bitmap.PixelWidth + " x " + bitmap.PixelHeight + ")  " + (slideIndex + 1) + " of " + slides.Count;
         }
-
-        internal void addSlides(string[] fileNames)
-        {
-            foreach (String fname in fileNames)
-            {
-                Slide newSlide = new Slide(fname);
-                if (addSlideControl(newSlide))
-                {
-                    newSlide.SetupDefaultKeyframes();
-                    slides.Add(newSlide);
-                    if (fname == fileNames.First())
-                    {
-                        selectSlide(slides.Count - 1);
-                    }
-                }
-                Console.Beep(1000, 100);
-                Console.Beep(2000, 100);
-            }
-            slides.Renumber();
-        }
+  
         private void slideMouseLeftButtonDown(object sender, RoutedEventArgs e, Slide slide)
         {
             if (e.OriginalSource is CheckBox) { return; }
@@ -243,6 +225,26 @@ namespace KB30
             finderWindow.Owner = this;
             finderWindow.Show();
         }
+        internal void addSlides(string[] fileNames)
+        {
+            history.Record();
+            foreach (String fname in fileNames)
+            {
+                Slide newSlide = new Slide(fname);
+                if (addSlideControl(newSlide))
+                {
+                    newSlide.SetupDefaultKeyframes();
+                    slides.Add(newSlide);
+                    if (fname == fileNames.First())
+                    {
+                        selectSlide(slides.Count - 1);
+                    }
+                }
+                Console.Beep(1000, 100);
+                Console.Beep(2000, 100);
+            }
+            slides.Renumber();
+        }
 
         internal void insertSlide(string fileName, int direction = BELOW)
         {
@@ -256,7 +258,6 @@ namespace KB30
             }
         }
 
-
         internal Slide insertSlides(string[] fileNames, Slide slide, int direction)
         {
             var insertIndex = slides.IndexOf(slide);
@@ -265,6 +266,7 @@ namespace KB30
 
         internal Slide insertSlides(string[] fileNames, int insertIndex, int direction)
         {
+            history.Record();
             Slide newSlide = null;
             if (direction == BELOW)
             {
@@ -311,6 +313,9 @@ namespace KB30
 
         private void pasteClipboardSlides(Slide targetSlide, int direction = ABOVE)
         {
+
+            history.Record();
+
             var insertIndex = slides.IndexOf(targetSlide);
             if (direction == BELOW)
             {
@@ -381,6 +386,20 @@ namespace KB30
 
                 if (currentSlideIndex > victimIndex) { currentSlideIndex--; }
             }
+            slides.Renumber();
+            if (slides.Count == 0)
+            {
+                blankUI();
+            }
+        }
+
+        public void removeSlide(Slide slide)
+        {
+            int victimIndex = slides.IndexOf(slide);
+            slidePanel.Children.Remove(slide.slideControl);
+            slides.Remove(slide);
+
+            if (currentSlideIndex > victimIndex) { currentSlideIndex--; }
             slides.Renumber();
             if (slides.Count == 0)
             {

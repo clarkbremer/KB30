@@ -176,6 +176,7 @@ namespace KB30
             slides = album.slides;
 
             lastSavedAlbum = album.ToJson();
+            history.Reset();
             this.Title = "KB30 - " + album.Filename;
             return true;
         }
@@ -276,6 +277,7 @@ namespace KB30
             openFileDialog.Filter = "Sound files (*.mp3)|*.mp3|All files (*.*)|*.*";
             if (openFileDialog.ShowDialog() == true)
             {
+                history.Record();
                 album.Soundtrack = openFileDialog.FileName;
             }
         }
@@ -317,7 +319,7 @@ namespace KB30
                         e.Handled = true;
                         break;
                     case Key.Z:
-                        
+                        history.Undo();
                         e.Handled = true;
                         break;
                 }

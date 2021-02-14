@@ -21,25 +21,18 @@ namespace KB30
             for (int i = 0; i < keys.Count; i++)
             {
                 Keyframe key = keys[i];
-                addKeyframeControl(key);
+                KeyframeControl kfControl = addKeyframeControl(key);
+                keyframePanel.Children.Add(kfControl);
             }
 
             selectKeyframe(keys[0]);
         }
 
-        public void addKeyframeControl(Keyframe key, int insertIndex = -1)
+        public KeyframeControl addKeyframeControl(Keyframe key)
         {
             KeyframeControl kfControl = new KeyframeControl();
             kfControl.DeSelect();
             key.keyframeControl = kfControl;
-            if (insertIndex == -1)
-            {
-                keyframePanel.Children.Add(kfControl);
-            }
-            else
-            {
-                keyframePanel.Children.Insert(insertIndex, kfControl);
-            }
 
             kfControl.PreviewMouseUp += delegate (object sender, MouseButtonEventArgs e) { keyFrameClick(sender, e, key); };
 
@@ -63,6 +56,8 @@ namespace KB30
             kfControl.CMPaste.Click += delegate (object sender, RoutedEventArgs e) { pasteKeyframeClick(sender, e, key); };
             kfControl.CMInsert.Click += delegate (object sender, RoutedEventArgs e) { insertKeyframeClick(sender, e, key); };
             kfControl.KeyframeContextMenu.Opened += delegate (object sender, RoutedEventArgs e) { keyframeContextMenuOpened(sender, e, key); };
+
+            return kfControl;
         }
 
 
@@ -86,12 +81,13 @@ namespace KB30
         {
             Keyframes keys = currentSlide.keys;
             int keyFrameIndex = keys.IndexOf(key);
-            Keyframe oldKey = keys[currentKeyframeIndex];
-            KeyframeControl oldKFControl = oldKey.keyframeControl;
-
-            unBindKFC(oldKFControl, oldKey);
-
-            oldKFControl.DeSelect();
+            if (currentKeyframeIndex >= 0)  // not sure how this happens...
+            {
+                Keyframe oldKey = keys[currentKeyframeIndex];
+                KeyframeControl oldKFControl = oldKey.keyframeControl;
+                unBindKFC(oldKFControl, oldKey);
+                oldKFControl.DeSelect();
+            }
 
             currentKeyframeIndex = keyFrameIndex;
 
@@ -144,6 +140,7 @@ namespace KB30
                             key.y = maybe;
                             break;
                         case "durTb":
+                            history.Record();
                             key.duration = maybe;
                             break;
                         case "zoomTb":
@@ -159,29 +156,32 @@ namespace KB30
             selectKeyframe(key);
         }
 
-        private void addKeyframeClick(object sender, RoutedEventArgs e)
+        public void addKeyframeClick(object sender, RoutedEventArgs e)
         {
             if (slides.Count == 0) { return; }
+            history.Record();
             Keyframe currentKey = currentSlide.keys[currentKeyframeIndex];
             Keyframe newKey = currentKey.Clone(DEFAULT_DURATION);
+            appendKeyframe(newKey);
+        }
+
+        public void appendKeyframe(Keyframe newKey) { 
             currentSlide.keys.Add(newKey);
-            addKeyframeControl(newKey);
+            KeyframeControl kfControl = addKeyframeControl(newKey);
             newKey.keyframeControl.durTb.Focus();
+            keyframePanel.Children.Add(kfControl);
+
             selectKeyframe(newKey);
         }
 
         private void insertKeyframeClick(object sender, RoutedEventArgs e, Keyframe key)
         {
+            history.Record();
             Keyframes keys = currentSlide.keys;
             var insertIndex = keys.IndexOf(key);
             Keyframe newKey = key.Clone(DEFAULT_DURATION);
-            keys.Insert(insertIndex, newKey);
-            addKeyframeControl(newKey, insertIndex);
-            if (currentKeyframeIndex >= insertIndex)
-            {
-                currentKeyframeIndex++;
-            }
-            selectKeyframe(newKey);
+            KeyframeControl kfControl = addKeyframeControl(newKey);
+            placeKeyframe(newKey, insertIndex);
         }
 
         private void pasteKeyframeClick(object sender, RoutedEventArgs e, Keyframe key)
@@ -192,6 +192,7 @@ namespace KB30
         {
             if (clipboardKey == null) { return; }
 
+            history.Record();
             Keyframes keys = currentSlide.keys;
 
             var insertIndex = keys.IndexOf(insertKey);
@@ -199,21 +200,35 @@ namespace KB30
             {
                 insertIndex += 1;
             }
+            placeKeyframe(clipboardKey, insertIndex);
+            clipboardKey = null;
+        }
 
-            keys.Insert(insertIndex, clipboardKey);
-            keyframePanel.Children.Insert(insertIndex, clipboardKey.keyframeControl);
+        public void placeKeyframe(Keyframe key, int insertIndex)
+        {
+            Keyframes keys = currentSlide.keys;
+
+            keys.Insert(insertIndex, key);
+            keyframePanel.Children.Insert(insertIndex, key.keyframeControl);
             if (currentKeyframeIndex >= insertIndex)
             {
                 currentKeyframeIndex++;
             }
-            clipboardKey = null;
+            selectKeyframe(key);
         }
 
         private void cutKeyframeClick(object sender, RoutedEventArgs e, Keyframe key)
         {
             cutKeyframe(key);
         }
+
         private void cutKeyframe(Keyframe key)
+        {
+            deleteKeyframe(key);
+            clipboardKey = key;
+        }
+
+        public void deleteKeyframe(Keyframe key)
         {
             Keyframes keys = currentSlide.keys;
             if (keys.Count == 1)
@@ -221,6 +236,7 @@ namespace KB30
                 MessageBox.Show("At least one keyframe is required");
                 return;
             }
+            history.Record();
             var victimIndex = keys.IndexOf(key);
 
             if (currentKeyframeIndex == victimIndex)
@@ -237,7 +253,6 @@ namespace KB30
 
             KeyframeControl kfc = key.keyframeControl;
             keyframePanel.Children.Remove(kfc);
-            clipboardKey = key;
             keys.Remove(key);
 
             if (currentKeyframeIndex > victimIndex) { currentKeyframeIndex--; }

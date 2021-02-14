@@ -14,6 +14,7 @@ namespace KB30
     /// </summary>
     public partial class ImageCropper : UserControl, INotifyPropertyChanged
     {
+        MainWindow mainWindow;
         public ImageCropper()
         {
             InitializeComponent();
@@ -22,8 +23,8 @@ namespace KB30
 
         private void cropperLoaded(object sender, RoutedEventArgs e)
         {
-            var parentWindow = Window.GetWindow(this);
-            parentWindow.PreviewKeyDown += cropperKeyDown;
+            mainWindow = Window.GetWindow(this) as MainWindow;
+            mainWindow.PreviewKeyDown += cropperKeyDown;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -199,7 +200,7 @@ namespace KB30
             MouseHitType = SetHitType(cropper, Mouse.GetPosition(cropperCanvas));
             SetMouseCursor();
             if (MouseHitType == HitType.None) return;
-
+            mainWindow.history.Record();
             LastPoint = Mouse.GetPosition(cropperCanvas);
             DragInProgress = true;
         }
@@ -340,6 +341,7 @@ namespace KB30
                 {
                     case Key.Up:
                         // Set rectangle to full width of the image
+                        mainWindow.history.Record();
                         double old_height = cropper.Height;
                         double new_y = Canvas.GetTop(cropper);
                         double new_x = (cropperCanvas.ActualWidth - image.ActualWidth) / 2;
@@ -352,6 +354,7 @@ namespace KB30
 
                     case Key.Down:
                         // Set rectangle to 2k pixels wide
+                        mainWindow.history.Record();
                         BitmapSource bms = image.Source as BitmapSource;
                         double scale = image.ActualWidth / bms.PixelWidth;
                         old_height = cropper.Height;
