@@ -42,7 +42,14 @@ namespace KB30
         {
             return new Keyframe(zoomFactor, x, y, override_duration);
         }
-
+        public bool SameAs(Keyframe other)
+        {
+            if (zoomFactor == other.zoomFactor && duration == other.duration && x == other.x && y == other.y)
+            {
+                return true;
+            }
+            return false;
+        }
         public void Dim()
         {
             keyframeControl.Opacity = 0.5;
@@ -64,6 +71,21 @@ namespace KB30
 
     public class Keyframes : List<Keyframe>
     {
+        public bool SameAs(Keyframes other)
+        {
+            if (this.Count != other.Count)
+            {
+                return false;
+            }
+            for (int i = 0; i < this.Count; i++)
+            {
+                if (!this[i].SameAs(other[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
         public void UnDimAll()
         {
             foreach (Keyframe key in this) { key.UnDim(); }

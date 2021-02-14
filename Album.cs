@@ -69,6 +69,14 @@ namespace KB30
 
             version = CONFIG_VERSION;
         }
+
+        public Album(string filename, string json)
+        {
+            this.Filename = filename;
+            JsonConvert.PopulateObject(json, this);
+            this.slides.SetBasePath(this.basePath);
+        }
+
         public Boolean Valid()
         {
             if (slides.Count <= 0)

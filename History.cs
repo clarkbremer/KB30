@@ -11,14 +11,20 @@ namespace KB30
         DropOutStack<string> UndoStack = new DropOutStack<string>(50);
         MainWindow mainWindow;
         int pause_count = 0;
+        bool undo_in_progress = false;
+
         public History(MainWindow main_window)
         {
             mainWindow = main_window;
         }
+        public void Reset()
+        {
+            UndoStack = new DropOutStack<string>(50);
+        }
 
         public void Record()
         {
-            if (pause_count > 0)
+            if (pause_count > 0 || undo_in_progress)
             {
                 return;
             }
