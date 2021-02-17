@@ -106,7 +106,6 @@ namespace KB30
                 if (mediaPlayer.Position == TimeSpan.FromSeconds(0)) {
                     mediaPlayer.Open(new Uri(soundtrack));
                 }
-
             }
 
             frame1.Opacity = 1;

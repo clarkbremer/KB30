@@ -31,7 +31,11 @@ namespace KB30
             }
             set
             {
-                if (!Path.IsPathFullyQualified(value) && !string.IsNullOrEmpty(basePath))
+                if (value == null)
+                {
+                    Soundtrack = "";
+                }
+                else if (!Path.IsPathFullyQualified(value) && !string.IsNullOrEmpty(basePath))
                 {
                     Soundtrack = Path.GetFullPath(value, basePath);
                 }
@@ -136,6 +140,19 @@ namespace KB30
                 }
             }
             return album;
+        }
+
+        public class SoundtrackModified : History.UndoItem
+        {
+            string old_soundtrack;
+            public SoundtrackModified(string _old_soundtrack)
+            {
+                old_soundtrack = _old_soundtrack;
+            }
+            public override void Undo(MainWindow mainWindow)
+            {
+                mainWindow.album.Soundtrack = old_soundtrack;
+            }
         }
     }
 }

@@ -86,12 +86,13 @@ namespace KB30
         {
             Keyframes keys = currentSlide.keys;
             int keyFrameIndex = keys.IndexOf(key);
-            Keyframe oldKey = keys[currentKeyframeIndex];
-            KeyframeControl oldKFControl = oldKey.keyframeControl;
-
-            unBindKFC(oldKFControl, oldKey);
-
-            oldKFControl.DeSelect();
+            if (currentKeyframeIndex >= 0)
+            {
+                Keyframe oldKey = keys[currentKeyframeIndex];
+                KeyframeControl oldKFControl = oldKey.keyframeControl;
+                unBindKFC(oldKFControl, oldKey);
+                oldKFControl.DeSelect();
+            }
 
             currentKeyframeIndex = keyFrameIndex;
 
@@ -168,6 +169,7 @@ namespace KB30
             addKeyframeControl(newKey);
             newKey.keyframeControl.durTb.Focus();
             selectKeyframe(newKey);
+            kfAddedHistory(currentSlide.keys.IndexOf(newKey));
         }
 
         private void insertKeyframeClick(object sender, RoutedEventArgs e, Keyframe key)
@@ -182,31 +184,38 @@ namespace KB30
                 currentKeyframeIndex++;
             }
             selectKeyframe(newKey);
+            kfAddedHistory(insertIndex);
         }
 
         private void pasteKeyframeClick(object sender, RoutedEventArgs e, Keyframe key)
         {
             pasteKeyframe(key, LEFT);
         }
+
         private void pasteKeyframe(Keyframe insertKey, int direction)
         {
             if (clipboardKey == null) { return; }
 
-            Keyframes keys = currentSlide.keys;
-
-            var insertIndex = keys.IndexOf(insertKey);
+            var insertIndex = currentSlide.keys.IndexOf(insertKey);
             if (direction == RIGHT)
             {
                 insertIndex += 1;
             }
+            placeKeyframe(clipboardKey, insertIndex);
+            clipboardKey = null;
+            kfAddedHistory(insertIndex);
+        }
+        private void placeKeyframe(Keyframe key, int insertIndex)
+        {
+            Keyframes keys = currentSlide.keys;
 
-            keys.Insert(insertIndex, clipboardKey);
-            keyframePanel.Children.Insert(insertIndex, clipboardKey.keyframeControl);
+            keys.Insert(insertIndex, key);
+            keyframePanel.Children.Insert(insertIndex, key.keyframeControl);
             if (currentKeyframeIndex >= insertIndex)
             {
                 currentKeyframeIndex++;
             }
-            clipboardKey = null;
+            selectKeyframe(key);
         }
 
         private void cutKeyframeClick(object sender, RoutedEventArgs e, Keyframe key)
@@ -221,6 +230,13 @@ namespace KB30
                 MessageBox.Show("At least one keyframe is required");
                 return;
             }
+            kfDeletedHistory(key, keys.IndexOf(key));
+            deleteKeyframe(key);
+            clipboardKey = key;
+        }
+        private void deleteKeyframe(Keyframe key)
+        {
+            Keyframes keys = currentSlide.keys;
             var victimIndex = keys.IndexOf(key);
 
             if (currentKeyframeIndex == victimIndex)
@@ -237,7 +253,6 @@ namespace KB30
 
             KeyframeControl kfc = key.keyframeControl;
             keyframePanel.Children.Remove(kfc);
-            clipboardKey = key;
             keys.Remove(key);
 
             if (currentKeyframeIndex > victimIndex) { currentKeyframeIndex--; }
@@ -405,6 +420,7 @@ namespace KB30
                 }
                 cutKeyframe(source_key);
                 pasteKeyframe(target_key, dropDirection(e, target_key));
+                history.Add(new History.CompoundUndo(2));
                 target_key.highlightClear();
             }
         }
@@ -417,6 +433,77 @@ namespace KB30
             }
         }
 
+        /****
+        * Undo
+        *****/
 
+        class KeyframeModified : History.UndoItem
+        {
+            Keyframe old_key;
+            int keyframe_index;
+            int slide_index;
+            public KeyframeModified(Keyframe keyframe, int keyframeIndex, int slideIndex)
+            {
+                old_key = keyframe.Clone();
+                keyframe_index = keyframeIndex;
+                slide_index = slideIndex;
+            }
+            public override void Undo(MainWindow mainWindow)
+            {
+                Keyframe target = mainWindow.slides[slide_index].keys[keyframe_index];
+                target.zoomFactor = old_key.zoomFactor;
+                target.duration = old_key.duration;
+                target.x = old_key.x;
+                target.y = old_key.y;
+                mainWindow.selectSlide(slide_index);
+                mainWindow.selectKeyframe(target);
+            }
+        }
+        public void kfModifiedHistory()
+        {
+            history.Add(new KeyframeModified(currentSlide.keys[currentKeyframeIndex], currentKeyframeIndex, currentSlideIndex));
+        }
+
+        public class KeyframeAdded : History.UndoItem
+        {
+            int keyframe_index;
+            int slide_index;
+            public KeyframeAdded(int keyframeIndex, int slideIndex)
+            {
+                keyframe_index = keyframeIndex;
+                slide_index = slideIndex;
+            }
+            public override void Undo(MainWindow mainWindow)
+            {
+                mainWindow.selectSlide(slide_index);
+                Keyframe key = mainWindow.slides[slide_index].keys[keyframe_index];
+                mainWindow.deleteKeyframe(key);
+            }
+        }
+        public void kfAddedHistory(int index)
+        {
+            history.Add(new KeyframeAdded(index, currentSlideIndex));
+        }
+        public class KeyframeDeleted : History.UndoItem
+        {
+            Keyframe old_key;
+            int keyframe_index;
+            int slide_index;
+            public KeyframeDeleted(Keyframe key, int keyframeIndex, int slideIndex)
+            {
+                old_key = key;
+                keyframe_index = keyframeIndex;
+                slide_index = slideIndex;
+            }
+            public override void Undo(MainWindow mainWindow)
+            {
+                mainWindow.selectSlide(slide_index);
+                mainWindow.placeKeyframe(old_key, keyframe_index);
+            }
+        }
+        public void kfDeletedHistory(Keyframe key, int index)
+        {
+            history.Add(new KeyframeDeleted(key, index, currentSlideIndex));
+        }
     }
 }

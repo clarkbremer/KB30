@@ -14,6 +14,7 @@ namespace KB30
     /// </summary>
     public partial class ImageCropper : UserControl, INotifyPropertyChanged
     {
+        private MainWindow mainWindow;
         public ImageCropper()
         {
             InitializeComponent();
@@ -22,8 +23,8 @@ namespace KB30
 
         private void cropperLoaded(object sender, RoutedEventArgs e)
         {
-            var parentWindow = Window.GetWindow(this);
-            parentWindow.PreviewKeyDown += cropperKeyDown;
+            mainWindow = (MainWindow)Window.GetWindow(this);
+            mainWindow.PreviewKeyDown += cropperKeyDown;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -200,6 +201,7 @@ namespace KB30
             SetMouseCursor();
             if (MouseHitType == HitType.None) return;
 
+            mainWindow.kfModifiedHistory();
             LastPoint = Mouse.GetPosition(cropperCanvas);
             DragInProgress = true;
         }

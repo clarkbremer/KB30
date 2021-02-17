@@ -37,7 +37,14 @@ namespace KB30
         {
             get
             {
-                return slides[currentSlideIndex];
+                if ((currentSlideIndex < slides.Count) && (slides.Count > 0))
+                {
+                    return slides[currentSlideIndex];
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
 
@@ -265,6 +272,7 @@ namespace KB30
 
         internal Slide insertSlides(string[] fileNames, int insertIndex, int direction)
         {
+            int numInserted = 0;
             Slide newSlide = null;
             if (direction == BELOW)
             {
@@ -285,12 +293,15 @@ namespace KB30
                     {
                         selectSlide(insertIndex);
                     }
+                    slideAddedHistory(insertIndex);
                     insertIndex++;
+                    numInserted++;
                     newSlide.BringIntoView();
                     Console.Beep(1000, 100);
                     Console.Beep(2000, 100);
                 }
             }
+            history.Add(new History.CompoundUndo(numInserted));
             slides.Renumber();
             return (newSlide);
         }
@@ -319,30 +330,37 @@ namespace KB30
 
             foreach (Slide slide in clipboardSlides)
             {
-                slides.Insert(insertIndex, slide);
-                if (slide.slideControl == null)
-                {
-                    addSlideControl(slide, null, insertIndex);
-                }
-                else
-                {
-                    slidePanel.Children.Insert(insertIndex, slide.slideControl);
-                }
-                if (currentSlideIndex >= insertIndex)
-                {
-                    currentSlideIndex++;
-                }
+                placeSlide(slide, insertIndex);
                 if (slide == clipboardSlides.First())
                 {
                     selectSlide(insertIndex);
                 }
+                slideAddedHistory(insertIndex);
                 insertIndex++;
             }
+            history.Add(new History.CompoundUndo(clipboardSlides.Count));
             clipboardSlides.Clear();
             slides.UncheckAll();
-            slides.Renumber();
         }
 
+
+        private void placeSlide(Slide slide, int insertIndex)
+        {
+            slides.Insert(insertIndex, slide);
+            if (slide.slideControl == null)
+            {
+                addSlideControl(slide, null, insertIndex);
+            }
+            else
+            {
+                slidePanel.Children.Insert(insertIndex, slide.slideControl);
+            }
+            if (currentSlideIndex >= insertIndex)
+            {
+                currentSlideIndex++;
+            }
+            slides.Renumber();
+        }
 
         private void cutSlideClick(object sender, RoutedEventArgs e, Slide s) { cutSlidesToClipboard(s); }
         private void cutSlidesToClipboard(Slide s)
@@ -362,25 +380,32 @@ namespace KB30
 
             foreach (Slide slide in clipboardSlides)
             {
-                int victimIndex = slides.IndexOf(slide);
-
-                if (currentSlideIndex == victimIndex)
-                {
-                    if (currentSlideIndex == (slides.Count - 1))
-                    {
-                        selectSlide(currentSlideIndex - 1);
-                    }
-                    else
-                    {
-                        selectSlide(currentSlideIndex + 1);
-                    }
-                }
-
-                slidePanel.Children.Remove(slide.slideControl);
-                slides.Remove(slide);
-
-                if (currentSlideIndex > victimIndex) { currentSlideIndex--; }
+                SlideDeletedHistory(slide, slides.IndexOf(slide));
+                deleteSlide(slide);
             }
+            history.Add(new History.CompoundUndo(clipboardSlides.Count));
+        }
+
+        private void deleteSlide(Slide slide)
+        {
+            int victimIndex = slides.IndexOf(slide);
+
+            if (currentSlideIndex == victimIndex)
+            {
+                if (currentSlideIndex == (slides.Count - 1))
+                {
+                    selectSlide(currentSlideIndex - 1);
+                }
+                else
+                {
+                    selectSlide(currentSlideIndex + 1);
+                }
+            }
+
+            slidePanel.Children.Remove(slide.slideControl);
+            slides.Remove(slide);
+
+            if (currentSlideIndex > victimIndex) { currentSlideIndex--; }
             slides.Renumber();
             if (slides.Count == 0)
             {
@@ -432,7 +457,10 @@ namespace KB30
             }
         }
 
-
+        private void slideScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            currentSlide?.BringIntoView();
+        }
 
         /*************
         * Drag and Drop
@@ -570,13 +598,16 @@ namespace KB30
                 {
                     e.Effects = DragDropEffects.Copy;
                     copySlidesToClipboard(target_slide, dropDirection(e, target_slide));
+                    int copy_count = clipboardSlides.Count;
                     pasteClipboardSlides(target_slide, dropDirection(e, target_slide));
                 }
                 else
                 {
                     e.Effects = DragDropEffects.Move;
                     cutSlidesToClipboard(source_slide);
+                    int move_count = clipboardSlides.Count;
                     pasteClipboardSlides(target_slide, dropDirection(e, target_slide));
+                    history.Add(new History.CompoundUndo(2));
                 }
                 target_slide.highlightClear();
             }
@@ -651,6 +682,46 @@ namespace KB30
             }
             e.Handled = true;
         }
+        /****
+        * Undo
+        *****/
 
+        public class SlideAdded : History.UndoItem
+        {
+            int slide_index;
+            public SlideAdded(int slideIndex)
+            {
+                slide_index = slideIndex;
+            }
+            public override void Undo(MainWindow mainWindow)
+            {
+                mainWindow.selectSlide(slide_index);
+                Slide slide = mainWindow.slides[slide_index];
+                mainWindow.deleteSlide(slide);
+            }
+        }
+        public void slideAddedHistory(int index)
+        {
+            history.Add(new SlideAdded(index));
+        }
+
+        public class SlideDeleted : History.UndoItem
+        {
+            int slide_index;
+            Slide slide;
+            public SlideDeleted(Slide _slide, int slideIndex)
+            {
+                slide = _slide;
+                slide_index = slideIndex;
+            }
+            public override void Undo(MainWindow mainWindow)
+            {
+                mainWindow.placeSlide(slide, slide_index);
+            }
+        }
+        public void SlideDeletedHistory(Slide slide, int index)
+        {
+            history.Add(new SlideDeleted(slide, index));
+        }
     }
 }

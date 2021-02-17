@@ -276,6 +276,7 @@ namespace KB30
             openFileDialog.Filter = "Sound files (*.mp3)|*.mp3|All files (*.*)|*.*";
             if (openFileDialog.ShowDialog() == true)
             {
+                history.Add(new Album.SoundtrackModified(album.Soundtrack));
                 album.Soundtrack = openFileDialog.FileName;
             }
         }
@@ -317,7 +318,7 @@ namespace KB30
                         e.Handled = true;
                         break;
                     case Key.Z:
-                        
+                        history.Undo();
                         e.Handled = true;
                         break;
                 }
@@ -355,5 +356,6 @@ namespace KB30
                 }
             }
         }
+
     }
 }

@@ -8,7 +8,7 @@ namespace KB30
 {
     public class History
     {
-        DropOutStack<string> UndoStack = new DropOutStack<string>(50);
+        DropOutStack<UndoItem> UndoStack = new DropOutStack<UndoItem>(50);
         MainWindow mainWindow;
         int pause_count = 0;
         bool undo_in_progress = false;
@@ -19,16 +19,16 @@ namespace KB30
         }
         public void Reset()
         {
-            UndoStack = new DropOutStack<string>(50);
+            UndoStack = new DropOutStack<UndoItem>(50);
         }
 
-        public void Record()
+        public void Add(UndoItem item)
         {
             if (pause_count > 0 || undo_in_progress)
             {
                 return;
             }
-            UndoStack.Push(mainWindow.album.ToJson());
+            UndoStack.Push(item);
         }
 
         public void Pause()
@@ -45,12 +45,35 @@ namespace KB30
         {
             if (UndoStack.Count > 0)
             {
-                string current = mainWindow.album.ToJson();
-                string previous = UndoStack.Pop();
+                UndoItem item = UndoStack.Pop();
+                undo_in_progress = true;
+                item.Undo(mainWindow);
+                undo_in_progress = false;
             }
             else
             {
-                Console.Beep(600, 600);
+                Console.Beep(500, 500);
+            }
+        }
+
+        public abstract class UndoItem
+        {
+            public abstract void Undo(MainWindow mainWindow);
+        }
+
+        public class CompoundUndo : History.UndoItem
+        {
+            int count;
+            public CompoundUndo(int _count)
+            {
+                count = _count;
+            }
+            public override void Undo(MainWindow mainWindow)
+            {
+                for (int i=0; i<count; i++)
+                {
+                    mainWindow.history.Undo();
+                }
             }
         }
     }

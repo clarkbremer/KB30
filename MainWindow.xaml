@@ -37,7 +37,7 @@
         </DockPanel>
         <TextBlock x:Name="caption" Grid.Column="2" Grid.Row="2" Grid.ColumnSpan="2" Text="Add a slide to get started..."  TextAlignment="Center" HorizontalAlignment="Stretch" VerticalAlignment="Center" Foreground="Black" Background="LightBlue"></TextBlock>
         <GridSplitter Name="verticalSplitter" Grid.Row="1" Grid.Column="1" Width="8" Grid.RowSpan="4" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="LightBlue" />
-        <ScrollViewer x:Name="slideScrollViewer" Grid.Column="0" Grid.Row="1" Grid.RowSpan="3" AllowDrop="true" Drop="slidePanelDrop" >
+        <ScrollViewer x:Name="slideScrollViewer" Grid.Column="0" Grid.Row="1" Grid.RowSpan="3" AllowDrop="true" Drop="slidePanelDrop" SizeChanged="slideScrollViewer_SizeChanged" >
             <StackPanel HorizontalAlignment="Stretch" Name="slidePanel" Orientation="Vertical" CanVerticallyScroll="True"></StackPanel>
         </ScrollViewer>
         <ScrollViewer x:Name="keyScrollViewer" Grid.Column="2" Grid.Row="3" Grid.RowSpan="2" AllowDrop="True" Drop="keyPanelDrop" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled">
