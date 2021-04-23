@@ -241,6 +241,7 @@ namespace KB30
             current_folder = Path.GetDirectoryName(tile.fullPath);
             current_file_index = current_image_tiles.IndexOf(tile);
             current_image_tiles[current_file_index].highlight();
+            tile.BringIntoView();
             Caption.Text = Path.GetFileName(tile.fullPath) + " (" + bmp.PixelWidth + " x " + bmp.PixelHeight + ")  (" + (current_file_index + 1) + " of " + current_image_tiles.Count + ")";
         }
 

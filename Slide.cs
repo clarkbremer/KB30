@@ -75,6 +75,16 @@ namespace KB30
             }
         }
 
+        public double Duration()
+        {
+            double totalDuration = 0;
+            for (int k = 0; k < keys.Count; k++)
+            {
+                totalDuration += keys[k].duration;
+            }
+            return totalDuration;
+        }
+
         public void SetupDefaultKeyframes()
         {
             var bmp = slideControl.image.Source;

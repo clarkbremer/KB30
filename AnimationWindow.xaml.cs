@@ -107,7 +107,7 @@ namespace KB30
                     mediaPlayer.Open(new Uri(soundtrack));
                 }
             }
-
+            paused = false;
             frame1.Opacity = 1;
             frame2.Opacity = 0;
             beginPanZoom(currentImage, slides[currentSlideIndex].keys);
@@ -277,7 +277,7 @@ namespace KB30
 
         void togglePauseAnimation()
         {
-             if (paused)
+            if (paused)
             {
                 currentClocks.ForEach(c =>
                 {
@@ -310,7 +310,7 @@ namespace KB30
         {
             if(animationState == PAN_ZOOM)
             {
-                if (currentClocks.First().CurrentProgress > 0.2)
+                if (currentClocks.First().CurrentTime > TimeSpan.FromSeconds(1))
                 {
                     currentClocks.ForEach(c =>
                     {
@@ -335,7 +335,14 @@ namespace KB30
             }
             else  // fade inout
             {
-                currentSlideIndex = currentSlideIndex - 1;
+                if (slides[currentSlideIndex].Duration() < 1)
+                {
+                    currentSlideIndex = currentSlideIndex - 2;
+                }
+                else
+                {
+                    currentSlideIndex = currentSlideIndex - 1;
+                }
                 if (currentSlideIndex < 0)
                 {
                     currentSlideIndex = currentSlideIndex + slides.Count;
@@ -429,6 +436,7 @@ namespace KB30
         }
         private void ToggleWindow()
         {
+  
             switch (this.WindowState)
             {
                 case (WindowState.Maximized):
@@ -449,9 +457,15 @@ namespace KB30
             Dispatcher.Invoke(new Action(() => { }), DispatcherPriority.Render, null);
             if (slides.Count > 0)
             {
-                stopAllClocks();
+                if (!paused)
+                {
+                    stopAllClocks();
+                }
                 transformImage(currentImage, slides[currentSlideIndex].keys[0]);
-                beginPanZoom(currentImage, slides[currentSlideIndex].keys);
+                if (!paused)
+                {
+                    beginPanZoom(currentImage, slides[currentSlideIndex].keys);
+                }
             }
         }
 
@@ -523,10 +537,7 @@ namespace KB30
 
             for (int s = currentSlideIndex + 1; s < slides.Count; s++)
             {
-                for (int k = 0; k < slides[s].keys.Count; k++)
-                {
-                    totalDuration += slides[s].keys[k].duration;
-                }
+                totalDuration += slides[s].Duration();
                 totalDuration += 1.5; // for fade in out
             }
             totalDuration = totalDuration / speedFactor;

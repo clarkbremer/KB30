@@ -224,6 +224,7 @@ namespace KB30
         private void fileSaveAsClick(object sender, RoutedEventArgs e)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.FileName = Path.GetFileName(album.Filename);
             saveFileDialog.Filter = "KB30 files (*.kb30)|*.kb30|All files (*.*)|*.*";
             if (saveFileDialog.ShowDialog() == true)
             {
