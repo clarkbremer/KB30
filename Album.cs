@@ -133,9 +133,10 @@ namespace KB30
 
             for (int i = slides.Count - 1; i >= 0; i--)
             {
-                if (!File.Exists(slides[i].fileName))
+                var fname = slides[i].fileName;
+                if (!File.Exists(fname) &&fname != "black" && fname != "white")
                 {
-                    MessageBox.Show("File Not Found: " + slides[i].fileName, "File Not Found");
+                    MessageBox.Show("File Not Found: " + fname, "File Not Found");
                     slides.RemoveAt(i);
                 }
             }

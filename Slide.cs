@@ -28,6 +28,9 @@ namespace KB30
         [JsonIgnore]
         public Uri uri;
 
+        [JsonIgnore]
+        public bool isResource = false;
+
         public bool ShouldSerializefileName() { return false; }
 
         private string _fileName;
@@ -45,10 +48,21 @@ namespace KB30
             set
             {
                 _fileName = value;
-                uri = new Uri(_fileName);
-                if (!string.IsNullOrEmpty(basePath) && string.IsNullOrEmpty(_relativePath))
+                if(_fileName == "black")
                 {
-                    _relativePath = Path.GetRelativePath(basePath, _fileName);
+                    uri = new Uri(@"pack://application:,,,/Resources/black.png", UriKind.Absolute);
+                }
+                else if(_fileName == "white")
+                {
+                    uri = new Uri(@"pack://application:,,,/Resources/white.png", UriKind.Absolute);
+                }
+                else
+                {
+                    uri = new Uri(_fileName);
+                    if (!string.IsNullOrEmpty(basePath) && string.IsNullOrEmpty(_relativePath))
+                    {
+                        _relativePath = Path.GetRelativePath(basePath, _fileName);
+                    }
                 }
             }
         }
@@ -58,19 +72,40 @@ namespace KB30
         {
             get
             {
-                if (!string.IsNullOrEmpty(basePath) && !string.IsNullOrEmpty(_fileName))
+                if (uri.Scheme == "file")
                 {
-                    _relativePath = Path.GetRelativePath(basePath, _fileName);
+
+                    if (!string.IsNullOrEmpty(basePath) && !string.IsNullOrEmpty(_fileName))
+                    {
+                        _relativePath = Path.GetRelativePath(basePath, _fileName);
+                    }
+                    return (_relativePath);
+                } else
+                {
+                    return (_fileName);
                 }
-                return (_relativePath);
             }
+
             set
             {
                 _relativePath = value;
-                if (!string.IsNullOrEmpty(basePath) && string.IsNullOrEmpty(_fileName))
+                if (_relativePath == "black")
                 {
-                    _fileName = Path.GetFullPath(_relativePath, basePath);
-                    uri = new Uri(_fileName);
+                    _fileName = _relativePath;
+                    uri = new Uri(@"pack://application:,,,/Resources/black.png", UriKind.Absolute);
+                }
+                else if (_relativePath == "white")
+                {
+                    _fileName = _relativePath;
+                    uri = new Uri(@"pack://application:,,,/Resources/white.png", UriKind.Absolute);
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(basePath) && string.IsNullOrEmpty(_fileName))
+                    {
+                        _fileName = Path.GetFullPath(_relativePath, basePath);
+                        uri = new Uri(_fileName);
+                    }
                 }
             }
         }
@@ -87,20 +122,27 @@ namespace KB30
 
         public void SetupDefaultKeyframes()
         {
-            var bmp = slideControl.image.Source;
-            double w = bmp.Width;
-            double h = bmp.Height;
-            if (w > h) 
+            var bmp = (System.Windows.Media.Imaging.BitmapImage)slideControl.image.Source;
+            if (bmp.UriSource.Scheme == "file")
             {
-                // Lansdcape
-                keys.Add(new Keyframe(1.3, 0.5, 0.5, 0));
-                keys.Add(new Keyframe(2.0, 0.5, 0.5, 9));
+                double w = bmp.Width;
+                double h = bmp.Height;
+                if (w > h)
+                {
+                    // Lansdcape
+                    keys.Add(new Keyframe(1.3, 0.5, 0.5, 0));
+                    keys.Add(new Keyframe(2.0, 0.5, 0.5, 9));
+                }
+                else
+                {
+                    // Portrait
+                    keys.Add(new Keyframe(3.0, 0.5, 0.2, 0));
+                    keys.Add(new Keyframe(3.0, 0.5, 0.8, 9));
+                }
             }
             else
             {
-                // Portrait
-                keys.Add(new Keyframe(3.0, 0.5, 0.2, 0));
-                keys.Add(new Keyframe(3.0, 0.5, 0.8, 9));
+                keys.Add(new Keyframe(2.0, 0.5, 0.5, 1));
             }
         }
 

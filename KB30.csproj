@@ -13,6 +13,7 @@
     <None Remove="Resources\arrow_left.png" />
     <None Remove="Resources\arrow_right.png" />
     <None Remove="Resources\arrow_up.png" />
+    <None Remove="Resources\black.png" />
     <None Remove="Resources\drive.png" />
     <None Remove="Resources\error.png" />
     <None Remove="Resources\folder.jpg" />
@@ -22,7 +23,9 @@
     <None Remove="Resources\PlayVideo_16x.png" />
     <None Remove="Resources\plus.png" />
     <None Remove="Resources\right-up-arrow.png" />
+    <None Remove="Resources\save.png" />
     <None Remove="Resources\up-arrow.png" />
+    <None Remove="Resources\white.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,6 +37,7 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\Archigraphs-Oldies-Old-House.ico" />
+    <Resource Include="Resources\black.png" />
     <Resource Include="Resources\drive.png" />
     <Resource Include="Resources\error.png" />
     <Resource Include="Resources\folder.jpg" />
@@ -45,7 +49,9 @@
     </Resource>
     <Resource Include="Resources\plus.png" />
     <Resource Include="Resources\right-up-arrow.png" />
+    <Resource Include="Resources\save.png" />
     <Resource Include="Resources\up-arrow.png" />
+    <Resource Include="Resources\white.png" />
   </ItemGroup>
 
   <ItemGroup>

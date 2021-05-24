@@ -21,7 +21,7 @@
             <ColumnDefinition Width="5*" />
             <ColumnDefinition Width="60" />
         </Grid.ColumnDefinitions>
-        <Menu Grid.Row="0" Grid.Column="0"  Grid.ColumnSpan="7" Background="AliceBlue" >
+        <Menu Grid.Row="0" Grid.Column="0"  Grid.ColumnSpan="1" Background="AliceBlue" >
             <MenuItem Header="_File">
                 <MenuItem Header="N_ew"    Click="fileNewClick"/>
                 <MenuItem Header="O_pen"   Click="fileOpenClick"/>
@@ -32,11 +32,31 @@
                 <MenuItem Header="Soundtrack" Click="soundtrackClick"/>
             </MenuItem>
         </Menu>
+        <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Height="30">
+            <Button Name="saveButton" Click="fileSaveClick">
+                <StackPanel Orientation="Horizontal">
+                    <Image Source="Resources/save.png"/>
+                    <TextBlock Margin="2">Save</TextBlock>
+                </StackPanel>
+            </Button>
+            <Button Name="addBlackButton" Click="addBlackClick">
+                <StackPanel Orientation="Horizontal">
+                    <Image Source="Resources/black.png"/>
+                    <TextBlock Margin="2">Add Black</TextBlock>
+                </StackPanel>
+            </Button>
+            <Button Name="addWhiteButton" Click="addWhiteClick">
+                <StackPanel Orientation="Horizontal">
+                    <Image Source="Resources/white.png"/>
+                    <TextBlock Margin="2">Add White</TextBlock>
+                </StackPanel>
+            </Button>
+        </StackPanel>
         <DockPanel Grid.Column="2" Grid.Row="1" Grid.ColumnSpan="2">
             <local:ImageCropper x:Name="imageCropper" DockPanel.Dock="Top" VerticalAlignment="Top" HorizontalAlignment="Stretch"></local:ImageCropper>
         </DockPanel>
         <TextBlock x:Name="caption" Grid.Column="2" Grid.Row="2" Grid.ColumnSpan="2" Text="Add a slide to get started..."  TextAlignment="Center" HorizontalAlignment="Stretch" VerticalAlignment="Center" Foreground="Black" Background="LightBlue"></TextBlock>
-        <GridSplitter Name="verticalSplitter" Grid.Row="1" Grid.Column="1" Width="8" Grid.RowSpan="4" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="LightBlue" />
+        <GridSplitter Name="verticalSplitter" Grid.Row="0" Grid.Column="1" Width="8" Grid.RowSpan="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="LightBlue" />
         <ScrollViewer x:Name="slideScrollViewer" Grid.Column="0" Grid.Row="1" Grid.RowSpan="3" AllowDrop="true" Drop="slidePanelDrop" SizeChanged="slideScrollViewer_SizeChanged" >
             <StackPanel HorizontalAlignment="Stretch" Name="slidePanel" Orientation="Vertical" CanVerticallyScroll="True"></StackPanel>
         </ScrollViewer>

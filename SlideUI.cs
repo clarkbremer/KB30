@@ -162,11 +162,12 @@ namespace KB30
             caption.Text = currentSlide.fileName + " (" + bitmap.PixelWidth + " x " + bitmap.PixelHeight + ")  " + (slideIndex + 1) + " of " + slides.Count;
         }
 
-        internal void addSlides(string[] fileNames)
+        internal Slide addSlides(string[] fileNames)
         {
+            Slide newSlide = null;
             foreach (String fname in fileNames)
             {
-                Slide newSlide = new Slide(fname);
+                newSlide = new Slide(fname);
                 if (addSlideControl(newSlide))
                 {
                     newSlide.SetupDefaultKeyframes();
@@ -180,6 +181,7 @@ namespace KB30
                 Console.Beep(2000, 100);
             }
             slides.Renumber();
+            return newSlide;
         }
         private void slideMouseLeftButtonDown(object sender, RoutedEventArgs e, Slide slide)
         {
@@ -244,22 +246,33 @@ namespace KB30
             }
         }
 
+        private void addBlackClick(object sender, RoutedEventArgs e)
+        {
+            Slide s = insertSlide("black");
+        }
+        private void addWhiteClick(object sender, RoutedEventArgs e)
+        {
+            Slide s = insertSlide("white");
+        }
+
+
         private void addSlideClick(object sender, RoutedEventArgs e)
         {
             FinderWindow finderWindow = new FinderWindow();
+            finderWindow.mainWindow = this;
             finderWindow.Owner = this;
             finderWindow.Show();
         }
 
-        internal void insertSlide(string fileName, int direction = BELOW)
+        internal Slide insertSlide(string fileName, int direction = BELOW)
         {
             if (slides.Count == 0)
             {
-                addSlides(new string[] { fileName });
+                return addSlides(new string[] { fileName });
             }
             else
             {
-                insertSlides(new string[] { fileName }, currentSlideIndex, direction);
+                return insertSlides(new string[] { fileName }, currentSlideIndex, direction);
             }
         }
 

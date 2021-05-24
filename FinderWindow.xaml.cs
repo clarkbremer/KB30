@@ -25,6 +25,7 @@ namespace KB30
             InitializeComponent();
         }
 
+        public MainWindow mainWindow;
         Object emptyNode = new Object();
         List<Tile> current_image_tiles = new List<Tile>();
         int current_file_index = 0;
@@ -228,7 +229,7 @@ namespace KB30
         private void thumbnailDoubleClick(object sender, RoutedEventArgs e)
         {
             Tile tile = sender as Tile;
-            ((MainWindow)this.Owner).insertSlide(tile.fullPath);
+            mainWindow.insertSlide(tile.fullPath);
         }
 
         private void selectTile(Tile tile) {
@@ -250,7 +251,7 @@ namespace KB30
             if (current_file_index >= 0)
             {
                 String fname = current_image_tiles[current_file_index].fullPath;
-                ((MainWindow)this.Owner).insertSlide(fname);
+                mainWindow.insertSlide(fname);
                 if (current_file_index < (current_image_tiles.Count - 1))
                 {
                     selectTile(current_image_tiles[current_file_index + 1]);

@@ -17,6 +17,8 @@ using System.Diagnostics;
 /*
  * Bugs:
  * To DO:
+ *  - Finder in front unless main is actually selected
+ *  - black and white buttons
  *  - Undo/Redo
  *  - Drag and Drop from finder left panel into main window left panel.
  *  - Edit Soundtrack (maybe multiple tracks)
@@ -131,7 +133,7 @@ namespace KB30
                     playIt();
                 }
             }
-            /* debug */
+            /* debug
             else
             {
                 loadIt("C:\\Users\\clark\\source\\repos\\pictures\\cardZERO.kb30");
@@ -148,6 +150,7 @@ namespace KB30
         private void finderClick(object sender, RoutedEventArgs e)
         {
             FinderWindow finderWindow = new FinderWindow();
+            finderWindow.mainWindow = this;
             finderWindow.Owner = this;
             finderWindow.Show();
         }
@@ -297,7 +300,7 @@ namespace KB30
 
         private void mainWindowActivated(object sender, EventArgs e)
         {
-            //       Topmost = true;
+
         }
 
         private void mainWindowPreviewKeyDown(object sender, KeyEventArgs e)
@@ -357,6 +360,5 @@ namespace KB30
                 }
             }
         }
-
     }
 }

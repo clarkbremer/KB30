@@ -45,7 +45,7 @@ namespace KB30
                 }
                 catch (Exception e2)
                 {
-                    MessageBox.Show("Error loading image file: " + uri.ToString(), "Call the doctor, I think I'm gonna crash!");
+                    MessageBox.Show("Error loading image file: " + uri.ToString(), "Call the doctor, I think I'm gonna crash!  Error: " + e2.Message);
                     return null;
                 }
             }

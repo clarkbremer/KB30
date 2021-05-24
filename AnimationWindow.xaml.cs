@@ -308,6 +308,10 @@ namespace KB30
 
         void skipBack()
         {
+            if (currentSlideIndex < 0)
+            {
+                return;
+            }
             if(animationState == PAN_ZOOM)
             {
                 if (currentClocks.First().CurrentTime > TimeSpan.FromSeconds(1))
@@ -524,6 +528,11 @@ namespace KB30
             double currentSlideDuration;
             double totalDuration;
 
+            if (currentSlideIndex < 0)
+            {
+                // don't know why
+                return ("0:00");
+            }
             if (animationState == PAN_ZOOM)
             {
                 currentSlideDuration = slides[currentSlideIndex].keys.Sum(k => k.duration);

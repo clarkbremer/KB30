@@ -291,6 +291,7 @@ namespace KB30
         private KeyframeAdorner keyAdorner;
         private void keyframeMouseMove(object sender, System.Windows.Input.MouseEventArgs e, Keyframe key)
         {
+            if (key == null) { return; } // not sure why this happens.  Should not get registred without a key.
             if (e.LeftButton == MouseButtonState.Pressed)
             {
                 var movedDistance = Point.Subtract(initialKeyframeMousePosition, e.GetPosition(key.keyframeControl)).Length;
