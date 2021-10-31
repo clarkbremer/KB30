@@ -100,6 +100,14 @@ namespace KB30
                 animationWindow.animate(oneSlide);
             }
         }
+        private void playFromHereClick(object sender, RoutedEventArgs e)
+        {
+            if(currentSlideIndex >= 0)
+            {
+                playIt(currentSlideIndex);
+            }
+        }
+
 
         private void animationWindow_Closed(object sender, EventArgs e)
         {

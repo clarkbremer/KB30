@@ -269,9 +269,8 @@ namespace KB30
             tg.Children[1].ApplyAnimationClock(ScaleTransform.CenterXProperty, cxClock);
             tg.Children[1].ApplyAnimationClock(ScaleTransform.CenterYProperty, cyClock);
 
-            status.Text = " " + (currentSlideIndex + 1).ToString() + " of " + slides.Count + " ";
             status.Visibility = Visibility.Visible;
-            timer.Visibility = Visibility.Visible;
+            time_remaining.Visibility = Visibility.Visible;
             animationState = PAN_ZOOM;
         }
 
@@ -522,6 +521,39 @@ namespace KB30
             return totalDuration;
         }
 
+        string timeElapsed()
+        {
+            double currentSlideDuration;
+            double totalDuration;
+
+            if (currentSlideIndex < 0)
+            {
+                // don't know why
+                return ("0:00");
+            }
+
+            if (animationState == PAN_ZOOM)
+            {
+                currentSlideDuration = slides[currentSlideIndex].keys.Sum(k => k.duration);
+                totalDuration = currentClocks[0].CurrentProgress.Value * currentSlideDuration;
+            }
+            else
+            {
+                totalDuration = slides[currentSlideIndex].keys.Sum(k => k.duration);
+                totalDuration += currentClocks[0].CurrentProgress.Value * 1.5;
+            }
+
+            for (int s = 0; s < currentSlideIndex; s++)
+            {
+                totalDuration += slides[s].Duration();
+                totalDuration += 1.5; // for fade in out
+            }
+            totalDuration = totalDuration / speedFactor;
+            int durationMins = (int)(totalDuration / 60);
+            int durationSecs = (int)(totalDuration % 60);
+            return durationMins.ToString("D2") + ":" + durationSecs.ToString("D2");
+        }
+
 
         string timeRemaining()
         {
@@ -557,7 +589,8 @@ namespace KB30
 
         private void playTimerTick(object sender, EventArgs e)
         {
-            timer.Text = timeRemaining();
+            time_remaining.Text = timeRemaining();
+            status.Text = " " + (currentSlideIndex + 1).ToString() + " of " + slides.Count + "    " + timeElapsed() + " ";
         }
     }
 }

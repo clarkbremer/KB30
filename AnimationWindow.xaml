@@ -8,7 +8,11 @@
         Title="AnimationWindow" Height="900" Width="1600"
         Name="animationWindow" KeyDown="KeyHandler" StateChanged="WindowStateChanged">
     <Grid>
-        <Border x:Name="frame1" ClipToBounds="True" Background="Gray">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="231*"/>
+            <ColumnDefinition Width="1369*"/>
+        </Grid.ColumnDefinitions>
+        <Border x:Name="frame1" ClipToBounds="True" Background="Gray" Grid.ColumnSpan="2">
             <Image x:Name="image1">
                 <Image.RenderTransform>
                     <TransformGroup>
@@ -18,7 +22,7 @@
                 </Image.RenderTransform>
             </Image>
         </Border>
-        <Border x:Name="frame2" ClipToBounds="True" Background="Gray" Opacity="0">
+        <Border x:Name="frame2" ClipToBounds="True" Background="Gray" Opacity="0" Grid.ColumnSpan="2">
             <Image x:Name="image2">
                 <Image.RenderTransform>
                     <TransformGroup>
@@ -29,6 +33,6 @@
             </Image>
         </Border>
         <TextBlock x:Name="status" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Black" Foreground="LightSkyBlue" FontSize="12" Margin="0"></TextBlock>
-        <TextBlock x:Name="timer" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Black" Foreground="LightSkyBlue" FontSize="12" Margin="0"></TextBlock>
+        <TextBlock x:Name="time_remaining" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Black" Foreground="LightSkyBlue" FontSize="12" Margin="0" Grid.Column="1"></TextBlock>
     </Grid>
 </Window>
