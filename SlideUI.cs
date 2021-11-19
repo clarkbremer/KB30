@@ -123,6 +123,11 @@ namespace KB30
             slideControl.CMPasteBelow.Click += delegate (object sender, RoutedEventArgs e) { pasteSlideClick(sender, e, slide, BELOW); };
             slideControl.CMInsertAbove.Click += delegate (object sender, RoutedEventArgs e) { insertSlideClick(sender, e, slide, ABOVE); };
             slideControl.CMInsertBelow.Click += delegate (object sender, RoutedEventArgs e) { insertSlideClick(sender, e, slide, BELOW); };
+            slideControl.CMAudioOpen.Click += delegate (object sender, RoutedEventArgs e) { audioOpenClick(sender, e, slide); };
+            slideControl.CMAudioClear.Click += delegate (object sender, RoutedEventArgs e) { audioClearClick(sender, e, slide); };
+            slideControl.CMBackgroundAudioOpen.Click += delegate (object sender, RoutedEventArgs e) { backgroundAudioOpenClick(sender, e, slide); };
+            slideControl.CMBackgroundAudioClear.Click += delegate (object sender, RoutedEventArgs e) { backgroundAudioClearClick(sender, e, slide); };
+
             slideControl.CMPlayFromHere.Click += delegate (object sender, RoutedEventArgs e) { playFromHereClick(sender, e, slide); };
             slideControl.SlideContextMenu.Opened += delegate (object sender, RoutedEventArgs e) { slideContextMenuOpened(sender, e, slide); };
 
@@ -444,6 +449,49 @@ namespace KB30
             }
         }
 
+        private void audioOpenClick(object sender, RoutedEventArgs e, Slide slide)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Title = "Select audio file";
+            openFileDialog.Filter = "Sound files (*.mp3)|*.mp3|All files (*.*)|*.*";
+            if (!String.IsNullOrEmpty(slide.audio))
+            {
+                openFileDialog.InitialDirectory = System.IO.Path.GetDirectoryName(slide.audio);
+                openFileDialog.FileName = System.IO.Path.GetFileName(slide.audio);
+            }
+            if (openFileDialog.ShowDialog() == true)
+            {
+                slide.audio = openFileDialog.FileName;
+            }
+        }
+
+        private void backgroundAudioOpenClick(object sender, RoutedEventArgs e, Slide slide)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Title = "Select audio file";
+            openFileDialog.Filter = "Sound files (*.mp3)|*.mp3|All files (*.*)|*.*";
+            if (!String.IsNullOrEmpty(slide.backgroundAudio))
+            {
+                openFileDialog.InitialDirectory = System.IO.Path.GetDirectoryName(slide.backgroundAudio);
+                openFileDialog.FileName = System.IO.Path.GetFileName(slide.backgroundAudio);
+            }
+            if (openFileDialog.ShowDialog() == true)
+            {
+                slide.backgroundAudio = openFileDialog.FileName;
+            }
+        }
+
+        private void backgroundAudioClearClick(object sender, RoutedEventArgs e, Slide slide)
+        {
+            slide.backgroundAudio = "";
+        }
+        private void audioClearClick(object sender, RoutedEventArgs e, Slide slide)
+        {
+            slide.audio = "";
+        }
+
+
+
         private void playFromHereClick(object sender, RoutedEventArgs e, Slide slide)
         {
             playIt(slides.IndexOf(slide));
@@ -468,6 +516,10 @@ namespace KB30
                 slide.slideControl.CMPasteAbove.IsEnabled = true;
                 slide.slideControl.CMPasteBelow.IsEnabled = true;
             }
+            slide.slideControl.CMAudioClear.IsEnabled = !String.IsNullOrEmpty(slide.audio);
+            slide.slideControl.CMBackgroundAudioClear.IsEnabled = !String.IsNullOrEmpty(slide.backgroundAudio);
+            slide.slideControl.CMAudio.Header = "Audio: " + System.IO.Path.GetFileName(slide.audio);
+            slide.slideControl.CMBackgroundAudio.Header = "Background: " + System.IO.Path.GetFileName(slide.backgroundAudio);
         }
 
         private void slideScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)

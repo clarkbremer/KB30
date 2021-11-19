@@ -30,6 +30,14 @@
                         <MenuItem Name="CMPasteBelow" Header="Paste Slide(s) Below"></MenuItem>
                         <MenuItem Name="CMInsertAbove" Header="Insert New Slide(s) Above"></MenuItem>
                         <MenuItem Name="CMInsertBelow" Header="Insert New Slide(s) Below"></MenuItem>
+                        <MenuItem Name="CMAudio" Header="Audio:">
+                            <MenuItem Name="CMAudioOpen" Header="Add/Edit"></MenuItem>
+                            <MenuItem Name="CMAudioClear" Header="Clear"></MenuItem>
+                        </MenuItem>
+                        <MenuItem Name="CMBackgroundAudio" Header="Background:">
+                            <MenuItem Name="CMBackgroundAudioOpen" Header="Add/Edit"></MenuItem>
+                            <MenuItem Name="CMBackgroundAudioClear" Header="Clear"></MenuItem>
+                        </MenuItem>
                         <MenuItem Name="CMPlayFromHere" Header="Play Starting Here"></MenuItem>
                     </ContextMenu>
                 </StackPanel.ContextMenu>

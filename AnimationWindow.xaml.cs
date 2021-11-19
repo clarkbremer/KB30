@@ -17,22 +17,21 @@ namespace KB30
     public partial class AnimationWindow : Window
     {
         public Slides slides = new Slides();
-        public MediaPlayer mediaPlayer = new MediaPlayer();
-        double mediaPlayerStartTime = 0;
+        int audioSlide = -1;
+        int backgroundAudioSlide = -1;
 
         Image currentImage;
         Image otherImage;
         int currentSlideIndex;
         int nextSlideIndex;
         double speedFactor = 1;
-        String soundtrack = "";
 
         const int NONE = 0;
         const int PAN_ZOOM = 1;
         const int FADE_OUT_IN = 2;
 
         private int animationState = NONE;
-        
+
         private static readonly CubicEase easeOut = new CubicEase() { EasingMode = EasingMode.EaseOut };
         private static readonly CubicEase easeIn = new CubicEase() { EasingMode = EasingMode.EaseIn };
         private static readonly CubicEase easeInOut = new CubicEase() { EasingMode = EasingMode.EaseInOut };
@@ -48,7 +47,7 @@ namespace KB30
         public AnimationWindow()
         {
             InitializeComponent();
-            exitOnClose = false ;
+            exitOnClose = false;
             Loaded += animationWindowLoaded;
             Closed += animationWindowClosed;
             playTimer.Interval = new TimeSpan(0, 0, 0, 1);
@@ -57,7 +56,6 @@ namespace KB30
 
         private void animationWindowClosed(object sender, EventArgs e)
         {
-            mediaPlayer.Close();
             stopAllClocks();
             playTimer.Stop();
         }
@@ -81,11 +79,18 @@ namespace KB30
                 this.Close();
                 return;
             }
-            soundtrack = _soundtrack;
+
+            // for back-compatibility 
+            if (String.IsNullOrEmpty(slides[0].backgroundAudio))
+            {
+                slides[0].backgroundAudio = _soundtrack;
+            }
+
             startAnimation(_start);
         }
 
-        public void startAnimation(int _start = 0) { 
+        public void startAnimation(int _start = 0)
+        {
             currentImage = image1;
             otherImage = image2;
             currentSlideIndex = _start;
@@ -99,14 +104,7 @@ namespace KB30
 
             transformImage(currentImage, slides[currentSlideIndex].keys[0]);
 
-            if (soundtrack != "")
-            {
-                mediaPlayer.MediaEnded += mediaPlayerEnded;
-                mediaPlayer.MediaOpened += mediaPlayerOpened;
-                if (mediaPlayer.Position == TimeSpan.FromSeconds(0)) {
-                    mediaPlayer.Open(new Uri(soundtrack));
-                }
-            }
+            syncBackgroundAudioPosition(currentSlideIndex);
             paused = false;
             frame1.Opacity = 1;
             frame2.Opacity = 0;
@@ -114,27 +112,6 @@ namespace KB30
             playTimer.Start();
         }
 
-        private void mediaPlayerEnded(object sender, EventArgs e)
-        {
-            mediaPlayer.Position = TimeSpan.Zero;
-            mediaPlayer.Play();
-        }
-        private void mediaPlayerOpened(object sender, EventArgs e)
-        {
-            syncMediaPlayerPosition(currentSlideIndex);
-            mediaPlayer.Play();
-        }
-
-        private void syncMediaPlayerPosition(int slideIndex)
-        {
-            if (soundtrack != "")
-            {
-                double song_duration = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
-                double offset = timeElapsed(slideIndex);
-                double mediaPlayerStartTime = offset % song_duration;
-                mediaPlayer.Position = TimeSpan.FromSeconds(mediaPlayerStartTime);
-            }
-        }
 
         private void transformImage(Image image, Keyframe kf)
         {
@@ -206,6 +183,9 @@ namespace KB30
             {
                 nextSlideIndex = 0;
             }
+
+          
+
             beginPanZoom(currentImage, slides[currentSlideIndex].keys);
 
             // Load next image *after* we start pan/zoom, for smoother transititions.
@@ -214,6 +194,20 @@ namespace KB30
 
         private void beginPanZoom(Image image, List<Keyframe> keys)
         {
+            if (!String.IsNullOrEmpty(slides[nextSlideIndex].backgroundAudio))
+            {
+                startBackgroundAudioFade(currentSlideIndex);
+            }
+
+            if (!String.IsNullOrEmpty(slides[currentSlideIndex].audio))
+            {
+                transitionAudio(slides[currentSlideIndex]);
+            }
+            if (!String.IsNullOrEmpty(slides[currentSlideIndex].backgroundAudio))
+            {
+                transitionBackgroundAudio(slides[currentSlideIndex]);
+            }
+
             var iw = image.ActualWidth;
             var ih = image.ActualHeight;
 
@@ -282,7 +276,7 @@ namespace KB30
                 {
                     c.Controller.Resume();
                 });
-                mediaPlayer.Play();
+                backgroundAudio.Play();
                 playTimer.Start();
                 paused = false;
             }
@@ -292,7 +286,7 @@ namespace KB30
                 {
                     c.Controller.Pause();
                 });
-                mediaPlayer.Pause();
+                backgroundAudio.Pause();
                 playTimer.Stop();
                 paused = true;
             }
@@ -302,7 +296,7 @@ namespace KB30
         {
             skip_fade = true;
             fillAllClocks();
-            syncMediaPlayerPosition(nextSlideIndex);
+            syncBackgroundAudioPosition(nextSlideIndex);
         }
 
         void skipBack()
@@ -311,7 +305,7 @@ namespace KB30
             {
                 return;
             }
-            if(animationState == PAN_ZOOM)
+            if (animationState == PAN_ZOOM)
             {
                 if (currentClocks.First().CurrentTime > TimeSpan.FromSeconds(1))
                 {
@@ -319,12 +313,12 @@ namespace KB30
                     {
                         c.Controller.Begin();
                     });
-                    syncMediaPlayerPosition(currentSlideIndex);
+                    syncBackgroundAudioPosition(currentSlideIndex);
                 }
                 else
                 {
                     currentSlideIndex = currentSlideIndex - 2;
-                    if(currentSlideIndex < 0)
+                    if (currentSlideIndex < 0)
                     {
                         currentSlideIndex = currentSlideIndex + slides.Count;
                     }
@@ -333,7 +327,7 @@ namespace KB30
                     otherImage.Source = Util.BitmapFromUri(slides[nextSlideIndex].uri);
                     skip_fade = true;
                     fillAllClocks();
-                    syncMediaPlayerPosition(nextSlideIndex);
+                    syncBackgroundAudioPosition(nextSlideIndex);
                 }
             }
             else  // fade inout
@@ -355,7 +349,7 @@ namespace KB30
 
                 currentImage.Source = Util.BitmapFromUri(slides[nextSlideIndex].uri);
                 fillAllClocks();
-                syncMediaPlayerPosition(nextSlideIndex);
+                syncBackgroundAudioPosition(nextSlideIndex);
             }
         }
         void speedUp()
@@ -387,7 +381,7 @@ namespace KB30
             switch (e.Key)
             {
                 case Key.Delete:
-                    if(this.WindowState == WindowState.Maximized)
+                    if (this.WindowState == WindowState.Maximized)
                     {
                         ToggleWindow();
                     }
@@ -439,7 +433,7 @@ namespace KB30
         }
         private void ToggleWindow()
         {
-  
+
             switch (this.WindowState)
             {
                 case (WindowState.Maximized):
@@ -506,10 +500,10 @@ namespace KB30
             });
         }
 
-        double timeElapsed(int start_slide_index)
+        double timeBetweenSlides(int start_slide_index, int end_slide_index)
         {
             double totalDuration = 0;
-            for (int s = 0; s < start_slide_index; s++)
+            for (int s = start_slide_index; s < end_slide_index; s++)
             {
                 for (int k = 0; k < slides[s].keys.Count; k++)
                 {
@@ -589,8 +583,97 @@ namespace KB30
 
         private void playTimerTick(object sender, EventArgs e)
         {
-            time_remaining.Text = timeRemaining();
-            status.Text = " " + (currentSlideIndex + 1).ToString() + " of " + slides.Count + "    " + timeElapsed() + " ";
+            time_remaining.Text = " " + timeRemaining();
+            status.Text = " " + DateTime.Now.ToString("HH:mm") + "  ♦  " + (currentSlideIndex + 1).ToString() + " of " + slides.Count + "  ♦  " + timeElapsed() + " ";
+        }
+
+
+        /*
+         * Audio
+         */
+        private void transitionAudio(Slide audio_slide)
+        {
+            if (!String.IsNullOrEmpty(audio_slide.audio))
+            {
+                audio.Stop();
+                audio.Source = new Uri(audio_slide.audio, UriKind.RelativeOrAbsolute);
+                audio.Play();
+                audioSlide = slides.IndexOf(audio_slide);
+            }
+        }
+
+
+        /*
+         * Background Audio 
+         */
+
+        private void backgroundAudioOpened(object sender, RoutedEventArgs e)
+        {
+            backgroundAudio.Volume = 0.5;
+            double song_duration = backgroundAudio.NaturalDuration.TimeSpan.TotalSeconds;
+            double offset = timeBetweenSlides(backgroundAudioSlide, currentSlideIndex);
+            double audioStartTime = offset % song_duration;
+            backgroundAudio.Position = TimeSpan.FromSeconds(audioStartTime);
+        }
+
+        private void syncBackgroundAudioPosition(int slideIndex)
+        {
+            int audio_slide_index = -1;
+            for (int i = slideIndex; i >= 0; i--)
+            {
+                if (!String.IsNullOrEmpty(slides[i].backgroundAudio))
+                {
+                    audio_slide_index = i;
+                    break;
+                }
+            }
+
+            if (audio_slide_index >= 0)
+            {
+                if (audio_slide_index != backgroundAudioSlide)
+                {
+                    backgroundAudio.Stop();
+                    backgroundAudioSlide = audio_slide_index;
+                    backgroundAudio.Source = new Uri(slides[audio_slide_index].backgroundAudio, UriKind.RelativeOrAbsolute);
+                    backgroundAudio.Play();
+                }
+                else
+                {
+                    double song_duration = backgroundAudio.NaturalDuration.TimeSpan.TotalSeconds;
+                    double offset = timeBetweenSlides(backgroundAudioSlide, slideIndex);
+                    double audioStartTime = offset % song_duration;
+                    backgroundAudio.Position = TimeSpan.FromSeconds(audioStartTime);
+                }
+            }
+        }
+
+        private void startBackgroundAudioFade(int s)
+        {
+            Slide slide = slides[s];
+            double slideDuration = slide.keys.Sum(k => k.duration);
+            var volumeFadeOut = new DoubleAnimation(backgroundAudio.Volume, 0, TimeSpan.FromSeconds(slideDuration + 1.5));
+            volumeFadeOut.Completed += endBackgroundAudioFadeOut;
+            AnimationClock volumeFadeOutClock = volumeFadeOut.CreateClock();
+            backgroundAudio.ApplyAnimationClock(MediaElement.VolumeProperty, volumeFadeOutClock);
+        }
+
+        private void transitionBackgroundAudio(Slide audio_slide)
+        {
+            if (!String.IsNullOrEmpty(audio_slide.backgroundAudio))
+            {
+                backgroundAudio.Stop();
+                backgroundAudio.Source = new Uri(audio_slide.backgroundAudio, UriKind.RelativeOrAbsolute);
+                backgroundAudio.Play();
+                backgroundAudioSlide = slides.IndexOf(audio_slide);
+            }
+        }
+
+        private void endBackgroundAudioFadeOut(object sender, EventArgs e)
+        {
+            backgroundAudio.Stop();
+            var volumeFadeIn = new DoubleAnimation(0, 0.5, TimeSpan.FromSeconds(0.1));
+            AnimationClock volumeFadeClock = volumeFadeIn.CreateClock();
+            backgroundAudio.ApplyAnimationClock(MediaElement.VolumeProperty, volumeFadeClock);
         }
     }
 }

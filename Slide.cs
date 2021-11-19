@@ -19,6 +19,12 @@ namespace KB30
         }
         public Keyframes keys { get; set; }
 
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string backgroundAudio;
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string audio;
+
         [JsonIgnore]
         public SlideControl slideControl { get; set; }
 

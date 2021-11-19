@@ -17,13 +17,12 @@ using System.Diagnostics;
 /*
  * Bugs:
  * To DO:
+ *  - drag and drop between instances of app
+ *  - Portrait Mode
  *  - Finder in front unless main is actually selected
- *  - black and white buttons
  *  - Undo/Redo
  *  - Drag and Drop from finder left panel into main window left panel.
- *  - Edit Soundtrack (maybe multiple tracks)
  *  - Option to lock cropper within bounds of image
- *  Break up this file (drag and drop in own file?)
  *  Config options both global and local to this album:
  *   - Absolute/Relative paths 
  *   - default fadein/out duration
@@ -108,7 +107,6 @@ namespace KB30
             }
         }
 
-
         private void animationWindow_Closed(object sender, EventArgs e)
         {
             if (playWithArgumentFile)
@@ -141,7 +139,7 @@ namespace KB30
                     playIt();
                 }
             }
-            /* debug
+            /* debug */
             else
             {
                 loadIt("C:\\Users\\clark\\source\\repos\\pictures\\cardZERO.kb30");
@@ -270,8 +268,7 @@ namespace KB30
             int durationMins = (int)(totalDuration / 60);
             int durationSecs = (int)(totalDuration % 60);
             MessageBox.Show(slides.Count + " slides." + Environment.NewLine +
-                            "Total duration " + durationMins + ":" + durationSecs.ToString("D2") + Environment.NewLine +
-                            "Soundtrack: " + album.Soundtrack, "File Info");
+                            "Total duration " + durationMins + ":" + durationSecs.ToString("D2"), "File Info");
         }
 
         private void mainWindowClosing(object sender, CancelEventArgs e)
@@ -282,16 +279,6 @@ namespace KB30
             }
         }
 
-        private void soundtrackClick(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Sound files (*.mp3)|*.mp3|All files (*.*)|*.*";
-            if (openFileDialog.ShowDialog() == true)
-            {
-                history.Add(new Album.SoundtrackModified(album.Soundtrack));
-                album.Soundtrack = openFileDialog.FileName;
-            }
-        }
 
         private void blankUI()
         {

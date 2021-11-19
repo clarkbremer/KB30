@@ -34,5 +34,7 @@
         </Border>
         <TextBlock x:Name="status" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Black" Foreground="LightSkyBlue" FontSize="12" Margin="0"></TextBlock>
         <TextBlock x:Name="time_remaining" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Black" Foreground="LightSkyBlue" FontSize="12" Margin="0" Grid.Column="1"></TextBlock>
+        <MediaElement x:Name="backgroundAudio" LoadedBehavior="Manual" Visibility="Hidden" MediaOpened="backgroundAudioOpened"></MediaElement>
+        <MediaElement x:Name="audio" LoadedBehavior="Manual" Volume="0.7" Visibility="Hidden"></MediaElement>
     </Grid>
 </Window>
