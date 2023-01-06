@@ -31,7 +31,7 @@ namespace KB30
             }
             set
             {
-                if (value == null)
+                if (value == null || value == "")
                 {
                     Soundtrack = "";
                 }
