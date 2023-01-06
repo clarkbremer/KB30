@@ -184,8 +184,6 @@ namespace KB30
                 nextSlideIndex = 0;
             }
 
-          
-
             beginPanZoom(currentImage, slides[currentSlideIndex].keys);
 
             // Load next image *after* we start pan/zoom, for smoother transititions.
@@ -385,7 +383,7 @@ namespace KB30
                     {
                         ToggleWindow();
                     }
-                    MessageBox.Show("Breakpoint");
+                    MessageBox.Show("Breakpoint!");
                     break;
 
                 case Key.Enter:
@@ -614,6 +612,13 @@ namespace KB30
             double offset = timeBetweenSlides(backgroundAudioSlide, currentSlideIndex);
             double audioStartTime = offset % song_duration;
             backgroundAudio.Position = TimeSpan.FromSeconds(audioStartTime);
+            backgroundAudio.MediaEnded += restartBackgroundAudio;
+        }
+
+        void restartBackgroundAudio(object sender, RoutedEventArgs e)
+        {
+            backgroundAudio.Position = TimeSpan.FromSeconds(0);
+            backgroundAudio.Play();
         }
 
         private void syncBackgroundAudioPosition(int slideIndex)

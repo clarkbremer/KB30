@@ -139,7 +139,7 @@ namespace KB30
                     playIt();
                 }
             }
-            /* debug */
+            /* debug 
             else
             {
                 loadIt("C:\\Users\\clark\\source\\repos\\pictures\\cardZERO.kb30");
