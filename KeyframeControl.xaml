@@ -42,6 +42,7 @@
                         <MenuItem Name="CMCut" Header="Cut Keyframe"></MenuItem>
                         <MenuItem Name="CMPaste" Header="Paste Keyframe Left"></MenuItem>
                         <MenuItem Name="CMInsert" Header="Insert Keyframe Left"></MenuItem>
+                        <MenuItem Name="CMSwap" Header="Swap first and last"></MenuItem>
                     </ContextMenu>
                 </StackPanel.ContextMenu>
             </StackPanel>

@@ -263,10 +263,7 @@ namespace KB30
 
         private void addSlideClick(object sender, RoutedEventArgs e)
         {
-            FinderWindow finderWindow = new FinderWindow();
-            finderWindow.mainWindow = this;
-            finderWindow.Owner = this;
-            finderWindow.Show();
+            showFinder();
         }
 
         internal Slide insertSlide(string fileName, int direction = BELOW)

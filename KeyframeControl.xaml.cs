@@ -16,10 +16,12 @@ namespace KB30
 
         private int hightlightState = HIGHLIGHT_NONE;
         public bool selected = false;
+        private FinderWindow finderWindow = null;
 
-        public KeyframeControl()
+        public KeyframeControl(FinderWindow finderWnd)
         {
             InitializeComponent();
+            finderWindow = finderWnd;
         }
 
         public void Select()
@@ -57,7 +59,10 @@ namespace KB30
 
         private void KFControl_Loaded(object sender, System.Windows.RoutedEventArgs e)
         {
-            this.durTb.Focus();
+            if (finderWindow == null || !finderWindow.IsActive)
+            {
+                this.durTb.Focus();
+            }
             this.durTb.SelectAll();
         }
     }

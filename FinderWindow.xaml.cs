@@ -35,6 +35,7 @@ namespace KB30
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             loadDrives();
+            mainWindow.Closed += (s, e) => this.Close();
         }
 
         private void loadDrives() {
@@ -91,7 +92,9 @@ namespace KB30
 
             // load left panel images
             filePanel.Children.Clear();
-            foreach (string folderName in Directory.GetDirectories(current_folder)){
+            string[] folderNames = Directory.GetDirectories(current_folder);
+            Array.Sort(folderNames);
+            foreach (string folderName in folderNames){
                 DirectoryInfo directory_info = new DirectoryInfo(folderName);
                 if (directory_info.Attributes.HasFlag(FileAttributes.Hidden)) {
                     continue;
@@ -107,7 +110,9 @@ namespace KB30
             }
             current_image_tiles.Clear();
             current_file_index = -1;
-            foreach (String fname in Directory.GetFiles(current_folder))  {
+            string[] fnames = Directory.GetFiles(current_folder);
+            Array.Sort(fnames);
+            foreach (String fname in fnames)  {
                    
                 if (image_extensions.IndexOf(Path.GetExtension(fname).ToLower()) > 0 ) {
                     Tile imageTile = new Tile();
@@ -160,16 +165,18 @@ namespace KB30
                 string parent = directory_info.Parent.FullName;
                 List<string> siblings = new List<string>(Directory.GetDirectories(parent));
                 siblings.RemoveAll(isHidden);
-
+                siblings.Sort();
                 int index = siblings.IndexOf(current_folder);
                 if (index == 0)
                 {
                     prevDirButton.IsEnabled = false;
                 }
+                prevText.Text = "Prev (" + index + ")";
                 if (index == siblings.Count - 1)
                 {
                     nextDirButton.IsEnabled = false;
                 }
+                nextText.Text = "Next (" + (siblings.Count - index -1) + ")";
             }
         }
 
@@ -315,6 +322,7 @@ namespace KB30
                 string parent = info.Parent.FullName;
                 List<string> siblings = new List<string> (Directory.GetDirectories(parent));
                 siblings.RemoveAll(isHidden);
+                siblings.Sort();
                 int index = siblings.IndexOf(current_folder);
                 if (index < siblings.Count - 1)
                 {
@@ -333,6 +341,7 @@ namespace KB30
                 string parent = info.Parent.FullName;
                 List<string> siblings = new List<string>(Directory.GetDirectories(parent));
                 siblings.RemoveAll(isHidden);
+                siblings.Sort();
                 int index = siblings.IndexOf(current_folder);
                 if (index > 0)
                 {

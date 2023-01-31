@@ -19,7 +19,6 @@ using System.Diagnostics;
  * To DO:
  *  - drag and drop between instances of app
  *  - Portrait Mode
- *  - Finder in front unless main is actually selected
  *  - Undo/Redo
  *  - Drag and Drop from finder left panel into main window left panel.
  *  - Option to lock cropper within bounds of image
@@ -60,6 +59,7 @@ namespace KB30
         private Point initialSlideMousePosition;
         private Keyframe startDragKeyframe = null;
         private Point initialKeyframeMousePosition;
+        public FinderWindow finderWindow = null;
 
         public MainWindow()
         {
@@ -155,10 +155,7 @@ namespace KB30
          */
         private void finderClick(object sender, RoutedEventArgs e)
         {
-            FinderWindow finderWindow = new FinderWindow();
-            finderWindow.mainWindow = this;
-            finderWindow.Owner = this;
-            finderWindow.Show();
+            showFinder();
         }
         private void fileNewClick(object sender, RoutedEventArgs e)
         {
@@ -269,6 +266,26 @@ namespace KB30
             int durationSecs = (int)(totalDuration % 60);
             MessageBox.Show(slides.Count + " slides." + Environment.NewLine +
                             "Total duration " + durationMins + ":" + durationSecs.ToString("D2"), "File Info");
+        }
+
+        public void showFinder()
+        {
+            if (finderWindow == null)
+            {
+                finderWindow = new FinderWindow();
+                finderWindow.mainWindow = this;
+                finderWindow.Closed += FinderWindow_Closed;
+                finderWindow.Show();
+            }
+            else
+            {
+                finderWindow.Activate();
+            }
+        }
+
+        private void FinderWindow_Closed(object sender, EventArgs e)
+        {
+            finderWindow = null;
         }
 
         private void mainWindowClosing(object sender, CancelEventArgs e)

@@ -19,10 +19,10 @@
         </Grid.ColumnDefinitions>
         <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" BorderBrush="CornflowerBlue" BorderThickness="2">
             <StackPanel x:Name="navigation" Orientation="Horizontal">
-                 <Button x:Name="prevDirButton" Click="prevDirButtonClick" Padding="5" >
+                 <Button x:Name="prevDirButton" Click="prevDirButtonClick" Padding="5" Width="90" >
                     <StackPanel Orientation="Horizontal">
                         <Image Source="Resources/left-up-arrow.png"/>
-                        <TextBlock Margin="2">Prev</TextBlock>
+                        <TextBlock x:Name="prevText" Margin="2">Prev</TextBlock>
                     </StackPanel>
                 </Button>
                 <Button x:Name="upDirButton" Click="upDirButtonClick" Padding="5" >
@@ -31,10 +31,10 @@
                         <TextBlock Margin="2">Up</TextBlock>
                     </StackPanel>
                 </Button>
-                <Button x:Name="nextDirButton" Click="nextDirButtonClick" Padding="5" >
+                <Button x:Name="nextDirButton" Click="nextDirButtonClick" Padding="5" Width="90" >
                     <StackPanel Orientation="Horizontal">
                         <Image Source="Resources/right-up-arrow.png"/>
-                        <TextBlock Margin="2">Next</TextBlock>
+                        <TextBlock x:Name="nextText" Margin="2">Next</TextBlock>
                     </StackPanel>
                 </Button>
                 <Border Width="5" Background="Gray"></Border>

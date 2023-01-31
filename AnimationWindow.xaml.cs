@@ -172,17 +172,18 @@ namespace KB30
                 frame2.ApplyAnimationClock(OpacityProperty, fadeOutClock);
                 frame1.ApplyAnimationClock(OpacityProperty, fadeInClock);
             }
-        }
-
-        private void endFadeOutIn(object sender, EventArgs e)
-        {
-            if (skip_fade) { skip_fade = false; }
             currentSlideIndex = nextSlideIndex;
             nextSlideIndex++;
             if (nextSlideIndex >= slides.Count)
             {
                 nextSlideIndex = 0;
             }
+        }
+
+        private void endFadeOutIn(object sender, EventArgs e)
+        {
+            if (skip_fade) { skip_fade = false; }
+
 
             beginPanZoom(currentImage, slides[currentSlideIndex].keys);
 
@@ -350,6 +351,20 @@ namespace KB30
                 syncBackgroundAudioPosition(nextSlideIndex);
             }
         }
+        void escape()
+        {
+            if (this.WindowState == WindowState.Maximized)
+            {
+                ToggleWindow();
+            }
+            else
+            {
+                stopAllClocks();
+                exitOnClose = true;
+                this.Close();
+            }
+        }
+
         void speedUp()
         {
             speedFactor = speedFactor * 2.0;
@@ -374,61 +389,7 @@ namespace KB30
             this.ToggleWindow();
         }
 
-        private void KeyHandler(object sender, KeyEventArgs e)
-        {
-            switch (e.Key)
-            {
-                case Key.Delete:
-                    if (this.WindowState == WindowState.Maximized)
-                    {
-                        ToggleWindow();
-                    }
-                    MessageBox.Show("Breakpoint!");
-                    break;
-
-                case Key.Enter:
-                    this.ToggleWindow();
-                    break;
-
-                case Key.Escape:
-                    if (this.WindowState == WindowState.Maximized)
-                    {
-                        ToggleWindow();
-                    }
-                    else
-                    {
-                        stopAllClocks();
-                        exitOnClose = true;
-                        this.Close();
-                    }
-                    break;
-
-                case Key.Up:
-                    speedUp();
-                    break;
-
-                case Key.Down:
-                    speedDown();
-                    break;
-
-                case Key.Right:
-                    skipAhead();
-                    break;
-
-                case Key.Left:
-                    skipBack();
-                    break;
-
-                case Key.Space:
-                    togglePauseAnimation();
-                    break;
-
-                case Key.Home:
-                    exitOnClose = false;
-                    this.Close();
-                    break;
-            }
-        }
+ 
         private void ToggleWindow()
         {
 
@@ -595,6 +556,13 @@ namespace KB30
             {
                 audio.Stop();
                 audio.Source = new Uri(audio_slide.audio, UriKind.RelativeOrAbsolute);
+                if (audio_slide.audioVolume != 0)
+                {
+                    audio.Volume = audio_slide.audioVolume;
+                } else
+                {
+                    audio.Volume = 1.0;
+                }
                 audio.Play();
                 audioSlide = slides.IndexOf(audio_slide);
             }
@@ -607,7 +575,14 @@ namespace KB30
 
         private void backgroundAudioOpened(object sender, RoutedEventArgs e)
         {
-            backgroundAudio.Volume = 0.5;
+            if (slides[backgroundAudioSlide].backgroundVolume != 0)
+            {
+                backgroundAudio.Volume = slides[backgroundAudioSlide].backgroundVolume;
+            }
+            else
+            {
+                backgroundAudio.Volume = 0.5;
+            }
             double song_duration = backgroundAudio.NaturalDuration.TimeSpan.TotalSeconds;
             double offset = timeBetweenSlides(backgroundAudioSlide, currentSlideIndex);
             double audioStartTime = offset % song_duration;
@@ -679,6 +654,67 @@ namespace KB30
             var volumeFadeIn = new DoubleAnimation(0, 0.5, TimeSpan.FromSeconds(0.1));
             AnimationClock volumeFadeClock = volumeFadeIn.CreateClock();
             backgroundAudio.ApplyAnimationClock(MediaElement.VolumeProperty, volumeFadeClock);
+        }
+
+        private void KeyHandler(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Delete:
+                    if (this.WindowState == WindowState.Maximized)
+                    {
+                        ToggleWindow();
+                    }
+                    MessageBox.Show("Breakpoint!");
+                    break;
+
+                case Key.Enter:
+                    this.ToggleWindow();
+                    break;
+
+                case Key.Escape:
+                    escape();
+                    break;
+
+                case Key.Up:
+                    speedUp();
+                    break;
+
+                case Key.Down:
+                    speedDown();
+                    break;
+
+                case Key.Right:
+                    skipAhead();
+                    break;
+
+                case Key.Left:
+                    skipBack();
+                    break;
+
+                case Key.Space:
+                    togglePauseAnimation();
+                    break;
+
+                case Key.Home:
+                    exitOnClose = false;
+                    this.Close();
+                    break;
+            }
+        }
+        private void animationWindow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            escape();
+        }
+
+        private void animationWindow_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            skipBack();
+        }
+
+        private void animationWindow_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            skipAhead();
         }
     }
 }

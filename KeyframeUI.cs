@@ -29,7 +29,7 @@ namespace KB30
 
         public void addKeyframeControl(Keyframe key, int insertIndex = -1)
         {
-            KeyframeControl kfControl = new KeyframeControl();
+            KeyframeControl kfControl = new KeyframeControl(finderWindow);
             kfControl.DeSelect();
             key.keyframeControl = kfControl;
             if (insertIndex == -1)
@@ -62,6 +62,7 @@ namespace KB30
             kfControl.CMCut.Click += delegate (object sender, RoutedEventArgs e) { cutKeyframeClick(sender, e, key); };
             kfControl.CMPaste.Click += delegate (object sender, RoutedEventArgs e) { pasteKeyframeClick(sender, e, key); };
             kfControl.CMInsert.Click += delegate (object sender, RoutedEventArgs e) { insertKeyframeClick(sender, e, key); };
+            kfControl.CMSwap.Click += delegate (object sender, RoutedEventArgs e) { swapKeyframeClick(sender, e, key); };
             kfControl.KeyframeContextMenu.Opened += delegate (object sender, RoutedEventArgs e) { keyframeContextMenuOpened(sender, e, key); };
         }
 
@@ -192,6 +193,19 @@ namespace KB30
             pasteKeyframe(key, LEFT);
         }
 
+        private void swapKeyframeClick(object sender, RoutedEventArgs e, Keyframe key)
+        {
+            Keyframes keys = currentSlide.keys;
+            if (keys.Count < 2) { return; }
+            cutKeyframe(keys.Last());
+            pasteKeyframe(keys.First(), LEFT);
+            cutKeyframe(keys[1]);
+            pasteKeyframe(keys.Last(), RIGHT);
+            var temp = keys.First().keyframeControl.durTb.Text;
+            keys.First().keyframeControl.durTb.Text = keys.Last().keyframeControl.durTb.Text;
+            keys.Last().keyframeControl.durTb.Text = temp;
+        }
+
         private void pasteKeyframe(Keyframe insertKey, int direction)
         {
             if (clipboardKey == null) { return; }
@@ -267,6 +281,14 @@ namespace KB30
             else
             {
                 key.keyframeControl.CMPaste.IsEnabled = true;
+            }
+            if (currentSlide.keys.Count < 2)
+            {
+                key.keyframeControl.CMSwap.IsEnabled = false;
+            }
+            else
+            {
+                key.keyframeControl.CMSwap.IsEnabled = true;
             }
         }
 

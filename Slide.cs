@@ -21,9 +21,15 @@ namespace KB30
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string backgroundAudio;
+        
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public double backgroundVolume;
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string audio;
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public double audioVolume;
 
         [JsonIgnore]
         public SlideControl slideControl { get; set; }
@@ -38,6 +44,8 @@ namespace KB30
         public bool isResource = false;
 
         public bool ShouldSerializefileName() { return false; }
+        public bool ShouldSerializebackgroundVolume() { return backgroundVolume != 0; }
+        public bool ShouldSerializeaudioVolume() { return audioVolume != 0; }
 
         private string _fileName;
         public string fileName
