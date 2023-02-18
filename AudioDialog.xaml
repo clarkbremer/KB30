@@ -1,0 +1,63 @@
+﻿<Window x:Class="KB30.AudioDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:KB30"
+        mc:Ignorable="d"
+        Title="Audio Properties" Height="172" Width="400"
+        ShowInTaskbar="False"
+        Closing="Window_Closing"
+        SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize">
+    <Grid Margin="10">
+        <Grid.Resources>
+            <!-- Default settings for controls -->
+            <Style TargetType="{x:Type Label}">
+                <Setter Property="Margin" Value="0,3,5,5" />
+                <Setter Property="Padding" Value="0,0,0,5" />
+            </Style>
+            <Style TargetType="{x:Type TextBox}">
+                <Setter Property="Margin" Value="0,0,0,5" />
+            </Style>
+            <Style TargetType="{x:Type Button}">
+                <Setter Property="Width" Value="70" />
+                <Setter Property="Height" Value="25" />
+                <Setter Property="Margin" Value="5,0,0,0" />
+            </Style>
+        </Grid.Resources>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="212*" />
+            <ColumnDefinition Width="107*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Left,Top,Right,Bottom margins-->
+        <Label Grid.Column="0" Grid.Row="0" Margin="0,3,5,5">File Name:</Label>
+        <TextBlock Name="filenameTextBlock" Grid.Column="1" Grid.Row="0" Margin="0,0,34,5" />
+        <Button Name="Edit" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Click="Edit_Click">Select</Button>
+
+        <Label Grid.Column="0" Grid.Row="1" Margin="0,3,5,5">Volume:</Label>
+        <Slider Name="volumeSlider" Grid.Column="1" Grid.Row="1" Minimum = "0" Maximum = "10" TickFrequency = "1" TickPlacement = "BottomRight" ValueChanged="volumeSlider_ValueChanged" Margin="0,0,34,29" Grid.RowSpan="2" />
+        <TextBlock Name="volumeText" Grid.Column="2" Grid.Row="1" Text="0.0" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,29" Grid.RowSpan="2" Width="16"></TextBlock>
+
+        <Label Grid.Column="0" Grid.Row="2" Margin="0,3,5,5">Loop:</Label>
+        <CheckBox Name="loopCheckBox" Grid.Column="1" Grid.Row="2" Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+
+        <!-- Accept or Cancel -->
+        <StackPanel Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,20,0,0">
+            <Button Name="okButton" Click="okButton_Click" IsDefault="True">OK</Button>
+            <Button Name="cancelButton" Click="cancelButton_Click" IsCancel="True">Cancel</Button>
+            <Button Name="deleteButton" Click="deleteButton_Click" >Delete</Button>
+        </StackPanel>
+    </Grid>
+</Window>

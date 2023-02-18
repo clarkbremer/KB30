@@ -19,7 +19,10 @@
                 <Grid>
                     <Image Name="image" />
                     <CheckBox Name="checkbox" HorizontalAlignment="Left" VerticalAlignment="Top"></CheckBox>
-                    <TextBlock x:Name="slideText" Background="Black" Foreground="White" Text="99" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="2,0,2,0"></TextBlock>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+                        <TextBlock x:Name="slideNote" Background="Black" Foreground="White" VerticalAlignment="Top" Text=""></TextBlock>
+                        <TextBlock x:Name="slideNumberText" Background="Black" Foreground="White" VerticalAlignment="Top" Text="99" Padding="2,0,2,0"></TextBlock>
+                    </StackPanel>
                 </Grid>
                 <TextBlock x:Name="caption" Background="White" Text="Filename and Size too long too long too log" HorizontalAlignment="Right" VerticalAlignment="Bottom" Padding="5,2,5,2"></TextBlock>
                 <StackPanel.ContextMenu>
@@ -30,14 +33,8 @@
                         <MenuItem Name="CMPasteBelow" Header="Paste Slide(s) Below"></MenuItem>
                         <MenuItem Name="CMInsertAbove" Header="Insert New Slide(s) Above"></MenuItem>
                         <MenuItem Name="CMInsertBelow" Header="Insert New Slide(s) Below"></MenuItem>
-                        <MenuItem Name="CMAudio" Header="Audio:">
-                            <MenuItem Name="CMAudioOpen" Header="Add/Edit"></MenuItem>
-                            <MenuItem Name="CMAudioClear" Header="Clear"></MenuItem>
-                        </MenuItem>
-                        <MenuItem Name="CMBackgroundAudio" Header="Background:">
-                            <MenuItem Name="CMBackgroundAudioOpen" Header="Add/Edit"></MenuItem>
-                            <MenuItem Name="CMBackgroundAudioClear" Header="Clear"></MenuItem>
-                        </MenuItem>
+                        <MenuItem Name="CMAudio" Header="Audio:"></MenuItem>
+                        <MenuItem Name="CMBackground" Header="Background:"></MenuItem>
                         <MenuItem Name="CMPlayFromHere" Header="Play Starting Here"></MenuItem>
                     </ContextMenu>
                 </StackPanel.ContextMenu>

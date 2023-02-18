@@ -79,8 +79,8 @@ namespace KB30
 
         public int slideNumber
         {
-            get { return Convert.ToInt32(slideText.Text); }
-            set { slideText.Text = value.ToString(); }
+            get { return Convert.ToInt32(slideNumberText.Text); }
+            set { slideNumberText.Text = value.ToString(); }
         }
     }
 }

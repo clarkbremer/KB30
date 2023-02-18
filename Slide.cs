@@ -21,15 +21,27 @@ namespace KB30
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string backgroundAudio;
-        
+        public bool ShouldSerializebackgroundAudio() { return !string.IsNullOrEmpty(backgroundAudio); }
+
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public double backgroundVolume;
+        public double backgroundVolume = 0.5;
+        public bool ShouldSerializebackgroundVolume() { return !string.IsNullOrEmpty(backgroundAudio); }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public bool loopBackground = true;
+        public bool ShouldSerializeloopBackground() { return !string.IsNullOrEmpty(backgroundAudio); }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string audio;
+        public bool ShouldSerializeaudio() { return !string.IsNullOrEmpty(audio); }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public double audioVolume;
+        public double audioVolume = 0.9;
+        public bool ShouldSerializeaudioVolume() { return !string.IsNullOrEmpty(audio); }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public bool loopAudio = false;
+        public bool ShouldSerializeloopAudio() { return !string.IsNullOrEmpty(audio); }
 
         [JsonIgnore]
         public SlideControl slideControl { get; set; }
@@ -44,8 +56,6 @@ namespace KB30
         public bool isResource = false;
 
         public bool ShouldSerializefileName() { return false; }
-        public bool ShouldSerializebackgroundVolume() { return backgroundVolume != 0; }
-        public bool ShouldSerializeaudioVolume() { return audioVolume != 0; }
 
         private string _fileName;
         public string fileName

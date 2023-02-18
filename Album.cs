@@ -16,7 +16,11 @@ namespace KB30
         [JsonProperty]
         public double version { get; set; }
 
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Soundtrack;
+        public bool ShouldSerializeSoundtrack() { return !string.IsNullOrEmpty(Soundtrack); }
+
+
 
         [JsonProperty]
         public string soundtrack
