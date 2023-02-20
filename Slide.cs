@@ -179,6 +179,24 @@ namespace KB30
             }
             return clone;
         }
+        public void UpdateAudio()
+        {
+            if (slideControl != null)
+            {
+                if (!String.IsNullOrEmpty(backgroundAudio))
+                {
+                    slideControl.slideNote.Text = "B♦";
+                }
+                else
+                {
+                    slideControl.slideNote.Text = "";
+                }
+                if (!String.IsNullOrEmpty(audio))
+                {
+                    slideControl.slideNote.Text = slideControl.slideNote.Text + "A♦";
+                }
+            }
+        }
 
         public void Dim() { if (slideControl != null) { slideControl.image.Opacity = 0.4; } }
         public void UnDim() { if (slideControl != null) { slideControl.image.Opacity = 1.0; } }
@@ -213,6 +231,7 @@ namespace KB30
             }
         }
 
+  
         public void UnDimAll()
         {
             foreach (Slide slide in this) { slide.UnDim(); }

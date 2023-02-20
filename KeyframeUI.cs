@@ -61,7 +61,7 @@ namespace KB30
 
             kfControl.CMCut.Click += delegate (object sender, RoutedEventArgs e) { cutKeyframeClick(sender, e, key); };
             kfControl.CMPaste.Click += delegate (object sender, RoutedEventArgs e) { pasteKeyframeClick(sender, e, key); };
-            kfControl.CMInsert.Click += delegate (object sender, RoutedEventArgs e) { insertKeyframeClick(sender, e, key); };
+            kfControl.CMDuplicate.Click += delegate (object sender, RoutedEventArgs e) { addKeyframeClick(sender, e); };
             kfControl.CMSwap.Click += delegate (object sender, RoutedEventArgs e) { swapKeyframeClick(sender, e, key); };
             kfControl.KeyframeContextMenu.Opened += delegate (object sender, RoutedEventArgs e) { keyframeContextMenuOpened(sender, e, key); };
         }
@@ -165,28 +165,14 @@ namespace KB30
         {
             if (slides.Count == 0) { return; }
             Keyframe currentKey = currentSlide.keys[currentKeyframeIndex];
-            Keyframe newKey = currentKey.Clone(DEFAULT_DURATION);
-            currentSlide.keys.Add(newKey);
-            addKeyframeControl(newKey);
+            Keyframe newKey = currentKey.Clone();
+            currentSlide.keys.Insert(currentKeyframeIndex + 1, newKey);
+            addKeyframeControl(newKey, currentKeyframeIndex + 1);
             newKey.keyframeControl.durTb.Focus();
             selectKeyframe(newKey);
             kfAddedHistory(currentSlide.keys.IndexOf(newKey));
         }
 
-        private void insertKeyframeClick(object sender, RoutedEventArgs e, Keyframe key)
-        {
-            Keyframes keys = currentSlide.keys;
-            var insertIndex = keys.IndexOf(key);
-            Keyframe newKey = key.Clone(DEFAULT_DURATION);
-            keys.Insert(insertIndex, newKey);
-            addKeyframeControl(newKey, insertIndex);
-            if (currentKeyframeIndex >= insertIndex)
-            {
-                currentKeyframeIndex++;
-            }
-            selectKeyframe(newKey);
-            kfAddedHistory(insertIndex);
-        }
 
         private void pasteKeyframeClick(object sender, RoutedEventArgs e, Keyframe key)
         {

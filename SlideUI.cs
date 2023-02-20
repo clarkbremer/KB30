@@ -139,6 +139,7 @@ namespace KB30
                 slidePanel.Children.Insert(insertPosition, slideControl);
             }
             slideControl.DeSelect();
+            slide.UpdateAudio();
             slides.Renumber();
             return true;
         }
@@ -467,6 +468,7 @@ namespace KB30
                 slide.audio = audioDialog.filenameTextBlock.Text;
                 slide.audioVolume = Convert.ToDouble(audioDialog.volumeText.Text) / 10.0;
                 slide.loopAudio = audioDialog.loopCheckBox.IsChecked ?? false;
+                slide.UpdateAudio();
             }
         }
 
@@ -493,6 +495,7 @@ namespace KB30
                 slide.backgroundAudio = audioDialog.filenameTextBlock.Text;
                 slide.backgroundVolume = Convert.ToDouble(audioDialog.volumeText.Text) / 10.0;
                 slide.loopBackground = audioDialog.loopCheckBox.IsChecked ?? false;
+                slide.UpdateAudio();
             }
         }
 
