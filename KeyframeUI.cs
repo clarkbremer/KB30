@@ -147,6 +147,7 @@ namespace KB30
                             break;
                         case "durTb":
                             key.duration = maybe;
+                            updateCaptionCounts();
                             break;
                         case "zoomTb":
                             key.zoomFactor = maybe;

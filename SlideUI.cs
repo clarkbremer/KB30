@@ -163,9 +163,21 @@ namespace KB30
             imageCropper.image.Source = bitmap;
 
             initializeKeysUI(currentSlide);
-            caption.Text = currentSlide.fileName + " (" + bitmap.PixelWidth + " x " + bitmap.PixelHeight + ")  " + (slideIndex + 1) + " of " + slides.Count;
+            caption.Text = currentSlide.fileName + " (" + bitmap.PixelWidth + " x " + bitmap.PixelHeight + ")  ";
+            caption.ScrollToHorizontalOffset(caption.ExtentWidth);
+            updateCaptionCounts();
         }
 
+        private void updateCaptionCounts()
+        {
+            number.Text = (currentSlideIndex + 1) + " of " + slides.Count;
+            time.Text = slides.SlideStartTime(currentSlideIndex) + " of " + slides.TotalTime();
+        }
+
+        private void caption_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            caption.ScrollToHorizontalOffset(caption.ExtentWidth);
+        }
         internal Slide addSlides(string[] fileNames)
         {
             Slide newSlide = null;

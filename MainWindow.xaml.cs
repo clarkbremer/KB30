@@ -17,8 +17,6 @@ using System.Diagnostics;
 /*
  * Bugs:
  * To DO:
- *  - Notes on slides for audio and background
- *  - Timestamp on each slide
  *  - Export 
  *  - drag and drop between instances of app
  *  - Portrait Mode

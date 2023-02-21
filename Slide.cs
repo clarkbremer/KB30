@@ -231,7 +231,39 @@ namespace KB30
             }
         }
 
-  
+        public String SlideStartTime(int slide_index)
+        {
+            double start_time = 0.0;
+            if (slide_index <= 0)
+            {
+                return ("0:00");
+            }
+            for (int s = 0; s < slide_index; s++)
+            {
+                start_time += this[s].Duration();
+                start_time += 1.5; // for fade in out
+            }
+            int durationMins = (int)(start_time / 60);
+            int durationSecs = (int)(start_time % 60);
+            return durationMins.ToString("D2") + ":" + durationSecs.ToString("D2");
+        }
+
+        public String TotalTime()
+        {
+            double totalDuration = 0;
+            foreach (Slide slide in this)
+            {
+                for (int k = 0; k < slide.keys.Count; k++)
+                {
+                    totalDuration += slide.keys[k].duration;
+                    totalDuration += 1.5; // for fade in out
+                }
+            }
+            int durationMins = (int)(totalDuration / 60);
+            int durationSecs = (int)(totalDuration % 60);
+            return durationMins.ToString("D2") + ":" + durationSecs.ToString("D2");
+        }
+
         public void UnDimAll()
         {
             foreach (Slide slide in this) { slide.UnDim(); }
