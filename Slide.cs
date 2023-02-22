@@ -179,7 +179,7 @@ namespace KB30
             }
             return clone;
         }
-        public void UpdateAudio()
+        public void UpdateAudioNotations()
         {
             if (slideControl != null)
             {
@@ -231,24 +231,33 @@ namespace KB30
             }
         }
 
-        public String SlideStartTime(int slide_index)
+        String double_to_time_string(double t)
+        {
+            int durationMins = (int)(t / 60);
+            int durationSecs = (int)(t % 60);
+            return durationMins.ToString("D2") + ":" + durationSecs.ToString("D2");
+        }
+
+        public String SlideStartTimeString(int slide_index)
+        {
+            return (double_to_time_string(SlideStartTime(slide_index)));
+        }
+        public double SlideStartTime(int slide_index)
         {
             double start_time = 0.0;
-            if (slide_index <= 0)
-            {
-                return ("0:00");
-            }
             for (int s = 0; s < slide_index; s++)
             {
                 start_time += this[s].Duration();
                 start_time += 1.5; // for fade in out
             }
-            int durationMins = (int)(start_time / 60);
-            int durationSecs = (int)(start_time % 60);
-            return durationMins.ToString("D2") + ":" + durationSecs.ToString("D2");
+            return (start_time);
         }
 
-        public String TotalTime()
+        public String TotalTimeString()
+        {
+            return (double_to_time_string(TotalTime()));
+        }
+        public double TotalTime()
         {
             double totalDuration = 0;
             foreach (Slide slide in this)
@@ -256,13 +265,23 @@ namespace KB30
                 for (int k = 0; k < slide.keys.Count; k++)
                 {
                     totalDuration += slide.keys[k].duration;
-                    totalDuration += 1.5; // for fade in out
                 }
+                totalDuration += 1.5; // for fade in out
             }
-            int durationMins = (int)(totalDuration / 60);
-            int durationSecs = (int)(totalDuration % 60);
-            return durationMins.ToString("D2") + ":" + durationSecs.ToString("D2");
+            return (totalDuration);
         }
+
+        public double TimeRemaining(int slide_index)
+        {
+            double remaining = TotalTime() - SlideStartTime(slide_index);
+            return (remaining);
+        }
+
+        public String TimeRemainingString(int slide_index)
+        {
+            return (double_to_time_string(TimeRemaining(slide_index)));
+        }
+
 
         public void UnDimAll()
         {

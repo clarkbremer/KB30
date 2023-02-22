@@ -28,7 +28,6 @@ using System.Diagnostics;
  *   - default fadein/out duration
  *   - default key duration
  *  Duration textbox allow only numeric.
- *  Key to reverse keyframe order
  */
 namespace KB30
 {

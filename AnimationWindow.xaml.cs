@@ -478,6 +478,7 @@ namespace KB30
         {
             double currentSlideDuration;
             double totalDuration;
+            int finalSlideIndex;
 
             if (currentSlideIndex < 0)
             {
@@ -485,18 +486,28 @@ namespace KB30
                 return ("0:00");
             }
 
+
             if (animationState == PAN_ZOOM)
             {
                 currentSlideDuration = slides[currentSlideIndex].keys.Sum(k => k.duration);
                 totalDuration = currentClocks[0].CurrentProgress.Value * currentSlideDuration;
+                finalSlideIndex = currentSlideIndex;
             }
             else
             {
-                totalDuration = slides[currentSlideIndex].keys.Sum(k => k.duration);
+                if (currentSlideIndex == 0)  // we are fading from last slide to first.
+                {
+                    finalSlideIndex = slides.Count - 1;
+                }
+                else
+                {
+                    finalSlideIndex = currentSlideIndex - 1;
+                }
+                totalDuration = slides[finalSlideIndex].keys.Sum(k => k.duration);
                 totalDuration += currentClocks[0].CurrentProgress.Value * 1.5;
             }
 
-            for (int s = 0; s < currentSlideIndex; s++)
+            for (int s = 0; s < finalSlideIndex; s++)
             {
                 totalDuration += slides[s].Duration();
                 totalDuration += 1.5; // for fade in out
@@ -522,18 +533,24 @@ namespace KB30
             {
                 currentSlideDuration = slides[currentSlideIndex].keys.Sum(k => k.duration);
                 totalDuration = ((1 - currentClocks[0].CurrentProgress.Value) * currentSlideDuration) + 1.5;
+                for (int s = currentSlideIndex + 1; s < slides.Count; s++)
+                {
+                    totalDuration += slides[s].Duration();
+                    totalDuration += 1.5; // for fade in out
+                }
             }
             else
             {
                 currentSlideDuration = 1.5;
                 totalDuration = (1 - currentClocks[0].CurrentProgress.Value) * currentSlideDuration;
+                for (int s = currentSlideIndex; s < slides.Count; s++)
+                {
+                    totalDuration += slides[s].Duration();
+                    totalDuration += 1.5; // for fade in out
+                }
             }
 
-            for (int s = currentSlideIndex + 1; s < slides.Count; s++)
-            {
-                totalDuration += slides[s].Duration();
-                totalDuration += 1.5; // for fade in out
-            }
+ 
             totalDuration = totalDuration / speedFactor;
             int durationMins = (int)(totalDuration / 60);
             int durationSecs = (int)(totalDuration % 60);

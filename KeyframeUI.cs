@@ -171,6 +171,7 @@ namespace KB30
             addKeyframeControl(newKey, currentKeyframeIndex + 1);
             newKey.keyframeControl.durTb.Focus();
             selectKeyframe(newKey);
+            updateCaptionCounts();
             kfAddedHistory(currentSlide.keys.IndexOf(newKey));
         }
 
@@ -217,6 +218,7 @@ namespace KB30
                 currentKeyframeIndex++;
             }
             selectKeyframe(key);
+            updateCaptionCounts();
         }
 
         private void cutKeyframeClick(object sender, RoutedEventArgs e, Keyframe key)
@@ -257,6 +259,7 @@ namespace KB30
             keys.Remove(key);
 
             if (currentKeyframeIndex > victimIndex) { currentKeyframeIndex--; }
+            updateCaptionCounts();
         }
 
         private void keyframeContextMenuOpened(object sender, RoutedEventArgs e, Keyframe key)

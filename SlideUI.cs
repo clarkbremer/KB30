@@ -139,8 +139,9 @@ namespace KB30
                 slidePanel.Children.Insert(insertPosition, slideControl);
             }
             slideControl.DeSelect();
-            slide.UpdateAudio();
+            slide.UpdateAudioNotations();
             slides.Renumber();
+            updateCaptionCounts();
             return true;
         }
 
@@ -171,7 +172,7 @@ namespace KB30
         private void updateCaptionCounts()
         {
             number.Text = (currentSlideIndex + 1) + " of " + slides.Count;
-            time.Text = slides.SlideStartTime(currentSlideIndex) + " of " + slides.TotalTime();
+            time.Text = slides.SlideStartTimeString(currentSlideIndex) + " of " + slides.TotalTimeString() + " ("+ slides.TimeRemainingString(currentSlideIndex) + ")";
         }
 
         private void caption_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -197,6 +198,7 @@ namespace KB30
                 Console.Beep(2000, 100);
             }
             slides.Renumber();
+            updateCaptionCounts();
             return newSlide;
         }
         private void slideMouseLeftButtonDown(object sender, RoutedEventArgs e, Slide slide)
@@ -329,6 +331,7 @@ namespace KB30
             }
             history.Add(new History.CompoundUndo(numInserted));
             slides.Renumber();
+            updateCaptionCounts();
             return (newSlide);
         }
 
@@ -386,6 +389,7 @@ namespace KB30
                 currentSlideIndex++;
             }
             slides.Renumber();
+            updateCaptionCounts();
         }
 
         private void cutSlideClick(object sender, RoutedEventArgs e, Slide s) { cutSlidesToClipboard(s); }
@@ -433,6 +437,7 @@ namespace KB30
 
             if (currentSlideIndex > victimIndex) { currentSlideIndex--; }
             slides.Renumber();
+            updateCaptionCounts();
             if (slides.Count == 0)
             {
                 blankUI();
@@ -480,7 +485,7 @@ namespace KB30
                 slide.audio = audioDialog.filenameTextBlock.Text;
                 slide.audioVolume = Convert.ToDouble(audioDialog.volumeText.Text) / 10.0;
                 slide.loopAudio = audioDialog.loopCheckBox.IsChecked ?? false;
-                slide.UpdateAudio();
+                slide.UpdateAudioNotations();
             }
         }
 
@@ -507,7 +512,7 @@ namespace KB30
                 slide.backgroundAudio = audioDialog.filenameTextBlock.Text;
                 slide.backgroundVolume = Convert.ToDouble(audioDialog.volumeText.Text) / 10.0;
                 slide.loopBackground = audioDialog.loopCheckBox.IsChecked ?? false;
-                slide.UpdateAudio();
+                slide.UpdateAudioNotations();
             }
         }
 
