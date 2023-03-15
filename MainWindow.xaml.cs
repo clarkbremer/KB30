@@ -57,8 +57,6 @@ namespace KB30
         public Keyframe clipboardKey = null;
         private Slide startDragSlide = null;
         private Point initialSlideMousePosition;
-        private Keyframe startDragKeyframe = null;
-        private Point initialKeyframeMousePosition;
         public FinderWindow finderWindow = null;
 
         public MainWindow()
@@ -194,7 +192,7 @@ namespace KB30
                 openFileDialog.Filter = "KB30 files (*.kb30)|*.kb30|All files (*.*)|*.*";
                 if (openFileDialog.ShowDialog() == true)
                 {
-                    caption.Text = "Loading Slides...";
+                    caption.Text = "Loading Thumbnails...";
                     if (loadIt(openFileDialog.FileName)){ 
                         initializeSlidesUI();
                     }

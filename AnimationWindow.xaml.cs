@@ -726,12 +726,19 @@ namespace KB30
 
         private void animationWindow_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            skipBack();
+            togglePauseAnimation();
         }
 
         private void animationWindow_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
-            skipAhead();
+            if (this.WindowState == WindowState.Maximized)
+            {
+                skipAhead();
+            }
+            else
+            {
+                ToggleWindow();
+            }
         }
     }
 }

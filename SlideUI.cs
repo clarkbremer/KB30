@@ -77,7 +77,7 @@ namespace KB30
             i++;
             if (i < slides.Count)
             {
-                caption.Text = "Loading slide " + (i + 1).ToString() + " of " + (slides.Count).ToString();
+                caption.Text = "Loading thumbnail " + (i + 1).ToString() + " of " + (slides.Count).ToString();
                 addSlideControlInBackground(slides[i]);
             }
             else
@@ -441,7 +441,9 @@ namespace KB30
             if (slides.Count == 0)
             {
                 blankUI();
+                return;
             }
+            currentSlide.BringIntoView();
         }
 
         private void copySlideClick(object sender, RoutedEventArgs e, Slide s) { copySlidesToClipboard(s); }

@@ -40,7 +40,8 @@
                 <StackPanel.ContextMenu>
                     <ContextMenu Name="KeyframeContextMenu">
                         <MenuItem Name="CMCut" Header="Cut Keyframe"></MenuItem>
-                        <MenuItem Name="CMPaste" Header="Paste Keyframe Left"></MenuItem>
+                        <MenuItem Name="CMPasteLeft" Header="Paste Keyframe Left"></MenuItem>
+                        <MenuItem Name="CMPasteRight" Header="Paste Keyframe Right"></MenuItem>
                         <MenuItem Name="CMDuplicate" Header="Duplicate Keyframe"></MenuItem>
                         <MenuItem Name="CMSwap" Header="Swap first and last"></MenuItem>
                     </ContextMenu>

@@ -43,12 +43,6 @@ namespace KB30
 
             kfControl.PreviewMouseUp += delegate (object sender, MouseButtonEventArgs e) { keyFrameClick(sender, e, key); };
 
-            kfControl.PreviewMouseDown += delegate (object sender, MouseButtonEventArgs e) { keyframePreviewMouseDown(sender, e, key); };
-            kfControl.MouseMove += delegate (object sender, MouseEventArgs e) { keyframeMouseMove(sender, e, key); };
-            kfControl.DragOver += delegate (object sender, DragEventArgs e) { keyframeDragOver(sender, e, key); };
-            kfControl.Drop += delegate (object sender, DragEventArgs e) { keyframeDrop(sender, e, key); };
-            kfControl.GiveFeedback += delegate (object sender, GiveFeedbackEventArgs e) { keyframeGiveFeedback(sender, e, key); };
-
             kfControl.xTb.Text = key.x.ToString();
             kfControl.yTb.Text = key.y.ToString();
             kfControl.zoomTb.Text = key.zoomFactor.ToString();
@@ -60,7 +54,8 @@ namespace KB30
             kfControl.durTb.TextChanged += delegate (object sender, TextChangedEventArgs e) { kfControlChangeEvent(sender, e, key); };
 
             kfControl.CMCut.Click += delegate (object sender, RoutedEventArgs e) { cutKeyframeClick(sender, e, key); };
-            kfControl.CMPaste.Click += delegate (object sender, RoutedEventArgs e) { pasteKeyframeClick(sender, e, key); };
+            kfControl.CMPasteLeft.Click += delegate (object sender, RoutedEventArgs e) { pasteKeyframeClick(sender, e, key, LEFT); };
+            kfControl.CMPasteRight.Click += delegate (object sender, RoutedEventArgs e) { pasteKeyframeClick(sender, e, key, RIGHT); };
             kfControl.CMDuplicate.Click += delegate (object sender, RoutedEventArgs e) { addKeyframeClick(sender, e); };
             kfControl.CMSwap.Click += delegate (object sender, RoutedEventArgs e) { swapKeyframeClick(sender, e, key); };
             kfControl.KeyframeContextMenu.Opened += delegate (object sender, RoutedEventArgs e) { keyframeContextMenuOpened(sender, e, key); };
@@ -176,9 +171,9 @@ namespace KB30
         }
 
 
-        private void pasteKeyframeClick(object sender, RoutedEventArgs e, Keyframe key)
+        private void pasteKeyframeClick(object sender, RoutedEventArgs e, Keyframe key, int direction)
         {
-            pasteKeyframe(key, LEFT);
+            pasteKeyframe(key, direction);
         }
 
         private void swapKeyframeClick(object sender, RoutedEventArgs e, Keyframe key)
@@ -266,11 +261,13 @@ namespace KB30
         {
             if (clipboardKey == null)
             {
-                key.keyframeControl.CMPaste.IsEnabled = false;
+                key.keyframeControl.CMPasteLeft.IsEnabled = false;
+                key.keyframeControl.CMPasteRight.IsEnabled = false;
             }
             else
             {
-                key.keyframeControl.CMPaste.IsEnabled = true;
+                key.keyframeControl.CMPasteLeft.IsEnabled = true;
+                key.keyframeControl.CMPasteRight.IsEnabled = true;
             }
             if (currentSlide.keys.Count < 2)
             {
@@ -287,162 +284,6 @@ namespace KB30
             if (slides.Count > 0)
             {
                 selectKeyframe(currentSlide.keys[currentKeyframeIndex]);
-            }
-        }
-
-        /*********
-         * Drag and Drop
-         * 
-         */
-        private void keyframePreviewMouseDown(object sender, MouseButtonEventArgs e, Keyframe key)
-        {
-            initialKeyframeMousePosition = e.GetPosition(key.keyframeControl);
-            startDragKeyframe = key;
-        }
-
-        private KeyframeAdorner keyAdorner;
-        private void keyframeMouseMove(object sender, System.Windows.Input.MouseEventArgs e, Keyframe key)
-        {
-            if (key == null) { return; } // not sure why this happens.  Should not get registred without a key.
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                var movedDistance = Point.Subtract(initialKeyframeMousePosition, e.GetPosition(key.keyframeControl)).Length;
-                if (movedDistance > 15)
-                {
-                    // What happened here is that the drag started on one slide, but we detected it on another. 
-                    if (key != startDragKeyframe)
-                    {
-                        Console.Beep(400, 100);
-                        key = startDragKeyframe;
-                    }
-
-                    // package the data
-                    DataObject data = new DataObject();
-                    data.SetData("Keyframe", key);
-
-                    // dim the source key
-                    selectKeyframe(key);
-                    key.Dim();
-
-                    // set up the adorner
-                    var adLayer = AdornerLayer.GetAdornerLayer(keyScrollViewer);
-                    Rect renderRect = new Rect(key.keyframeControl.RenderSize);
-                    renderRect.Height = renderRect.Height / 2;
-                    keyAdorner = new KeyframeAdorner(keyScrollViewer, renderRect);
-                    adLayer.Add(keyAdorner);
-
-                    // do it!
-                    DragDropEffects result = DragDrop.DoDragDrop(key.keyframeControl, key, DragDropEffects.Copy | DragDropEffects.Move);
-                    if (result.HasFlag(DragDropEffects.Move))
-                    {
-                        Console.Beep(2000, 50);
-                    }
-                    else
-                    {
-                        Console.Beep(600, 50);
-                        Console.Beep(600, 50);
-                    }
-                    // clean up
-                    adLayer.Remove(keyAdorner);
-                    currentSlide.keys.UnDimAll();
-                    currentSlide.keys.ClearHighlightAll();
-                }
-            }
-        }
-
-        private int dropDirection(DragEventArgs e, Keyframe target_key)
-        {
-            KeyframeControl kfc = target_key.keyframeControl;
-            Point p = e.GetPosition(kfc);
-            if (p.X < (kfc.ActualWidth / 2))
-            {
-                return LEFT;
-            }
-            else
-            {
-                return RIGHT;
-            }
-        }
-
-        private void keyframeDragOver(object sender, System.Windows.DragEventArgs e, Keyframe key)
-        {
-            e.Effects = DragDropEffects.None;
-
-            if (sender is KeyframeControl)
-            {
-                Point p = e.GetPosition(keyScrollViewer);
-                if (p.X < (keyScrollViewer.ActualWidth * 0.1))
-                {
-                    keyScrollViewer.ScrollToHorizontalOffset(keyScrollViewer.HorizontalOffset - 20);
-                }
-                if (p.X > (keyScrollViewer.ActualWidth * 0.9))
-                {
-                    keyScrollViewer.ScrollToHorizontalOffset(keyScrollViewer.HorizontalOffset + 20);
-                }
-
-                if (e.Data.GetDataPresent(typeof(Keyframe)))
-                {
-                    keyAdorner.Arrange(new Rect(p.X, p.Y, keyAdorner.DesiredSize.Width, keyAdorner.DesiredSize.Height));
-                    // don't allow drop on self.
-                    if (key.IsSelected())
-                    {
-                        e.Handled = true;
-                        return;
-                    }
-                }
-
-                // clear all other highlights
-                currentSlide.keys.ClearHightlightsExcept(key);
-
-                if (dropDirection(e, key) == LEFT)
-                {
-                    key.highlightLeft();
-                }
-                else
-                {
-                    key.highlightRight();
-                }
-
-                e.Effects = DragDropEffects.Move;
-            }
-        }
-        private void keyframeGiveFeedback(object sender, GiveFeedbackEventArgs e, Keyframe key)
-        {
-            // These Effects values are set in the drop target's DragOver event handler.
-            if (e.Effects.HasFlag(DragDropEffects.Move) || e.Effects.HasFlag(DragDropEffects.Copy))
-            {
-                Mouse.SetCursor(Cursors.Hand);
-            }
-            else
-            {
-                Mouse.SetCursor(Cursors.No);
-            }
-            e.Handled = true;
-        }
-
-        private void keyframeDrop(object sender, DragEventArgs e, Keyframe target_key = null)
-        {
-            if (e.Data.GetDataPresent(typeof(Keyframe)))
-            {
-                if (target_key == null) { return; }
-                Keyframe source_key = e.Data.GetData(typeof(Keyframe)) as Keyframe;
-                if (target_key.IsSelected())
-                {
-                    Console.Beep(600, 200);
-                    return;  // don't drop on self
-                }
-                cutKeyframe(source_key);
-                pasteKeyframe(target_key, dropDirection(e, target_key));
-                history.Add(new History.CompoundUndo(2));
-                target_key.highlightClear();
-            }
-        }
-
-        private void keyPanelDrop(object sender, DragEventArgs e)
-        {
-            if (e.OriginalSource is ScrollViewer)
-            {
-                keyframeDrop(sender, e, currentSlide.keys.Last());
             }
         }
 

@@ -86,7 +86,7 @@
         <ScrollViewer x:Name="slideScrollViewer" Grid.Column="0" Grid.Row="1" Grid.RowSpan="3" AllowDrop="true" Drop="slidePanelDrop" SizeChanged="slideScrollViewer_SizeChanged" >
             <StackPanel HorizontalAlignment="Stretch" Name="slidePanel" Orientation="Vertical" CanVerticallyScroll="True"></StackPanel>
         </ScrollViewer>
-        <ScrollViewer x:Name="keyScrollViewer" Grid.Column="2" Grid.Row="3" Grid.RowSpan="2" AllowDrop="True" Drop="keyPanelDrop" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled">
+        <ScrollViewer x:Name="keyScrollViewer" Grid.Column="2" Grid.Row="3" Grid.RowSpan="2" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled">
             <StackPanel VerticalAlignment="Stretch" Name="keyframePanel" Orientation="Horizontal" CanHorizontallyScroll="True"></StackPanel>
         </ScrollViewer>
         <Grid Grid.Row ="5" Grid.Column="0" HorizontalAlignment="Stretch">
