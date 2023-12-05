@@ -149,6 +149,7 @@ namespace KB30
         public void selectSlide(int slideIndex, Boolean unbindOld = true)
         {
             if (slideIndex < 0) { return; }
+            if (slideIndex > slides.Count - 1) { return; }
 
             currentSlide.slideControl.DeSelect();
             if (unbindOld)

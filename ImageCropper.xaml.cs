@@ -285,6 +285,18 @@ namespace KB30
             }
         }
 
+        void cropperMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (e.Delta > 0)
+            {
+                mainWindow.prevSlide();
+            }
+            else if (e.Delta < 0)
+            {
+                mainWindow.nextSlide();
+            }
+        }
+
         void updateCropper(double new_x, double new_y, double new_width, double new_height)
         {
 

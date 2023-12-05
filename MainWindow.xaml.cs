@@ -17,6 +17,7 @@ using System.Diagnostics;
 /*
  * Bugs:
  * To DO:
+ *  - When file not found, give option to skip once, skip all, or abort.
  *  - Export 
  *  - drag and drop between instances of app
  *  - Portrait Mode
@@ -273,6 +274,15 @@ namespace KB30
                 finderWindow = new FinderWindow();
                 finderWindow.mainWindow = this;
                 finderWindow.Closed += FinderWindow_Closed;
+                if (this.Top > 100)
+                {
+                    finderWindow.Top = this.Top - 100;
+                } else
+                {
+                    finderWindow.Top = 0;
+                }
+
+                finderWindow.Left = this.Left + 200;
                 finderWindow.Show();
             }
             else
@@ -313,6 +323,20 @@ namespace KB30
 
         }
 
+        public void nextSlide()
+        {
+            selectSlide(currentSlideIndex + 1);
+            currentSlide.Check();
+            currentSlide.BringIntoView();
+        }
+
+        public void prevSlide()
+        {
+            selectSlide(currentSlideIndex - 1);
+            currentSlide.Check();
+            currentSlide.BringIntoView();
+        }
+
         private void mainWindowPreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
@@ -348,9 +372,7 @@ namespace KB30
                             {
                                 slides.UncheckAll();
                             }
-                            selectSlide(currentSlideIndex - 1);
-                            currentSlide.Check();
-                            currentSlide.BringIntoView();
+                            prevSlide();
                         }
                         e.Handled = true;
                         break;
@@ -361,9 +383,7 @@ namespace KB30
                             {
                                 slides.UncheckAll();
                             }
-                            selectSlide(currentSlideIndex + 1);
-                            currentSlide.Check();
-                            currentSlide.BringIntoView();
+                            nextSlide();
                         }
                         e.Handled = true;
                         break;

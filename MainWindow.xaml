@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:KB30"
         
         mc:Ignorable="d"
-        Title="KB30" Height="675" Width="1200" Loaded="mainWindowLoaded" Closing="mainWindowClosing" Activated="mainWindowActivated" PreviewKeyDown="mainWindowPreviewKeyDown">
+        Title="KB30" Height="1100" Width="2000" Loaded="mainWindowLoaded" Closing="mainWindowClosing" Activated="mainWindowActivated" PreviewKeyDown="mainWindowPreviewKeyDown">
     <Grid x:Name="mainGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -18,7 +18,7 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*" />
             <ColumnDefinition Width="8" />
-            <ColumnDefinition Width="5*" />
+            <ColumnDefinition Width="9*" />
             <ColumnDefinition Width="80" />
         </Grid.ColumnDefinitions>
         <Menu Grid.Row="0" Grid.Column="0"  Grid.ColumnSpan="1" Background="AliceBlue" >
@@ -69,7 +69,7 @@
                 </StackPanel>
             </Button>
         </StackPanel>
-        <DockPanel Grid.Column="2" Grid.Row="1" Grid.ColumnSpan="2">
+        <DockPanel Name="PreviewPanel" Grid.Column="2" Grid.Row="1" Grid.ColumnSpan="2">
             <local:ImageCropper x:Name="imageCropper" DockPanel.Dock="Top" VerticalAlignment="Top" HorizontalAlignment="Stretch"></local:ImageCropper>
         </DockPanel>
         <Grid HorizontalAlignment="Stretch" Grid.Column="2" Grid.Row="2" Grid.ColumnSpan="2" Background="LightBlue">
