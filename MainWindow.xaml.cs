@@ -18,6 +18,7 @@ using System.Diagnostics;
  * Bugs:
  * To DO:
  *  - When file not found, give option to skip once, skip all, or abort.
+ *  - Use relative path for audio and backgroung
  *  - Export 
  *  - drag and drop between instances of app
  *  - Portrait Mode
@@ -175,7 +176,10 @@ namespace KB30
                 album = Album.LoadFromFile(filename);
             } catch (Exception e)
             {
-                MessageBox.Show(e.Message);
+                if (e.Message != "Quiet")
+                {
+                    MessageBox.Show(e.Message);
+                }
                 return false;
             }
             slides = album.slides;

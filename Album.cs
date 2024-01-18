@@ -140,8 +140,16 @@ namespace KB30
                 var fname = slides[i].fileName;
                 if (!File.Exists(fname) &&fname != "black" && fname != "white")
                 {
-                    MessageBox.Show("File Not Found: " + fname, "File Not Found");
-                    slides.RemoveAt(i);
+                    NotFoundDialog not_found_dialog = new NotFoundDialog();
+                    not_found_dialog.filename_message.Text = "File Not Found: " + fname;
+                    if (not_found_dialog.ShowDialog() == true)
+                    {
+                        slides.RemoveAt(i);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Quiet");
+                    }
                 }
             }
             return album;
