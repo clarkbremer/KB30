@@ -569,9 +569,11 @@ namespace KB30
             if (e.LeftButton == MouseButtonState.Pressed)
             {
                 var movedDistance = Point.Subtract(initialSlideMousePosition, e.GetPosition(slide.slideControl)).Length;
-                if (movedDistance > 15 && initialSlideMousePosition != new Point(0, 0))
+                if (movedDistance > 15 && initialSlideMousePosition != new Point(0, 0))  // We moved enough with the button down to be considered a drag
                 {
-                    // What happened here is that the drag started on one slide, but we detected it on another. 
+                    // What happened here is that the drag started on one slide, but we detected it on another.
+                    // Because the mouse down happend outside the slideControl, so slidePreviewMouseDown() was not called.  
+                    // If the mouse then wanders onto the slideControl, this method gets triggered.
                     if (slide != startDragSlide)
                     {
                         return;
@@ -647,7 +649,8 @@ namespace KB30
         }
         private void slideDrop(object sender, DragEventArgs e, Slide target_slide = null)
         {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            String[] allFormats = e.Data.GetFormats();  // debug
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))  // this was from a winodws explorer window
             {
                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
                 if (target_slide == null)
@@ -721,7 +724,10 @@ namespace KB30
 
                 if (e.Data.GetDataPresent(typeof(Slide)))
                 {
-                    slideAdorner.Arrange(new Rect(p.X, p.Y, slideAdorner.DesiredSize.Width, slideAdorner.DesiredSize.Height));
+                    if (slideAdorner != null)  // becuase it came from a different instance of the app?
+                    {
+                        slideAdorner.Arrange(new Rect(p.X, p.Y, slideAdorner.DesiredSize.Width, slideAdorner.DesiredSize.Height));
+                    }
                     // don't allow drop on self.
                     if (slide.IsChecked())
                     {
