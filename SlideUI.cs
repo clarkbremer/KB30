@@ -804,6 +804,7 @@ namespace KB30
             }
             e.Handled = true;
         }
+
         /****
         * Undo
         *****/

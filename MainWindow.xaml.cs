@@ -64,7 +64,7 @@ namespace KB30
         public MainWindow()
         {
             InitializeComponent();
-            album = new Album(slides, "", "untitled");
+            album = new Album(slides, "untitled");
             this.Title = "KB30 - " + album.Filename;
             history = new History(this);
         }
@@ -79,7 +79,7 @@ namespace KB30
             AnimationWindow animationWindow = new AnimationWindow();
             animationWindow.Closed += animationWindow_Closed;
             animationWindow.Show();
-            animationWindow.animate(slides, start, album.Soundtrack);
+            animationWindow.animate(slides, start);
         }
         private void playClick(object sender, RoutedEventArgs e)
         {
@@ -162,7 +162,7 @@ namespace KB30
             if (saveIfDirty())
             {
                 blankUI();
-                album = new Album(slides, "", "untitled");
+                album = new Album(slides, "untitled");
                 lastSavedAlbum = album.ToJson();
                 this.Title = "KB30 - " + album.Filename;
             }

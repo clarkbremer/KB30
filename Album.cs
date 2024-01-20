@@ -16,40 +16,6 @@ namespace KB30
         [JsonProperty]
         public double version { get; set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string Soundtrack;
-        public bool ShouldSerializeSoundtrack() { return !string.IsNullOrEmpty(Soundtrack); }
-
-
-
-        [JsonProperty]
-        public string soundtrack
-        {
-            get
-            {
-                if (!string.IsNullOrEmpty(basePath) && !string.IsNullOrEmpty(Soundtrack))
-                {
-                    return (Path.GetRelativePath(basePath, Soundtrack));
-                }
-                return (Soundtrack);
-            }
-            set
-            {
-                if (value == null || value == "")
-                {
-                    Soundtrack = "";
-                }
-                else if (!Path.IsPathFullyQualified(value) && !string.IsNullOrEmpty(basePath))
-                {
-                    Soundtrack = Path.GetFullPath(value, basePath);
-                }
-                else
-                {
-                    Soundtrack = value;
-                }
-            }
-        }
-
         [JsonProperty]
         public Slides slides { get; set; }
 
@@ -65,11 +31,10 @@ namespace KB30
         }
 
         public Album() { }
-        public Album(Slides _slides, string _soundtrack, string _filename)
+        public Album(Slides _slides, string _filename)
         {
             Filename = _filename;
             slides = _slides;
-            Soundtrack = _soundtrack;
             if (!string.IsNullOrEmpty(Filename) && Filename != "untitled")
             {
                 basePath = Path.GetDirectoryName(Filename);
@@ -144,19 +109,6 @@ namespace KB30
                 }
             }
             return album;
-        }
-
-        public class SoundtrackModified : History.UndoItem
-        {
-            string old_soundtrack;
-            public SoundtrackModified(string _old_soundtrack)
-            {
-                old_soundtrack = _old_soundtrack;
-            }
-            public override void Undo(MainWindow mainWindow)
-            {
-                mainWindow.album.Soundtrack = old_soundtrack;
-            }
         }
 
         private void MigrateRelativePaths()  // vestigal
