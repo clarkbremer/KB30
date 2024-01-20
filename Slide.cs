@@ -65,7 +65,7 @@ namespace KB30
                 if (!string.IsNullOrEmpty(basePath) && string.IsNullOrEmpty(_fileName))
                 {
                     _fileName = Path.GetFullPath(_relativePath, basePath);
-                    uri = new Uri(_fileName);
+                    uri = new Uri(_fileName);  // this side effect is kind of bogus.  It's why I had to add UpdateUri().
                 }
                 return (_fileName);
             }
@@ -125,12 +125,17 @@ namespace KB30
                 }
                 else
                 {
-                    if (!string.IsNullOrEmpty(basePath) && string.IsNullOrEmpty(_fileName))
-                    {
-                        _fileName = Path.GetFullPath(_relativePath, basePath);
-                        uri = new Uri(_fileName);
-                    }
+                    UpdateUri();
                 }
+            }
+        }
+
+        public void UpdateUri()
+        {
+            if (!string.IsNullOrEmpty(basePath) && string.IsNullOrEmpty(_fileName))
+            {
+                _fileName = Path.GetFullPath(_relativePath, basePath);
+                uri = new Uri(_fileName);
             }
         }
 
@@ -308,6 +313,13 @@ namespace KB30
             foreach (Slide slide in this)
             {
                 slide.basePath = basePath;
+            }
+        }
+        public void UpdateUris()
+        {
+            foreach (Slide slide in this)
+            {
+                slide.UpdateUri();
             }
         }
     }

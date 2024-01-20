@@ -25,7 +25,7 @@ namespace KB30
                     bmp.Freeze();
                 }
             }
-            catch (Exception)
+            catch (Exception e1)
             {
                 BitmapImage bmp2 = new BitmapImage();
                 try

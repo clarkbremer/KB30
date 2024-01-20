@@ -7,6 +7,7 @@ using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using System.ComponentModel;
 using System.Windows.Documents;
+using Newtonsoft.Json;
 
 
 namespace KB30
@@ -352,27 +353,31 @@ namespace KB30
 
         private void pasteClipboardSlides(Slide targetSlide, int direction = ABOVE)
         {
+            placeSlides(clipboardSlides, targetSlide, direction);
+            clipboardSlides.Clear();
+        }
+
+        private void placeSlides(Slides slides_to_place, Slide targetSlide, int direction = ABOVE)
+        {
             var insertIndex = slides.IndexOf(targetSlide);
             if (direction == BELOW)
             {
                 insertIndex += 1;
             }
 
-            foreach (Slide slide in clipboardSlides)
+            foreach (Slide slide in slides_to_place)
             {
                 placeSlide(slide, insertIndex);
-                if (slide == clipboardSlides.First())
+                if (slide == slides_to_place.First())
                 {
                     selectSlide(insertIndex);
                 }
                 slideAddedHistory(insertIndex);
                 insertIndex++;
             }
-            history.Add(new History.CompoundUndo(clipboardSlides.Count));
-            clipboardSlides.Clear();
+            history.Add(new History.CompoundUndo(slides_to_place.Count));
             slides.UncheckAll();
         }
-
 
         private void placeSlide(Slide slide, int insertIndex)
         {
@@ -571,20 +576,17 @@ namespace KB30
                 var movedDistance = Point.Subtract(initialSlideMousePosition, e.GetPosition(slide.slideControl)).Length;
                 if (movedDistance > 15 && initialSlideMousePosition != new Point(0, 0))  // We moved enough with the button down to be considered a drag
                 {
-                    // What happened here is that the drag started on one slide, but we detected it on another.
-                    // Because the mouse down happend outside the slideControl, so slidePreviewMouseDown() was not called.  
-                    // If the mouse then wanders onto the slideControl, this method gets triggered.
+                    // The drag started on one slide, but we detected it on another.
+                    // This is because the mouse_down happend outside the slideControl, so slidePreviewMouseDown() was not called.  
+                    // But if the mouse then wanders onto the slideControl, this method gets triggered.
                     if (slide != startDragSlide)
                     {
                         return;
                     }
-                    // package the data
-                    DataObject data = new DataObject();
-                    data.SetData("SlideControl", slide);
-
-                    // If this slide is already checked, then we move all checked slides.  
-                    // If its not checked, then we move only this one.
-                    // Unless ctrl is pressed, then we check this one and move them all.
+                
+                    // If this slide is already checked, then we drag all checked slides.  
+                    // If its not checked, then we drag only this one.
+                    // Unless ctrl is pressed, then we check this one and drag them all.
                     if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
                     {
                         slide.Check();
@@ -597,6 +599,7 @@ namespace KB30
                         }
                     }
                     // dim and count all the slides that will be dragged
+                    Slides drag_slides = new Slides();
                     int numChecked = 0;
                     foreach (Slide s in slides)
                     {
@@ -604,8 +607,17 @@ namespace KB30
                         {
                             s.Dim();
                             numChecked++;
+                            drag_slides.Add(s);
                         }
                     }
+
+                    // package the data
+                    DataObject data = new DataObject();
+                    data.SetData(typeof(Slide), slide);
+                    data.SetData("SlideJSON", JsonConvert.SerializeObject(drag_slides, Formatting.Indented));
+                    int hc = Application.Current.MainWindow.GetHashCode();
+                    data.SetData("InstanceID", hc);
+                    String[] allFormats = data.GetFormats();  // debug
 
                     // set up the adorner
                     var adLayer = AdornerLayer.GetAdornerLayer(slideScrollViewer);
@@ -616,7 +628,7 @@ namespace KB30
                     adLayer.Add(slideAdorner);
 
                     // do it!
-                    DragDropEffects result = DragDrop.DoDragDrop(slide.slideControl, slide, DragDropEffects.Copy | DragDropEffects.Move);
+                    DragDropEffects result = DragDrop.DoDragDrop(slide.slideControl, data, DragDropEffects.Copy | DragDropEffects.Move);
 
                     // Techically, this is where we would delete the dragged items if result.HasFlag(DragDropEffects.Move).
                     // clean up
@@ -673,36 +685,52 @@ namespace KB30
             else if (e.Data.GetDataPresent(typeof(Slide)))
             {
                 if (target_slide == null) { return; }
-                Slide source_slide = e.Data.GetData(typeof(Slide)) as Slide;
-                if (source_slide != startDragSlide)
+                // need a way here to tell if it came from a different instance of the app, and if so, use the JSON.
+                int source_id = (int)e.Data.GetData("InstanceID");
+                int my_id = Application.Current.MainWindow.GetHashCode();
+                if (source_id == my_id) 
                 {
-                    Console.Beep(600, 400);
-                }
-                if (target_slide.IsChecked() || (target_slide == source_slide))
-                {
-                    Console.Beep(600, 200);
-                    e.Effects = DragDropEffects.None;
-                    return;  // don't drop on self
-                }
-                if (!source_slide.IsChecked())
-                {
-                    source_slide.slideControl.Check();
-                }
-                if (e.KeyStates.HasFlag(DragDropKeyStates.ControlKey))
+                    Slide source_slide = e.Data.GetData(typeof(Slide)) as Slide;
+                    if (source_slide != startDragSlide)
+                    {
+                        Console.Beep(600, 400);
+                    }
+                    if (target_slide.IsChecked() || (target_slide == source_slide))
+                    {
+                        Console.Beep(600, 200);
+                        e.Effects = DragDropEffects.None;
+                        return;  // don't drop on self
+                    }
+                    if (!source_slide.IsChecked())
+                    {
+                        source_slide.slideControl.Check();
+                    }
+                    if (e.KeyStates.HasFlag(DragDropKeyStates.ControlKey))
+                    {
+                        e.Effects = DragDropEffects.Copy;
+                        copySlidesToClipboard(target_slide, dropDirection(e, target_slide));
+                        int copy_count = clipboardSlides.Count;
+                        pasteClipboardSlides(target_slide, dropDirection(e, target_slide));
+                    }
+                    else
+                    {
+                        e.Effects = DragDropEffects.Move;
+                        cutSlidesToClipboard(source_slide);
+                        int move_count = clipboardSlides.Count;
+                        pasteClipboardSlides(target_slide, dropDirection(e, target_slide));
+                        history.Add(new History.CompoundUndo(2));
+                    }
+                } else  // it came from a different instance of the app, so we need to use the JSON
                 {
                     e.Effects = DragDropEffects.Copy;
-                    copySlidesToClipboard(target_slide, dropDirection(e, target_slide));
-                    int copy_count = clipboardSlides.Count;
-                    pasteClipboardSlides(target_slide, dropDirection(e, target_slide));
+                    string jsonString = (string)e.Data.GetData("SlideJSON");
+                    Slides drop_slides = new Slides();
+                    JsonConvert.PopulateObject(jsonString, drop_slides);
+                    drop_slides.SetBasePath(album.basePath);
+                    drop_slides.UpdateUris();
+                    placeSlides(drop_slides, target_slide, dropDirection(e, target_slide));
                 }
-                else
-                {
-                    e.Effects = DragDropEffects.Move;
-                    cutSlidesToClipboard(source_slide);
-                    int move_count = clipboardSlides.Count;
-                    pasteClipboardSlides(target_slide, dropDirection(e, target_slide));
-                    history.Add(new History.CompoundUndo(2));
-                }
+
                 target_slide.highlightClear();
             }
         }
@@ -721,10 +749,9 @@ namespace KB30
                 {
                     slideScrollViewer.ScrollToVerticalOffset(slideScrollViewer.VerticalOffset + 20);
                 }
-
                 if (e.Data.GetDataPresent(typeof(Slide)))
                 {
-                    if (slideAdorner != null)  // becuase it came from a different instance of the app?
+                    if (slideAdorner != null)  // prbably becuase it came from a different instance of the app.
                     {
                         slideAdorner.Arrange(new Rect(p.X, p.Y, slideAdorner.DesiredSize.Width, slideAdorner.DesiredSize.Height));
                     }
