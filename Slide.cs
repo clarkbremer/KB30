@@ -46,98 +46,41 @@ namespace KB30
         [JsonIgnore]
         public SlideControl slideControl { get; set; }
 
+        private Uri _uri;
         [JsonIgnore]
-        public string basePath;
-
-        [JsonIgnore]
-        public Uri uri;
+        public Uri uri
+        {
+            get { 
+                if (_uri == null)
+                {
+                    if (fileName == "black")
+                    {
+                        _uri = new Uri(@"pack://application:,,,/Resources/black.png", UriKind.Absolute);
+                    }
+                    else if (fileName == "white")
+                    {
+                        _uri = new Uri(@"pack://application:,,,/Resources/white.png", UriKind.Absolute);
+                    }
+                    else
+                    {
+                        _uri = new Uri(fileName);
+                    }
+                }
+                return _uri; 
+            }
+            set { 
+                _uri = value; 
+            }
+        }
 
         [JsonIgnore]
         public bool isResource = false;
 
-        public bool ShouldSerializefileName() { return false; }
-
-        private string _fileName;
-        public string fileName
-        {
-            get
-            {
-                if (!string.IsNullOrEmpty(basePath) && string.IsNullOrEmpty(_fileName))
-                {
-                    _fileName = Path.GetFullPath(_relativePath, basePath);
-                    uri = new Uri(_fileName);  // this side effect is kind of bogus.  It's why I had to add UpdateUri().
-                }
-                return (_fileName);
-            }
-            set
-            {
-                _fileName = value;
-                if(_fileName == "black")
-                {
-                    uri = new Uri(@"pack://application:,,,/Resources/black.png", UriKind.Absolute);
-                }
-                else if(_fileName == "white")
-                {
-                    uri = new Uri(@"pack://application:,,,/Resources/white.png", UriKind.Absolute);
-                }
-                else
-                {
-                    uri = new Uri(_fileName);
-                    if (!string.IsNullOrEmpty(basePath) && string.IsNullOrEmpty(_relativePath))
-                    {
-                        _relativePath = Path.GetRelativePath(basePath, _fileName);
-                    }
-                }
-            }
-        }
-
-        private string _relativePath;
-        public string relativePath
-        {
-            get
-            {
-                if (uri.Scheme == "file")
-                {
-
-                    if (!string.IsNullOrEmpty(basePath) && !string.IsNullOrEmpty(_fileName))
-                    {
-                        _relativePath = Path.GetRelativePath(basePath, _fileName);
-                    }
-                    return (_relativePath);
-                } else
-                {
-                    return (_fileName);
-                }
-            }
-
-            set
-            {
-                _relativePath = value;
-                if (_relativePath == "black")
-                {
-                    _fileName = _relativePath;
-                    uri = new Uri(@"pack://application:,,,/Resources/black.png", UriKind.Absolute);
-                }
-                else if (_relativePath == "white")
-                {
-                    _fileName = _relativePath;
-                    uri = new Uri(@"pack://application:,,,/Resources/white.png", UriKind.Absolute);
-                }
-                else
-                {
-                    UpdateUri();
-                }
-            }
-        }
-
-        public void UpdateUri()
-        {
-            if (!string.IsNullOrEmpty(basePath) && string.IsNullOrEmpty(_fileName))
-            {
-                _fileName = Path.GetFullPath(_relativePath, basePath);
-                uri = new Uri(_fileName);
-            }
-        }
+        // these are vestigal
+        public bool ShouldSerializerelativePath() { return false; }
+        public string relativePath;
+        
+        public string fileName;
 
         public double Duration()
         {
@@ -305,21 +248,6 @@ namespace KB30
                 {
                     s.highlightClear();
                 }
-            }
-        }
-
-        public void SetBasePath(string basePath)
-        {
-            foreach (Slide slide in this)
-            {
-                slide.basePath = basePath;
-            }
-        }
-        public void UpdateUris()
-        {
-            foreach (Slide slide in this)
-            {
-                slide.UpdateUri();
             }
         }
     }

@@ -78,13 +78,6 @@ namespace KB30
             version = CONFIG_VERSION;
         }
 
-        public Album(string filename, string json)
-        {
-            this.Filename = filename;
-            JsonConvert.PopulateObject(json, this);
-            this.slides.SetBasePath(this.basePath);
-        }
-
         public Boolean Valid()
         {
             if (slides.Count <= 0)
@@ -106,7 +99,6 @@ namespace KB30
 
         public string ToJson()
         {
-            slides.SetBasePath(basePath);
             return JsonConvert.SerializeObject(this, Formatting.Indented);
         }
 
@@ -128,13 +120,12 @@ namespace KB30
             string jsonString;
             jsonString = File.ReadAllText(filename);
             JsonConvert.PopulateObject(jsonString, album);
+            album.MigrateRelativePaths();  // vestigal
             if (Convert.ToDouble(album.version) > CONFIG_VERSION)
             {
                 throw new InvalidOperationException("Album File version is newer than this version of the program");
             }
             Slides slides = album.slides;
-            slides.SetBasePath(album.basePath);
-
             for (int i = slides.Count - 1; i >= 0; i--)
             {
                 var fname = slides[i].fileName;
@@ -165,6 +156,28 @@ namespace KB30
             public override void Undo(MainWindow mainWindow)
             {
                 mainWindow.album.Soundtrack = old_soundtrack;
+            }
+        }
+
+        private void MigrateRelativePaths()  // vestigal
+        {
+            foreach (Slide slide in slides)
+            {
+                if (String.IsNullOrEmpty(slide.fileName))
+                {
+                    if (slide.relativePath == "black")
+                    {
+                        slide.fileName = "black";
+                    }
+                    else if (slide.relativePath == "white")
+                    {
+                        slide.fileName = "white";
+                    }
+                    else
+                    {
+                        slide.fileName = Path.GetFullPath(slide.relativePath, basePath);
+                    }
+                }
             }
         }
     }

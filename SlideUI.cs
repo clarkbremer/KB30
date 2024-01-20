@@ -726,8 +726,6 @@ namespace KB30
                     string jsonString = (string)e.Data.GetData("SlideJSON");
                     Slides drop_slides = new Slides();
                     JsonConvert.PopulateObject(jsonString, drop_slides);
-                    drop_slides.SetBasePath(album.basePath);
-                    drop_slides.UpdateUris();
                     placeSlides(drop_slides, target_slide, dropDirection(e, target_slide));
                 }
 
