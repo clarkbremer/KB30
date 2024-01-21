@@ -16,9 +16,9 @@ namespace KB30
 
         private int hightlightState = HIGHLIGHT_NONE;
         public bool selected = false;
-        private FinderWindow finderWindow = null;
+        private ImageExplorerWindow finderWindow = null;
 
-        public KeyframeControl(FinderWindow finderWnd)
+        public KeyframeControl(ImageExplorerWindow finderWnd)
         {
             InitializeComponent();
             finderWindow = finderWnd;

@@ -278,7 +278,7 @@ namespace KB30
 
         private void addSlideClick(object sender, RoutedEventArgs e)
         {
-            showFinder();
+            showImageExplorer();
         }
 
         internal Slide insertSlide(string fileName, int direction = BELOW)

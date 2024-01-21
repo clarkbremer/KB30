@@ -29,7 +29,7 @@ namespace KB30
 
         public void addKeyframeControl(Keyframe key, int insertIndex = -1)
         {
-            KeyframeControl kfControl = new KeyframeControl(finderWindow);
+            KeyframeControl kfControl = new KeyframeControl(imageExplorerWindow);
             kfControl.DeSelect();
             key.keyframeControl = kfControl;
             if (insertIndex == -1)

@@ -28,7 +28,7 @@
                 <MenuItem Header="_Save"   Click="fileSaveClick"/>
                 <MenuItem Header="Save_As" Click="fileSaveAsClick"/>
                 <MenuItem Header="Details" Click="fileDetailsClick"/>
-                <MenuItem Header="Finder"  Click="finderClick"/>
+                <MenuItem Header="Finder"  Click="imageExplorerClick"/>
             </MenuItem>
         </Menu>
         <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Height="30">

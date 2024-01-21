@@ -16,11 +16,11 @@ using Path = System.IO.Path;
 namespace KB30
 {
     /// <summary>
-    /// Interaction logic for FinderWindow.xaml
+    /// Interaction logic for ImageExplorerWindow.xaml
     /// </summary>
-    public partial class FinderWindow : Window
+    public partial class ImageExplorerWindow : Window
     {
-        public FinderWindow()
+        public ImageExplorerWindow()
         {
             InitializeComponent();
         }

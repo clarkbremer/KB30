@@ -17,13 +17,11 @@ using System.Diagnostics;
 /*
  * Bugs:
  * To DO:
- *  - When file not found, give option to skip once, skip all, or abort.
- *  - Use relative path for audio and backgroung
+ *  - When file not found, give option to skip once, skip all, replace with back or white, find, or abort.
  *  - Export 
- *  - drag and drop between instances of app
  *  - Portrait Mode
  *  - Undo/Redo
- *  - Drag and Drop from finder left panel into main window left panel.
+ *  - Drag and Drop from ImageExplorer left panel into main window left panel.
  *  - Option to lock cropper within bounds of image
  *  Config options both global and local to this album:
  *   - Absolute/Relative paths 
@@ -59,7 +57,7 @@ namespace KB30
         public Keyframe clipboardKey = null;
         private Slide startDragSlide = null;
         private Point initialSlideMousePosition;
-        public FinderWindow finderWindow = null;
+        public ImageExplorerWindow imageExplorerWindow = null;
 
         public MainWindow()
         {
@@ -153,9 +151,9 @@ namespace KB30
         /************
          *  File Menu
          */
-        private void finderClick(object sender, RoutedEventArgs e)
+        private void imageExplorerClick(object sender, RoutedEventArgs e)
         {
-            showFinder();
+            showImageExplorer();
         }
         private void fileNewClick(object sender, RoutedEventArgs e)
         {
@@ -271,33 +269,33 @@ namespace KB30
                             "Total duration " + durationMins + ":" + durationSecs.ToString("D2"), "File Info");
         }
 
-        public void showFinder()
+        public void showImageExplorer()
         {
-            if (finderWindow == null)
+            if (imageExplorerWindow == null)
             {
-                finderWindow = new FinderWindow();
-                finderWindow.mainWindow = this;
-                finderWindow.Closed += FinderWindow_Closed;
+                imageExplorerWindow = new ImageExplorerWindow();
+                imageExplorerWindow.mainWindow = this;
+                imageExplorerWindow.Closed += ImageExplorerWindow_Closed;
                 if (this.Top > 100)
                 {
-                    finderWindow.Top = this.Top - 100;
+                    imageExplorerWindow.Top = this.Top - 100;
                 } else
                 {
-                    finderWindow.Top = 0;
+                    imageExplorerWindow.Top = 0;
                 }
 
-                finderWindow.Left = this.Left + 200;
-                finderWindow.Show();
+                imageExplorerWindow.Left = this.Left + 200;
+                imageExplorerWindow.Show();
             }
             else
             {
-                finderWindow.Activate();
+                imageExplorerWindow.Activate();
             }
         }
 
-        private void FinderWindow_Closed(object sender, EventArgs e)
+        private void ImageExplorerWindow_Closed(object sender, EventArgs e)
         {
-            finderWindow = null;
+            imageExplorerWindow = null;
         }
 
         private void mainWindowClosing(object sender, CancelEventArgs e)
