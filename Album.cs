@@ -21,22 +21,11 @@ namespace KB30
         [JsonProperty]
         public Slides slides { get; set; }
 
-        public string basePath;
-
-        private string _filename;
-
         private String lastSnapShot = "";
 
         private HashSet<string> search_paths = new HashSet<string>();
 
-        public string Filename {
-            get { return _filename; }
-            set {
-                _filename = value;
-                basePath = Path.GetDirectoryName(_filename);
-            }
-        }
-
+        public string Filename;
         public Album(string filename)
         {
             Filename = filename;
@@ -45,7 +34,6 @@ namespace KB30
             jsonString = File.ReadAllText(filename);
             JsonConvert.PopulateObject(jsonString, this);
             lastSnapShot = ToJson();
-            MigrateRelativePaths();  // vestigal
             if (Convert.ToDouble(version) > CONFIG_VERSION)
             {
                 throw new InvalidOperationException("Album File version is newer than this version of the program");
@@ -118,11 +106,6 @@ namespace KB30
         {
             Filename = _filename;
             slides = _slides;
-            if (!string.IsNullOrEmpty(Filename) && Filename != "untitled")
-            {
-                basePath = Path.GetDirectoryName(Filename);
-            }
-
             version = CONFIG_VERSION;
             lastSnapShot = ToJson();
         }
@@ -235,28 +218,6 @@ namespace KB30
                 return (openFileDialog.FileName);
             }
             return "";
-        }
-
-        private void MigrateRelativePaths()  // vestigal
-        {
-            foreach (Slide slide in slides)
-            {
-                if (String.IsNullOrEmpty(slide.fileName))
-                {
-                    if (slide.relativePath == "black")
-                    {
-                        slide.fileName = "black";
-                    }
-                    else if (slide.relativePath == "white")
-                    {
-                        slide.fileName = "white";
-                    }
-                    else
-                    {
-                        slide.fileName = Path.GetFullPath(slide.relativePath, basePath);
-                    }
-                }
-            }
         }
     }
 }
