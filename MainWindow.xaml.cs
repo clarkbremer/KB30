@@ -49,7 +49,6 @@ namespace KB30
         public int currentKeyframeIndex = 0;
         public Slides slides = new Slides();
         public Album album;
-        private String lastSavedAlbum;
         public History history;
         private Boolean playWithArgumentFile = false;
         private Boolean uiLoaded = false;
@@ -126,7 +125,6 @@ namespace KB30
 
         private void mainWindowLoaded(object sender, RoutedEventArgs e)
         {
-            lastSavedAlbum = album.ToJson();
             var allArgs = Environment.GetCommandLineArgs();
             if (allArgs.Length > 1)
             {
@@ -157,11 +155,10 @@ namespace KB30
         }
         private void fileNewClick(object sender, RoutedEventArgs e)
         {
-            if (saveIfDirty())
+            if (album.SaveIfDirty())
             {
                 blankUI();
                 album = new Album(slides, "untitled");
-                lastSavedAlbum = album.ToJson();
                 this.Title = "KB30 - " + album.Filename;
             }
         }
@@ -171,7 +168,7 @@ namespace KB30
             Album old_album = album;  // just in case
 
             try { 
-                album = Album.LoadFromFile(filename);
+                album = new Album(filename);
             } catch (Exception e)
             {
                 if (e.Message != "Quiet")
@@ -181,15 +178,13 @@ namespace KB30
                 return false;
             }
             slides = album.slides;
-
-            lastSavedAlbum = album.ToJson();
             this.Title = "KB30 - " + album.Filename;
             return true;
         }
 
         private void fileOpenClick(object sender, RoutedEventArgs e)
         {
-            if (saveIfDirty())
+            if (album.SaveIfDirty())
             {
                 OpenFileDialog openFileDialog = new OpenFileDialog();
                 openFileDialog.Filter = "KB30 files (*.kb30)|*.kb30|All files (*.*)|*.*";
@@ -203,29 +198,7 @@ namespace KB30
             }
         }
 
-        private Boolean saveIfDirty()
-        {
-            String snapshot = album.ToJson();
-            if (snapshot != lastSavedAlbum)
-            {
-                MessageBoxResult result = MessageBox.Show("Save changes to " + album.Filename + "?", "KB30", MessageBoxButton.YesNoCancel);
-                switch (result)
-                {
-                    case MessageBoxResult.Yes:
-                        lastSavedAlbum = album.SaveToFile();
-                        if (lastSavedAlbum == "")
-                        {
-                            return false;
-                        } 
-                        return true;
-                    case MessageBoxResult.No:
-                        return true;
-                    case MessageBoxResult.Cancel:
-                        return false;
-                }
-            }
-            return true;
-        }
+  
 
 
         private void fileSaveAsClick(object sender, RoutedEventArgs e)
@@ -237,7 +210,7 @@ namespace KB30
             {
                 album.Filename = saveFileDialog.FileName;
                 this.Title = "KB30 - " + album.Filename;
-                lastSavedAlbum = album.SaveToFile();
+                album.SaveToFile();
             }
         }
 
@@ -249,7 +222,7 @@ namespace KB30
             }
             else
             {
-                lastSavedAlbum = album.SaveToFile();
+                album.SaveToFile();
             }
         }
         private void fileDetailsClick(object sender, RoutedEventArgs e)
@@ -300,7 +273,7 @@ namespace KB30
 
         private void mainWindowClosing(object sender, CancelEventArgs e)
         {
-            if (saveIfDirty() == false)
+            if (album.SaveIfDirty() == false)
             {
                 e.Cancel = true;
             }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Windows;
+using Microsoft.Win32;
 using Newtonsoft.Json;
 
 
@@ -13,6 +14,7 @@ namespace KB30
     {
         const double CONFIG_VERSION = 1.0;
 
+
         [JsonProperty]
         public double version { get; set; }
 
@@ -22,15 +24,96 @@ namespace KB30
         public string basePath;
 
         private string _filename;
-        public string Filename { 
-            get { return _filename; } 
+
+        private String lastSnapShot = "";
+
+        private HashSet<string> search_paths = new HashSet<string>();
+
+        public string Filename {
+            get { return _filename; }
             set {
                 _filename = value;
-                basePath = Path.GetDirectoryName(_filename); 
-            } 
+                basePath = Path.GetDirectoryName(_filename);
+            }
         }
 
-        public Album() { }
+        public Album(string filename)
+        {
+            Filename = filename;
+
+            string jsonString;
+            jsonString = File.ReadAllText(filename);
+            JsonConvert.PopulateObject(jsonString, this);
+            lastSnapShot = ToJson();
+            MigrateRelativePaths();  // vestigal
+            if (Convert.ToDouble(version) > CONFIG_VERSION)
+            {
+                throw new InvalidOperationException("Album File version is newer than this version of the program");
+            }
+            if (!ValidateFilenames())
+            {
+                throw new InvalidOperationException("Quiet");
+            }
+        }
+
+        private bool ValidateFilenames(){
+            int i = 0;
+            bool? repeat = false;
+            bool retry = false;
+            int action = 0;
+            while (i < slides.Count)  // We use this instead of ForEach because we may be deleting items
+            {
+                retry = false;
+                string fname = slides[i].fileName;
+                if (!File.Exists(fname) && fname != "black" && fname != "white")
+                {
+                    if (repeat != true)
+                    {
+                        NotFoundDialog not_found_dialog = new NotFoundDialog();
+                        not_found_dialog.filename_message.Text = "File Not Found: " + fname;
+                        if (not_found_dialog.ShowDialog() == true)
+                        {
+                            action = not_found_dialog.result;
+                            repeat = not_found_dialog.repeatCheckBox.IsChecked;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    switch (action)
+                    {
+                        case NotFoundDialog.ACTION_SKIP:
+                            slides.RemoveAt(i);
+                            break;
+                        case NotFoundDialog.ACTION_BLACK:
+                            slides[i].fileName = "black";
+                            break;
+                        case NotFoundDialog.ACTION_WHITE:
+                            slides[i].fileName = "white";
+                            break;
+                        case NotFoundDialog.ACTION_FIND:
+                            string found_file = FindMissingFile(fname);
+                            if (found_file == "")
+                            {
+                                retry = true;
+                                repeat = false;
+                            }
+                            else
+                            {
+                                slides[i].fileName = found_file;
+                            }
+                            break;
+                    }
+                }
+                if (retry == false)
+                {
+                    i++;
+                }
+            }
+            return true;
+        }
+
         public Album(Slides _slides, string _filename)
         {
             Filename = _filename;
@@ -41,6 +124,7 @@ namespace KB30
             }
 
             version = CONFIG_VERSION;
+            lastSnapShot = ToJson();
         }
 
         public Boolean Valid()
@@ -67,48 +151,90 @@ namespace KB30
             return JsonConvert.SerializeObject(this, Formatting.Indented);
         }
 
+        private void TakeSnapshot(){
+            lastSnapShot = ToJson();
+        }
+
         public string SaveToFile()
         {
             if(Filename == "untitled" || Filename == "")
             {
                 return "";
             }
-            string json = this.ToJson();
+            string json = ToJson();
             File.WriteAllText(Filename, json);
+            lastSnapShot = ToJson();
             return json;
         }
-        public static Album LoadFromFile(string filename)
+
+        public Boolean SaveIfDirty()
         {
-            Album album = new Album();
-            album.Filename = filename;
-            
-            string jsonString;
-            jsonString = File.ReadAllText(filename);
-            JsonConvert.PopulateObject(jsonString, album);
-            album.MigrateRelativePaths();  // vestigal
-            if (Convert.ToDouble(album.version) > CONFIG_VERSION)
+            String snapshot = ToJson();
+            if (snapshot != lastSnapShot)
             {
-                throw new InvalidOperationException("Album File version is newer than this version of the program");
-            }
-            Slides slides = album.slides;
-            for (int i = slides.Count - 1; i >= 0; i--)
-            {
-                var fname = slides[i].fileName;
-                if (!File.Exists(fname) &&fname != "black" && fname != "white")
+                MessageBoxResult result = MessageBox.Show("Save changes to " + Filename + "?", "KB30", MessageBoxButton.YesNoCancel);
+                switch (result)
                 {
-                    NotFoundDialog not_found_dialog = new NotFoundDialog();
-                    not_found_dialog.filename_message.Text = "File Not Found: " + fname;
-                    if (not_found_dialog.ShowDialog() == true)
-                    {
-                        slides.RemoveAt(i);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException("Quiet");
-                    }
+                    case MessageBoxResult.Yes:
+                        lastSnapShot = SaveToFile();
+                        if (lastSnapShot == "")
+                        {
+                            return false;
+                        }
+                        return true;
+                    case MessageBoxResult.No:
+                        return true;
+                    case MessageBoxResult.Cancel:
+                        return false;
                 }
             }
-            return album;
+            return true;
+        }
+
+        private string FindMissingFile(string missing_file_with_path)
+        {
+            foreach (string search_path in search_paths)
+            {
+                string missing_file = Path.GetFileName(missing_file_with_path);
+
+                // try in same directory as previous
+                string candidate = Path.Combine(search_path, missing_file);
+                if(File.Exists(candidate)){
+                    return (candidate);
+                }
+
+                // try replacing just the last subdirectory
+                string[] missing_parts = missing_file_with_path.Split("\\");
+                if(missing_parts.Length < 2) { break; }
+                string[] tail = missing_parts[(missing_parts.Length - 2)..(missing_parts.Length)];
+                string[] candidate_parts = search_path.Split("\\");
+                if(candidate_parts.Length < 2) { break; }
+                string[] head = candidate_parts[0..(candidate_parts.Length - 1)];
+                string[] all = new string[head.Length + tail.Length];
+                Array.Copy(head, all, head.Length);
+                Array.Copy(tail, 0, all, head.Length, tail.Length);
+                candidate = String.Join("\\", all);
+                if (File.Exists(candidate))
+                {
+                    return (candidate);
+                }
+            }
+
+            // if all else fails, have user find it
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Title = "Missing File: " + missing_file_with_path;
+            openFileDialog.Filter = "Images (*.BMP;*.JPG;*.GIF,*.PNG)|*.BMP;*.JPG;*.GIF;*.PNG|All files (*.*)|*.*";
+            openFileDialog.FileName = Path.GetFileName(missing_file_with_path);
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string new_dir = Path.GetDirectoryName(openFileDialog.FileName);
+                if (!search_paths.Contains(new_dir))
+                {
+                    search_paths.Add(new_dir);
+                }
+                return (openFileDialog.FileName);
+            }
+            return "";
         }
 
         private void MigrateRelativePaths()  // vestigal

@@ -9,7 +9,7 @@
         ResizeMode="NoResize"
         Title="File Not Found" 
         SizeToContent="WidthAndHeight" 
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen" d:DesignWidth="325.12">
     <Grid>
         <Grid Margin="10,10,10,10">
             <Grid.ColumnDefinitions>
@@ -18,15 +18,23 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
 
-            <TextBlock Name="filename_message">File Not Found: xyzaskjfdhakjsdhfaklsdhfakj </TextBlock>
+            <TextBlock Grid.Row="0" Name="filename_message">File Not Found: xyzaskjfdhakjsdhfaklsdhfakj </TextBlock>
 
-            <WrapPanel Grid.Row="2" HorizontalAlignment="Center" Margin="0,15,0,0">
-                <Button IsDefault="True" Name="btnDialogSkip" Click="btnDialogSkip_Click" Margin="10,0,10,0">Skip this file</Button>
-                <Button IsCancel="True" Name="btnDialogAbort" Click="btnDialogAbort_Click" Margin="10,0,10,0">Abort Loading</Button>
+            <WrapPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,5,0,0">
+                <Button Name="btnDialogBlack" Click="btnDialogBlack_Click" Padding="10,2" Margin="0,0,10,0">Replace with Black</Button>
+                <Button Name="btnDialogWhite" Click="btnDialogWhite_Click" Padding="10,2" Margin="0,0,10,0">Replace with White</Button>
             </WrapPanel>
+            <WrapPanel Grid.Row="2" HorizontalAlignment="Center" Margin="0,5,0,0">
+                <Button Name="btnDialogFind"  Click="btnDialogFind_Click"  Padding="10,2" Margin="0,0,10,0">Find File</Button>
+                <Button Name="btnDialogSkip"  Click="btnDialogSkip_Click"  Padding="10,2" Margin="0,0,10,0" IsDefault="True" >Skip this file</Button>
+                <Button Name="btnDialogAbort" Click="btnDialogAbort_Click" Padding="10,2" Margin="0,0,10,0" IsCancel="True">Abort Loading</Button>
+            </WrapPanel>
+            <CheckBox x:Name="repeatCheckBox" Grid.Row="3" Margin="0,5,0,0" HorizontalAlignment="Center">Repeat for all files</CheckBox>
         </Grid>
     </Grid>
 </Window>
