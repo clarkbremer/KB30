@@ -31,6 +31,8 @@ namespace KB30
         int current_file_index = 0;
         string current_folder;
         List<string> image_extensions = new List<string>() {".gif", ".jpg", ".png", ".bmp"};
+        private Point initialTileMousePosition;
+
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -121,6 +123,8 @@ namespace KB30
                     imageTile.Caption.Text = Path.GetFileName(fname);
                     imageTile.MouseLeftButtonUp += thumbnailButtonClick;
                     imageTile.MouseDoubleClick += thumbnailDoubleClick;
+                    imageTile.MouseMove += delegate (object sender, MouseEventArgs e) { tileMouseMove(sender, e, imageTile); };
+                    imageTile.PreviewMouseDown += thumbnailPreviewMouseDown; 
                     filePanel.Children.Add(imageTile);
                     current_image_tiles.Add(imageTile);
  
@@ -233,12 +237,38 @@ namespace KB30
             Tile tile = sender as Tile;
             selectTile(tile);
         }
+
         private void thumbnailDoubleClick(object sender, RoutedEventArgs e)
         {
             Tile tile = sender as Tile;
             mainWindow.insertSlide(tile.fullPath);
         }
 
+        private void tileMouseMove(object sender, MouseEventArgs e, Tile tile)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                var movedDistance = Point.Subtract(initialTileMousePosition, e.GetPosition(tile)).Length;
+                if (movedDistance > 15 && initialTileMousePosition != new Point(0, 0))  // We moved enough with the button down to be considered a drag
+                {
+                    // package the data
+                    DataObject data = new DataObject();
+                    string[] files = new string[1];
+                    files[0] = tile.fullPath;
+                    data.SetData(DataFormats.FileDrop, files);
+
+                    // do it!
+                    DragDropEffects result = DragDrop.DoDragDrop(tile, data, DragDropEffects.Copy);
+                }
+            }
+        }
+        
+
+        private void thumbnailPreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            initialTileMousePosition = e.GetPosition(this);
+        }
+        
         private void selectTile(Tile tile) {
             if ((current_file_index >= 0) && (current_file_index < current_image_tiles.Count))
             {

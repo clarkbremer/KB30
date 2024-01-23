@@ -17,14 +17,11 @@ using System.Diagnostics;
 /*
  * Bugs:
  * To DO:
- *  - When file not found, give option to skip once, skip all, replace with back or white, find, or abort.
  *  - Export 
  *  - Portrait Mode
  *  - Undo/Redo
- *  - Drag and Drop from ImageExplorer left panel into main window left panel.
  *  - Option to lock cropper within bounds of image
  *  Config options both global and local to this album:
- *   - Absolute/Relative paths 
  *   - default fadein/out duration
  *   - default key duration
  *  Duration textbox allow only numeric.
