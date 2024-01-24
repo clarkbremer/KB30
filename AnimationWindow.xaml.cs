@@ -89,7 +89,7 @@ namespace KB30
             startAnimation(_start);
         }
 
-        public void startAnimation(int _start = 0)
+        private void startAnimation(int _start = 0)
         {
             currentImage = image1;
             otherImage = image2;

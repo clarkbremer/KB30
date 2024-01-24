@@ -287,13 +287,36 @@ namespace KB30
 
         void cropperMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (e.Delta > 0)
+            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
             {
-                mainWindow.prevSlide();
+                double delta = 0;
+                if (e.Delta > 0)
+                {
+                    delta = 0.1;
+                }
+                else if (e.Delta < 0)
+                {
+                    delta = -0.1;
+                }
+
+                mainWindow.kfModifiedHistory();
+
+                double new_x = Canvas.GetLeft(cropper) - (cropper.Width * delta / 2);
+                double new_y = Canvas.GetTop(cropper) - (cropper.Height * delta / 2);
+                double new_width = cropper.Width + (cropper.Width * delta);
+                double new_height = new_width * 9 / 16;
+                updateCropper(new_x, new_y, new_width, new_height);
             }
-            else if (e.Delta < 0)
+            else
             {
-                mainWindow.nextSlide();
+                if (e.Delta > 0)
+                {
+                    mainWindow.prevSlide();
+                }
+                else if (e.Delta < 0)
+                {
+                    mainWindow.nextSlide();
+                }
             }
         }
 
