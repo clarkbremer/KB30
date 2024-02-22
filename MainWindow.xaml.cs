@@ -19,7 +19,7 @@ using System.Diagnostics;
  * To DO:
  *  - Export 
  *  - Portrait Mode
- *  - Undo/Redo
+ *  - Undo/Redo needs work
  *  - Option to lock cropper within bounds of image
  *  Config options both global and local to this album:
  *   - default fadein/out duration

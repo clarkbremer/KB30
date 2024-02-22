@@ -14,7 +14,7 @@
         </Grid.RowDefinitions>
         <Border x:Name="UpperBorder" Grid.Row="0" Background="Transparent" BorderBrush="LightGreen" Margin="0" BorderThickness="0" VerticalAlignment="Center" HorizontalAlignment="Stretch"></Border>
         <Border x:Name="LowerBorder" Grid.Row="2" Background="Transparent" BorderBrush="LightGreen " Margin="0" BorderThickness="0" VerticalAlignment="Center" HorizontalAlignment="Stretch"></Border>
-        <Border x:Name="SelectBorder" Grid.Row="1" Background="Transparent" BorderBrush="Red" Margin="2" BorderThickness="5" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Border x:Name="SelectBorder" Grid.Row="1" Background="Transparent" BorderBrush="Red" Margin="0" BorderThickness="5" VerticalAlignment="Center" HorizontalAlignment="Center">
             <StackPanel>
                 <Grid>
                     <Image Name="image" />

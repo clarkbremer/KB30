@@ -184,7 +184,6 @@ namespace KB30
             }
         }
 
-
         private static bool isHidden(string f)
         {
             return File.GetAttributes(f).HasFlag(FileAttributes.Hidden);
@@ -208,6 +207,7 @@ namespace KB30
             workerResult.bmp = bmp;
             e.Result = workerResult;
         }
+
         void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             WorkerResult workerResult = (WorkerResult)e.Result;
@@ -248,8 +248,9 @@ namespace KB30
         {
             if (e.LeftButton == MouseButtonState.Pressed)
             {
-                var movedDistance = Point.Subtract(initialTileMousePosition, e.GetPosition(tile)).Length;
-                if (movedDistance > 15 && initialTileMousePosition != new Point(0, 0))  // We moved enough with the button down to be considered a drag
+                var pp = e.GetPosition(tile);
+                var movedDistance = Point.Subtract(initialTileMousePosition, pp).Length;
+                if (movedDistance > 30 && initialTileMousePosition != new Point(0, 0))  // We moved enough with the button down to be considered a drag
                 {
                     // package the data
                     DataObject data = new DataObject();
@@ -258,15 +259,19 @@ namespace KB30
                     data.SetData(DataFormats.FileDrop, files);
 
                     // do it!
-                    DragDropEffects result = DragDrop.DoDragDrop(tile, data, DragDropEffects.Copy);
+                    DragDropEffects result = DragDrop.DoDragDrop(tile, data, DragDropEffects.Copy | DragDropEffects.Move);
+                }
+                else
+                {
+                    selectTile(tile);
                 }
             }
+          
         }
-        
 
         private void thumbnailPreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            initialTileMousePosition = e.GetPosition(this);
+            initialTileMousePosition = e.GetPosition((Tile)sender);
         }
         
         private void selectTile(Tile tile) {

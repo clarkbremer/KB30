@@ -684,7 +684,12 @@ namespace KB30
             }
             else if (e.Data.GetDataPresent(typeof(Slide)))
             {
-                if (target_slide == null) { return; }
+                Console.Beep(1500, 50);
+                if (target_slide == null) {
+                    // If this happens, it's becasue the slidescroll (not the slide) got the drop event
+                    Console.Beep(600, 200);
+                    return; 
+                }
                 // need a way here to tell if it came from a different instance of the app, and if so, use the JSON.
                 int source_id = (int)e.Data.GetData("InstanceID");
                 int my_id = Application.Current.MainWindow.GetHashCode();
@@ -693,7 +698,7 @@ namespace KB30
                     Slide source_slide = e.Data.GetData(typeof(Slide)) as Slide;
                     if (source_slide != startDragSlide)
                     {
-                        Console.Beep(600, 400);
+                        Console.Beep(600, 200);
                     }
                     if (target_slide.IsChecked() || (target_slide == source_slide))
                     {
@@ -711,6 +716,7 @@ namespace KB30
                         copySlidesToClipboard(target_slide, dropDirection(e, target_slide));
                         int copy_count = clipboardSlides.Count;
                         pasteClipboardSlides(target_slide, dropDirection(e, target_slide));
+                        Console.Beep(2000, 50);
                     }
                     else
                     {
@@ -719,6 +725,7 @@ namespace KB30
                         int move_count = clipboardSlides.Count;
                         pasteClipboardSlides(target_slide, dropDirection(e, target_slide));
                         history.Add(new History.CompoundUndo(2));
+                        Console.Beep(2000, 50);
                     }
                 } else  // it came from a different instance of the app, so we need to use the JSON
                 {
@@ -727,6 +734,7 @@ namespace KB30
                     Slides drop_slides = new Slides();
                     JsonConvert.PopulateObject(jsonString, drop_slides);
                     placeSlides(drop_slides, target_slide, dropDirection(e, target_slide));
+                    Console.Beep(2000, 100);
                 }
 
                 target_slide.highlightClear();
