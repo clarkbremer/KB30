@@ -159,6 +159,9 @@ namespace KB30
 
         public void BringIntoView() { slideControl?.BringIntoView(); }
 
+        public bool hasBackgroundAudio() { return !String.IsNullOrEmpty(backgroundAudio); }
+        public bool hasAudio() { return !String.IsNullOrEmpty(audio); }
+
     }
 
     public class Slides : List<Slide>
