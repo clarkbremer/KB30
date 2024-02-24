@@ -36,7 +36,7 @@ namespace KB30
         public bool ShouldSerializeaudio() { return !string.IsNullOrEmpty(audio); }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public double audioVolume = 0.9;
+        public double audioVolume { get; set; } = 0.9;
         public bool ShouldSerializeaudioVolume() { return !string.IsNullOrEmpty(audio); }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]

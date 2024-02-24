@@ -21,6 +21,9 @@ namespace KB30
         /* slide that has the audio info for what's currently playing */
         Slide currentBackgroundAudioSlide = null;
         Slide currentAudioSlide = null;
+        AnimationClock volumeFadeOutClock;
+
+
         Image currentImage;
         Image otherImage;
         int currentSlideIndex;
@@ -560,7 +563,9 @@ namespace KB30
 
         /*
          * Background Audio 
-         * TODO:  See if all this stuff can be put in it's own class, so we can re-use it for audio.
+         * TODO:  See if all this stuff can be put in it's own class, so we can re-use it for audio.  
+         *   - Initialize with slides, media player, filename_property, volume_property, and loop_property property names, etc.  Use GetProperty(string) to fetch from slides.
+         *   
          */
         private void backgroundAudioOpened(object sender, RoutedEventArgs e) 
         {
@@ -589,7 +594,7 @@ namespace KB30
 
         void backgroundAudioEnded(object sender, RoutedEventArgs e)
         {
-            if (currentBackgroundAudioSlide.loopBackground)
+            if (currentBackgroundAudioSlide != null && currentBackgroundAudioSlide.loopBackground)
             {
                 backgroundAudio.Position = TimeSpan.FromSeconds(0);
                 backgroundAudio.Play();
@@ -597,6 +602,7 @@ namespace KB30
             else
             {
                 currentBackgroundAudioSlide = null;
+                backgroundAudio.Close();
             }
         }
 
@@ -619,6 +625,12 @@ namespace KB30
             if (prev_background_slide == null)  // nothing to play
             {
                 return;
+            }
+
+            if (volumeFadeOutClock != null && volumeFadeOutClock.CurrentState == ClockState.Active)
+            {
+                volumeFadeOutClock.Controller.Stop();
+                backgroundAudio.ApplyAnimationClock(MediaElement.VolumeProperty, null);
             }
 
             if (prev_background_slide == currentBackgroundAudioSlide)   // same audio, just need to set new position
@@ -652,9 +664,8 @@ namespace KB30
             var volumeFadeOut = new DoubleAnimation(backgroundAudio.Volume, 0, TimeSpan.FromSeconds(slideDuration + 1.5));
             volumeFadeOut.Completed += endBackgroundAudioFadeOut;
             volumeFadeOut.FillBehavior = FillBehavior.Stop;
-            AnimationClock volumeFadeOutClock = volumeFadeOut.CreateClock();
+            volumeFadeOutClock = volumeFadeOut.CreateClock();
             backgroundAudio.ApplyAnimationClock(MediaElement.VolumeProperty, volumeFadeOutClock);
-            
         }
 
         /* called during playback when we detect that the *current* slide is an audio slide */
@@ -693,6 +704,7 @@ namespace KB30
                     audio.Volume = 1.0;
                 }
                 audio.Play();
+                //  var vol = typeof(Slide).GetProperty("audioVolume", typeof(double)).GetValue(audio_slide, null);
                 currentAudioSlide = audio_slide;
             }
         }
