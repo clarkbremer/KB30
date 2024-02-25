@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -19,7 +21,6 @@ namespace KB30
         AnimationClock volumeFadeOutClock;
         Slide mediaSlide;
         int currentSlideIndex;
-        double speedFactor;
 
         public AudioControl(
             MediaElement _player,
@@ -40,38 +41,49 @@ namespace KB30
 
         public void start(Slide audio_slide)
         {
-            mediaPlayer.Stop();
-            mediaPlayer.Source = new Uri(filename(audio_slide), UriKind.RelativeOrAbsolute);
-            mediaPlayer.Play();  // volume will get set in "opened()"
-            mediaSlide = audio_slide;
-            currentSlideIndex = slides.IndexOf(audio_slide);
+            if (File.Exists(filename(audio_slide)))
+            {
+                mediaPlayer.Stop();
+                mediaPlayer.Source = new Uri(filename(audio_slide), UriKind.RelativeOrAbsolute);
+                mediaPlayer.Play();  // volume will get set in "opened()"
+                mediaSlide = audio_slide;
+                currentSlideIndex = slides.IndexOf(audio_slide);
+            }
         }
 
         public void play()
         {
-            mediaPlayer.Play();
+            // olny if we had been playing
+            var state = GetMediaState(mediaPlayer);
+            if (state == MediaState.Pause)
+            {
+                mediaPlayer.Play();
+            }
         }
         public void pause()
         {
-            mediaPlayer.Play();
+            var state = GetMediaState(mediaPlayer);
+            if (state == MediaState.Play)
+            {
+                mediaPlayer.Pause();
+            }
         }
 
 
-        public void syncToSlide(int slideIndex, double speed_factor)
+        public void syncToSlide(int slideIndex)
         {
-            speedFactor = speed_factor;
             currentSlideIndex = slideIndex;
-            Slide prev_background_slide = null;
+            Slide prev_media_slide = null;
             for (int i = slideIndex; i >= 0; i--)
             {
-                if (slides[i].hasBackgroundAudio())
+                if (hasAudio(slides[i]))
                 {
-                    prev_background_slide = slides[i];
+                    prev_media_slide = slides[i];
                     break;
                 }
             }
 
-            if (prev_background_slide == null)  // nothing to play
+            if (prev_media_slide == null)  // nothing to play
             {
                 return;
             }
@@ -82,7 +94,7 @@ namespace KB30
                 mediaPlayer.ApplyAnimationClock(MediaElement.VolumeProperty, null);
             }
 
-            if (prev_background_slide == mediaSlide)   // same audio, just need to set new position
+            if (prev_media_slide == mediaSlide)   // same audio, just need to set new position
             {
                 double audio_duration = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
                 double time_between = timeBetweenSlides(mediaSlide, slideIndex);
@@ -99,10 +111,13 @@ namespace KB30
             }
             else // not the same audio
             {
-                mediaPlayer.Stop();
-                mediaSlide = prev_background_slide;
-                mediaPlayer.Source = new Uri(filename(prev_background_slide), UriKind.RelativeOrAbsolute);
-                mediaPlayer.Play();  // the position will be adjusted in backgroundAudioOpened().  We don't know duration, etc, until then.
+                if (File.Exists(filename(prev_media_slide)))
+                {
+                    mediaPlayer.Stop();
+                    mediaSlide = prev_media_slide;
+                    mediaPlayer.Source = new Uri(filename(prev_media_slide), UriKind.RelativeOrAbsolute);
+                    mediaPlayer.Play();  // the position will be adjusted in mediaOpened().  We don't know duration, etc, until then.
+                }
             }
         }
 
@@ -171,6 +186,19 @@ namespace KB30
             return l;
         }
 
+        private Boolean hasAudio(Slide slide)
+        {
+            return (!String.IsNullOrEmpty(filename(slide)));
+        }
+        private MediaState GetMediaState(MediaElement myMedia)  // I didn't write this - found it on the net
+        {
+            FieldInfo hlp = typeof(MediaElement).GetField("_helper", BindingFlags.NonPublic | BindingFlags.Instance);
+            object helperObject = hlp.GetValue(myMedia);
+            FieldInfo stateField = helperObject.GetType().GetField("_currentState", BindingFlags.NonPublic | BindingFlags.Instance);
+            MediaState state = (MediaState)stateField.GetValue(helperObject);
+            return state;
+        }
+
         private double timeBetweenSlides(Slide start_slide, int end_slide_index)
         {
             return timeBetweenSlides(slides.IndexOf(start_slide), end_slide_index);
@@ -186,7 +214,6 @@ namespace KB30
                 }
                 totalDuration += 1.5; // for fade in out
             }
-            totalDuration = totalDuration / speedFactor;
             return totalDuration;
         }
     }

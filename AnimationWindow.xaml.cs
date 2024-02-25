@@ -18,11 +18,6 @@ namespace KB30
     {
         public Slides slides = new Slides();
 
-        /* slide that has the audio info for what's currently playing */
-        //Slide currentBackgroundAudioSlide = null;
-        //Slide currentAudioSlide = null;
-        //AnimationClock volumeFadeOutClock;
-
         AudioControl background_audio;
         AudioControl foreground_audio;
 
@@ -113,7 +108,8 @@ namespace KB30
 
             transformImage(currentImage, slides[currentSlideIndex].keys[0]);
 
-            background_audio.syncToSlide(currentSlideIndex, speedFactor);
+            background_audio.syncToSlide(currentSlideIndex);
+            foreground_audio.syncToSlide(currentSlideIndex);
             paused = false;
             frame1.Opacity = 1;
             frame2.Opacity = 0;
@@ -285,6 +281,7 @@ namespace KB30
                     c.Controller.Resume();
                 });
                 background_audio.play();
+                foreground_audio.play();
                 playTimer.Start();
                 paused = false;
             }
@@ -295,6 +292,7 @@ namespace KB30
                     c.Controller.Pause();
                 });
                 background_audio.pause();
+                foreground_audio.pause();
                 playTimer.Stop();
                 paused = true;
             }
@@ -304,7 +302,8 @@ namespace KB30
         {
             skip_fade = true;
             fillAllClocks();
-            background_audio.syncToSlide(nextSlideIndex, speedFactor);
+            background_audio.syncToSlide(nextSlideIndex);
+            foreground_audio.syncToSlide(nextSlideIndex);
         }
 
         void skipBack()
@@ -321,7 +320,8 @@ namespace KB30
                     {
                         c.Controller.Begin();
                     });
-                    background_audio.syncToSlide(currentSlideIndex, speedFactor);
+                    background_audio.syncToSlide(currentSlideIndex);
+                    foreground_audio.syncToSlide(currentSlideIndex);
                 }
                 else
                 {
@@ -335,7 +335,8 @@ namespace KB30
                     otherImage.Source = Util.BitmapFromUri(slides[nextSlideIndex].uri);
                     skip_fade = true;
                     fillAllClocks();
-                    background_audio.syncToSlide(nextSlideIndex, speedFactor);
+                    background_audio.syncToSlide(nextSlideIndex);
+                    foreground_audio.syncToSlide(nextSlideIndex);
                 }
             }
             else  // fade inout
@@ -357,7 +358,8 @@ namespace KB30
 
                 currentImage.Source = Util.BitmapFromUri(slides[nextSlideIndex].uri);
                 fillAllClocks();
-                background_audio.syncToSlide(nextSlideIndex, speedFactor);
+                background_audio.syncToSlide(nextSlideIndex);
+                foreground_audio.syncToSlide(nextSlideIndex);
             }
         }
         void escape()
