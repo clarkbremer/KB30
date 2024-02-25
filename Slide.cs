@@ -20,19 +20,19 @@ namespace KB30
         public Keyframes keys { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string backgroundAudio;
+        public string backgroundAudio { get; set; }
         public bool ShouldSerializebackgroundAudio() { return !string.IsNullOrEmpty(backgroundAudio); }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public double backgroundVolume = 0.5;
+        public double backgroundVolume { get; set; } = 0.5;
         public bool ShouldSerializebackgroundVolume() { return !string.IsNullOrEmpty(backgroundAudio); }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public bool loopBackground = true;
+        public bool loopBackground { get; set; } = true;
         public bool ShouldSerializeloopBackground() { return !string.IsNullOrEmpty(backgroundAudio); }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string audio;
+        public string audio { get; set; }
         public bool ShouldSerializeaudio() { return !string.IsNullOrEmpty(audio); }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
@@ -40,7 +40,7 @@ namespace KB30
         public bool ShouldSerializeaudioVolume() { return !string.IsNullOrEmpty(audio); }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public bool loopAudio = false;
+        public bool loopAudio { get; set; } = false;
         public bool ShouldSerializeloopAudio() { return !string.IsNullOrEmpty(audio); }
 
         [JsonIgnore]

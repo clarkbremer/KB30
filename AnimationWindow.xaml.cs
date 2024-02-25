@@ -19,10 +19,12 @@ namespace KB30
         public Slides slides = new Slides();
 
         /* slide that has the audio info for what's currently playing */
-        Slide currentBackgroundAudioSlide = null;
-        Slide currentAudioSlide = null;
-        AnimationClock volumeFadeOutClock;
+        //Slide currentBackgroundAudioSlide = null;
+        //Slide currentAudioSlide = null;
+        //AnimationClock volumeFadeOutClock;
 
+        AudioControl background_audio;
+        AudioControl foreground_audio;
 
         Image currentImage;
         Image otherImage;
@@ -56,6 +58,20 @@ namespace KB30
             Closed += animationWindowClosed;
             playTimer.Interval = new TimeSpan(0, 0, 0, 1);
             playTimer.Tick += playTimerTick;
+            background_audio = new AudioControl(
+                backgroundMedia,
+                slides,
+                "backgroundAudio",
+                "backgroundVolume",
+                "loopBackground"
+                );
+            foreground_audio = new AudioControl(
+                 foregroundMedia,
+                 slides,
+                 "audio",
+                 "audioVolume",
+                 "loopAudio"
+                 );
         }
 
         private void animationWindowClosed(object sender, EventArgs e)
@@ -97,7 +113,7 @@ namespace KB30
 
             transformImage(currentImage, slides[currentSlideIndex].keys[0]);
 
-            syncBackgroundAudioPosition(currentSlideIndex);
+            background_audio.syncToSlide(currentSlideIndex, speedFactor);
             paused = false;
             frame1.Opacity = 1;
             frame2.Opacity = 0;
@@ -188,16 +204,16 @@ namespace KB30
         {
             if (slides[nextSlideIndex].hasBackgroundAudio())
             {
-                startBackgroundAudioFade(currentSlideIndex);
+                background_audio.beginFadeOut(currentSlideIndex);
             }
 
             if (slides[currentSlideIndex].hasAudio())
             {
-                transitionAudio(slides[currentSlideIndex]);
+                foreground_audio.start(slides[currentSlideIndex]);
             }
             if (slides[currentSlideIndex].hasBackgroundAudio())
             {
-                transitionBackgroundAudio(slides[currentSlideIndex]);
+                background_audio.start(slides[currentSlideIndex]);
             }
 
             var iw = image.ActualWidth;
@@ -268,7 +284,7 @@ namespace KB30
                 {
                     c.Controller.Resume();
                 });
-                backgroundAudio.Play();
+                background_audio.play();
                 playTimer.Start();
                 paused = false;
             }
@@ -278,7 +294,7 @@ namespace KB30
                 {
                     c.Controller.Pause();
                 });
-                backgroundAudio.Pause();
+                background_audio.pause();
                 playTimer.Stop();
                 paused = true;
             }
@@ -288,7 +304,7 @@ namespace KB30
         {
             skip_fade = true;
             fillAllClocks();
-            syncBackgroundAudioPosition(nextSlideIndex);
+            background_audio.syncToSlide(nextSlideIndex, speedFactor);
         }
 
         void skipBack()
@@ -305,7 +321,7 @@ namespace KB30
                     {
                         c.Controller.Begin();
                     });
-                    syncBackgroundAudioPosition(currentSlideIndex);
+                    background_audio.syncToSlide(currentSlideIndex, speedFactor);
                 }
                 else
                 {
@@ -319,7 +335,7 @@ namespace KB30
                     otherImage.Source = Util.BitmapFromUri(slides[nextSlideIndex].uri);
                     skip_fade = true;
                     fillAllClocks();
-                    syncBackgroundAudioPosition(nextSlideIndex);
+                    background_audio.syncToSlide(nextSlideIndex, speedFactor);
                 }
             }
             else  // fade inout
@@ -341,7 +357,7 @@ namespace KB30
 
                 currentImage.Source = Util.BitmapFromUri(slides[nextSlideIndex].uri);
                 fillAllClocks();
-                syncBackgroundAudioPosition(nextSlideIndex);
+                background_audio.syncToSlide(nextSlideIndex, speedFactor);
             }
         }
         void escape()
@@ -558,155 +574,6 @@ namespace KB30
         {
             time_remaining.Text = " " + timeRemaining();
             status.Text = " " + DateTime.Now.ToString("HH:mm") + "  ♦  " + (currentSlideIndex + 1).ToString() + " of " + slides.Count + "  ♦  " + timeElapsed() + " ";
-        }
-
-
-        /*
-         * Background Audio 
-         * TODO:  See if all this stuff can be put in it's own class, so we can re-use it for audio.  
-         *   - Initialize with slides, media player, filename_property, volume_property, and loop_property property names, etc.  Use GetProperty(string) to fetch from slides.
-         *   
-         */
-        private void backgroundAudioOpened(object sender, RoutedEventArgs e) 
-        {
-            if (currentBackgroundAudioSlide.backgroundVolume != 0)
-            {
-                backgroundAudio.Volume = currentBackgroundAudioSlide.backgroundVolume;
-            }
-            else
-            {
-                backgroundAudio.Volume = 0.5;
-            }
-
-            double audio_duration = backgroundAudio.NaturalDuration.TimeSpan.TotalSeconds;
-            double time_between = timeBetweenSlides(currentBackgroundAudioSlide, currentSlideIndex);
-            if ((audio_duration > time_between) || currentBackgroundAudioSlide.loopBackground)  // still playing first time through or looping
-            {
-                double audioStartTime = time_between % audio_duration;
-                backgroundAudio.Position = TimeSpan.FromSeconds(audioStartTime);
-                backgroundAudio.MediaEnded += backgroundAudioEnded;
-            }
-            else
-            {
-                backgroundAudio.Stop();
-            }
-        }
-
-        void backgroundAudioEnded(object sender, RoutedEventArgs e)
-        {
-            if (currentBackgroundAudioSlide != null && currentBackgroundAudioSlide.loopBackground)
-            {
-                backgroundAudio.Position = TimeSpan.FromSeconds(0);
-                backgroundAudio.Play();
-            }
-            else
-            {
-                currentBackgroundAudioSlide = null;
-                backgroundAudio.Close();
-            }
-        }
-
-
-        /* called whenever we jump to a new slide, like "skip" or "play from here".  Note if "play from here", it's a brand new instance of the class. */
-
-        // TODO - if volumeFadeout animation is running, kill it.  Otherwise, it will override our volume.  Use if (volumeFadeOutClock.CurrentState == ClockState.Active)
-        private void syncBackgroundAudioPosition(int slideIndex)
-        {
-            Slide prev_background_slide = null;
-            for (int i = slideIndex; i >= 0; i--)
-            {
-                if (slides[i].hasBackgroundAudio())
-                {
-                    prev_background_slide = slides[i];
-                    break;
-                }
-            }
-
-            if (prev_background_slide == null)  // nothing to play
-            {
-                return;
-            }
-
-            if (volumeFadeOutClock != null && volumeFadeOutClock.CurrentState == ClockState.Active)
-            {
-                volumeFadeOutClock.Controller.Stop();
-                backgroundAudio.ApplyAnimationClock(MediaElement.VolumeProperty, null);
-            }
-
-            if (prev_background_slide == currentBackgroundAudioSlide)   // same audio, just need to set new position
-            {
-                double audio_duration = backgroundAudio.NaturalDuration.TimeSpan.TotalSeconds;
-                double time_between = timeBetweenSlides(currentBackgroundAudioSlide, slideIndex);
-                if ((audio_duration > time_between) || currentBackgroundAudioSlide.loopBackground)  // still playing first time through or looping
-                {
-                    double audioStartTime = time_between % audio_duration;
-                    backgroundAudio.Position = TimeSpan.FromSeconds(audioStartTime);
-                    backgroundAudio.Play();
-                }
-                else
-                {
-                    backgroundAudio.Stop();
-                }
-            } else // not the same audio
-            {
-                backgroundAudio.Stop();
-                currentBackgroundAudioSlide = prev_background_slide;
-                backgroundAudio.Source = new Uri(prev_background_slide.backgroundAudio, UriKind.RelativeOrAbsolute);
-                backgroundAudio.Play();  // the position will be adjusted in backgroundAudioOpened().  We don't know duration, etc, until then.
-            }
-        }
-
-        /* called durning playback when we detect that the *next* slide is an audio slide */
-        private void startBackgroundAudioFade(int s)
-        {
-            Slide slide = slides[s];
-            double slideDuration = slide.keys.Sum(k => k.duration);
-            var volumeFadeOut = new DoubleAnimation(backgroundAudio.Volume, 0, TimeSpan.FromSeconds(slideDuration + 1.5));
-            volumeFadeOut.Completed += endBackgroundAudioFadeOut;
-            volumeFadeOut.FillBehavior = FillBehavior.Stop;
-            volumeFadeOutClock = volumeFadeOut.CreateClock();
-            backgroundAudio.ApplyAnimationClock(MediaElement.VolumeProperty, volumeFadeOutClock);
-        }
-
-        /* called during playback when we detect that the *current* slide is an audio slide */
-        private void transitionBackgroundAudio(Slide audio_slide)
-        {
-            if (audio_slide.hasBackgroundAudio())  // probably not necessary
-            {
-                backgroundAudio.Stop();
-                backgroundAudio.Source = new Uri(audio_slide.backgroundAudio, UriKind.RelativeOrAbsolute);
-                backgroundAudio.Play();  // volume will get set in "opened()"
-                currentBackgroundAudioSlide = audio_slide;
-            }
-        }
-
-        private void endBackgroundAudioFadeOut(object sender, EventArgs e)
-        {
-            backgroundAudio.Stop();
-        }
-
-
-        /*
-         * Audio
-         */
-        private void transitionAudio(Slide audio_slide)
-        {
-            if (audio_slide.hasAudio())
-            {
-                audio.Stop();
-                audio.Source = new Uri(audio_slide.audio, UriKind.RelativeOrAbsolute);
-                if (audio_slide.audioVolume != 0)
-                {
-                    audio.Volume = audio_slide.audioVolume;
-                }
-                else
-                {
-                    audio.Volume = 1.0;
-                }
-                audio.Play();
-                //  var vol = typeof(Slide).GetProperty("audioVolume", typeof(double)).GetValue(audio_slide, null);
-                currentAudioSlide = audio_slide;
-            }
         }
 
         /* 
