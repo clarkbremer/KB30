@@ -41,7 +41,7 @@ namespace KB30
         public void start(Slide audio_slide)
         {
             mediaPlayer.Stop();
-            mediaPlayer.Source = new Uri(audio_slide.backgroundAudio, UriKind.RelativeOrAbsolute);
+            mediaPlayer.Source = new Uri(filename(audio_slide), UriKind.RelativeOrAbsolute);
             mediaPlayer.Play();  // volume will get set in "opened()"
             mediaSlide = audio_slide;
             currentSlideIndex = slides.IndexOf(audio_slide);
@@ -86,7 +86,7 @@ namespace KB30
             {
                 double audio_duration = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
                 double time_between = timeBetweenSlides(mediaSlide, slideIndex);
-                if ((audio_duration > time_between) || mediaSlide.loopBackground)  // still playing first time through or looping
+                if ((audio_duration > time_between) || loop(mediaSlide))  // still playing first time through or looping
                 {
                     double audioStartTime = time_between % audio_duration;
                     mediaPlayer.Position = TimeSpan.FromSeconds(audioStartTime);
@@ -101,7 +101,7 @@ namespace KB30
             {
                 mediaPlayer.Stop();
                 mediaSlide = prev_background_slide;
-                mediaPlayer.Source = new Uri(prev_background_slide.backgroundAudio, UriKind.RelativeOrAbsolute);
+                mediaPlayer.Source = new Uri(filename(prev_background_slide), UriKind.RelativeOrAbsolute);
                 mediaPlayer.Play();  // the position will be adjusted in backgroundAudioOpened().  We don't know duration, etc, until then.
             }
         }
@@ -124,18 +124,11 @@ namespace KB30
 
         private void mediaOpened(object sender, RoutedEventArgs e)
         {
-            if (mediaSlide.backgroundVolume != 0)
-            {
-                mediaPlayer.Volume = mediaSlide.backgroundVolume;
-            }
-            else
-            {
-                mediaPlayer.Volume = 0.5;
-            }
+            mediaPlayer.Volume = volume(mediaSlide);
 
             double audio_duration = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
             double time_between = timeBetweenSlides(mediaSlide, currentSlideIndex);
-            if ((audio_duration > time_between) || mediaSlide.loopBackground)  // still playing first time through or looping
+            if ((audio_duration > time_between) || loop(mediaSlide))  // still playing first time through or looping
             {
                 double audioStartTime = time_between % audio_duration;
                 mediaPlayer.Position = TimeSpan.FromSeconds(audioStartTime);
