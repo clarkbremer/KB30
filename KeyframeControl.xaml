@@ -5,7 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:KB30"
              mc:Ignorable="d" 
-             d:DesignHeight="90" d:DesignWidth="130">
+             d:DesignHeight="90" d:DesignWidth="130"
+             Loaded="KFControl_Loaded">
     <Grid Background="White">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
@@ -31,7 +32,7 @@
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="X: "/>
                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Y: "/>
                     <TextBlock Grid.Row="3" Grid.Column="0" Text="Zoom: "/>
-                    <TextBox Grid.Row="0" Grid.Column="1" Name="durTb" Text="99"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Name="durTb" Text="99" PreviewTextInput="durTb_PreviewTextInput"/>
                     <TextBox Grid.Row="1" Grid.Column="1" Name="xTb" Text="99" IsReadOnly="True" Background="LightGray"/>
                     <TextBox Grid.Row="2" Grid.Column="1" Name="yTb" Text="99" IsReadOnly="True" Background="LightGray"/>
                     <TextBox Grid.Row="3" Grid.Column="1" Name="zoomTb" Text="99" IsReadOnly="True" Background="LightGray"/>

@@ -105,7 +105,6 @@ namespace KB30
             imageCropper.updateLayout();
 
             KeyframeControl kfControl = key.keyframeControl;
-            kfControl.Select();
 
             Binding xBinding = new Binding("cropX")
             {
@@ -127,6 +126,8 @@ namespace KB30
                 Mode = BindingMode.OneWay
             };
             kfControl.zoomTb.SetBinding(TextBox.TextProperty, zoomBinding);
+
+            kfControl.Select();
         }
 
         private void kfControlChangeEvent(object sender, TextChangedEventArgs e, Keyframe key)

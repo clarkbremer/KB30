@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Text.RegularExpressions;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
@@ -60,6 +61,24 @@ namespace KB30
             LeftBorder.BorderThickness = new Thickness(0);
             RightBorder.BorderThickness = new Thickness(0);
             hightlightState = HIGHLIGHT_NONE;
+        }
+        private void KFControl_Loaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (finderWindow == null || !finderWindow.IsActive)
+            {
+                if (selected)
+                {
+                    this.durTb.Focus();
+                }
+            }
+            this.durTb.SelectAll();
+        }
+        
+
+        private void durTb_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+        {
+            Regex _regex = new Regex("[^0-9.-]+"); 
+            e.Handled = _regex.IsMatch(e.Text);
         }
     }
 }

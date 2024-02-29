@@ -17,14 +17,13 @@ using System.Diagnostics;
 /*
  * Bugs:
  * To DO:
+ *  - Keyboard arrow nav in finder window.
  *  - Export 
  *  - Portrait Mode
  *  - Undo/Redo needs work
- *  - Option to lock cropper within bounds of image
  *  Config options both global and local to this album:
  *   - default fadein/out duration
  *   - default key duration
- *  Duration textbox allow only numeric.
  */
 namespace KB30
 {
