@@ -78,6 +78,11 @@ namespace KB30
             kfc.zoomTb.Text = key.zoomFactor.ToString();
         }
 
+        public void selectKeyframe(int index)
+        {
+            selectKeyframe(currentSlide.keys[index]);
+        }
+
         public void selectKeyframe(Keyframe key)
         {
             Keyframes keys = currentSlide.keys;

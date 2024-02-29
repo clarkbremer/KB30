@@ -195,9 +195,6 @@ namespace KB30
             }
         }
 
-  
-
-
         private void fileSaveAsClick(object sender, RoutedEventArgs e)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
@@ -297,16 +294,46 @@ namespace KB30
 
         public void nextSlide()
         {
-            selectSlide(currentSlideIndex + 1);
-            currentSlide.Check();
-            currentSlide.BringIntoView();
+            if (currentSlideIndex < slides.Count - 1)
+            {
+                selectSlide(currentSlideIndex + 1);
+                currentSlide.Check();
+                currentSlide.BringIntoView();
+            }
         }
 
         public void prevSlide()
         {
-            selectSlide(currentSlideIndex - 1);
-            currentSlide.Check();
-            currentSlide.BringIntoView();
+            if (currentSlideIndex > 0) {
+                selectSlide(currentSlideIndex - 1);
+                currentSlide.Check();
+                currentSlide.BringIntoView();
+            }
+        }
+
+        public void nexKeyframe()
+        {
+            if (currentKeyframeIndex == currentSlide.keys.Count - 1)
+            {
+                nextSlide();
+            }
+            else
+            {
+                selectKeyframe(currentKeyframeIndex + 1);
+            }
+        }
+
+        public void prevKeyframe()
+        {
+            if (currentKeyframeIndex == 0)
+            {
+                prevSlide();
+                selectKeyframe(currentSlide.keys.Last());
+            }
+            else
+            {
+                selectKeyframe(currentKeyframeIndex - 1);
+            }
         }
 
         private void mainWindowPreviewKeyDown(object sender, KeyEventArgs e)
@@ -315,6 +342,18 @@ namespace KB30
             {
                 switch (e.Key)
                 {
+                    case Key.S:
+                        fileSaveClick(sender, e);
+                        e.Handled = true;
+                        break;
+                    case Key.O:
+                        fileOpenClick(sender, e);
+                        e.Handled = true;
+                        break;
+                    case Key.N:
+                        fileNewClick(sender, e);
+                        e.Handled = true;
+                        break;
                     case Key.X:
                         cutSlidesToClipboard(currentSlide);
                         e.Handled = true;
@@ -338,25 +377,27 @@ namespace KB30
                 switch (e.Key)
                 {
                     case Key.Up:
-                        if (currentSlideIndex > 0)
+                        if (!Keyboard.IsKeyDown(Key.LeftShift) && !Keyboard.IsKeyDown(Key.RightShift))
                         {
-                            if (!Keyboard.IsKeyDown(Key.LeftShift) && !Keyboard.IsKeyDown(Key.RightShift))
-                            {
-                                slides.UncheckAll();
-                            }
-                            prevSlide();
+                            slides.UncheckAll();
                         }
+                        prevSlide();
                         e.Handled = true;
                         break;
                     case Key.Down:
-                        if (currentSlideIndex < slides.Count - 1)
+                        if (!Keyboard.IsKeyDown(Key.LeftShift) && !Keyboard.IsKeyDown(Key.RightShift))
                         {
-                            if (!Keyboard.IsKeyDown(Key.LeftShift) && !Keyboard.IsKeyDown(Key.RightShift))
-                            {
-                                slides.UncheckAll();
-                            }
-                            nextSlide();
+                            slides.UncheckAll();
                         }
+                        nextSlide();
+                        e.Handled = true;
+                        break;
+                    case Key.Left:
+                        prevKeyframe();
+                        e.Handled = true;
+                        break;
+                    case Key.Right:
+                        nexKeyframe();
                         e.Handled = true;
                         break;
                 }

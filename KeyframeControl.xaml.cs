@@ -28,6 +28,11 @@ namespace KB30
         {
             SelectBorder.BorderBrush = Brushes.Blue;
             selected = true;
+            if (finderWindow == null || !finderWindow.IsActive)
+            {
+                this.durTb.Focus();
+            }
+            this.durTb.SelectAll();
         }
         public void DeSelect()
         {
@@ -55,15 +60,6 @@ namespace KB30
             LeftBorder.BorderThickness = new Thickness(0);
             RightBorder.BorderThickness = new Thickness(0);
             hightlightState = HIGHLIGHT_NONE;
-        }
-
-        private void KFControl_Loaded(object sender, System.Windows.RoutedEventArgs e)
-        {
-            if (finderWindow == null || !finderWindow.IsActive)
-            {
-                this.durTb.Focus();
-            }
-            this.durTb.SelectAll();
         }
     }
 }
