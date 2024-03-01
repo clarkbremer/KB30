@@ -73,11 +73,11 @@ namespace KB30
             }
             this.durTb.SelectAll();
         }
-        
+
+        private static Regex _regex = new Regex("[^0-9.]+");
 
         private void durTb_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
         {
-            Regex _regex = new Regex("[^0-9.-]+"); 
             e.Handled = _regex.IsMatch(e.Text);
         }
     }

@@ -17,6 +17,7 @@ using System.Diagnostics;
 /*
  * Bugs:
  * To DO:
+ *  - "Find" missing audio files.
  *  - Keyboard arrow nav in finder window.
  *  - Export 
  *  - Portrait Mode
@@ -314,6 +315,10 @@ namespace KB30
         {
             if (currentKeyframeIndex == currentSlide.keys.Count - 1)
             {
+                if (!Keyboard.IsKeyDown(Key.LeftShift) && !Keyboard.IsKeyDown(Key.RightShift))
+                {
+                    slides.UncheckAll();
+                }
                 nextSlide();
             }
             else
@@ -326,6 +331,10 @@ namespace KB30
         {
             if (currentKeyframeIndex == 0)
             {
+                if (!Keyboard.IsKeyDown(Key.LeftShift) && !Keyboard.IsKeyDown(Key.RightShift))
+                {
+                    slides.UncheckAll();
+                }
                 prevSlide();
                 selectKeyframe(currentSlide.keys.Last());
             }
