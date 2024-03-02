@@ -296,6 +296,10 @@ namespace KB30
         {
             if (currentSlideIndex < slides.Count - 1)
             {
+                if (!Keyboard.IsKeyDown(Key.LeftShift) && !Keyboard.IsKeyDown(Key.RightShift))
+                {
+                    slides.UncheckAll();
+                }
                 selectSlide(currentSlideIndex + 1);
                 currentSlide.Check();
                 currentSlide.BringIntoView();
@@ -305,6 +309,10 @@ namespace KB30
         public void prevSlide()
         {
             if (currentSlideIndex > 0) {
+                if (!Keyboard.IsKeyDown(Key.LeftShift) && !Keyboard.IsKeyDown(Key.RightShift))
+                {
+                    slides.UncheckAll();
+                }
                 selectSlide(currentSlideIndex - 1);
                 currentSlide.Check();
                 currentSlide.BringIntoView();
@@ -315,10 +323,6 @@ namespace KB30
         {
             if (currentKeyframeIndex == currentSlide.keys.Count - 1)
             {
-                if (!Keyboard.IsKeyDown(Key.LeftShift) && !Keyboard.IsKeyDown(Key.RightShift))
-                {
-                    slides.UncheckAll();
-                }
                 nextSlide();
             }
             else
@@ -331,10 +335,6 @@ namespace KB30
         {
             if (currentKeyframeIndex == 0)
             {
-                if (!Keyboard.IsKeyDown(Key.LeftShift) && !Keyboard.IsKeyDown(Key.RightShift))
-                {
-                    slides.UncheckAll();
-                }
                 prevSlide();
                 selectKeyframe(currentSlide.keys.Last());
             }
@@ -385,18 +385,10 @@ namespace KB30
                 switch (e.Key)
                 {
                     case Key.Up:
-                        if (!Keyboard.IsKeyDown(Key.LeftShift) && !Keyboard.IsKeyDown(Key.RightShift))
-                        {
-                            slides.UncheckAll();
-                        }
                         prevSlide();
                         e.Handled = true;
                         break;
                     case Key.Down:
-                        if (!Keyboard.IsKeyDown(Key.LeftShift) && !Keyboard.IsKeyDown(Key.RightShift))
-                        {
-                            slides.UncheckAll();
-                        }
                         nextSlide();
                         e.Handled = true;
                         break;
