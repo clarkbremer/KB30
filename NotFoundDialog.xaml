@@ -25,7 +25,7 @@
 
             <TextBlock Grid.Row="0" Name="filename_message">File Not Found: xyzaskjfdhakjsdhfaklsdhfakj </TextBlock>
 
-            <WrapPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,5,0,0">
+            <WrapPanel Name="bw_panel" Grid.Row="1" HorizontalAlignment="Center" Margin="0,5,0,0">
                 <Button Name="btnDialogBlack" Click="btnDialogBlack_Click" Padding="10,2" Margin="0,0,10,0">Replace with Black</Button>
                 <Button Name="btnDialogWhite" Click="btnDialogWhite_Click" Padding="10,2" Margin="0,0,10,0">Replace with White</Button>
             </WrapPanel>

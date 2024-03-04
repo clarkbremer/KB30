@@ -42,64 +42,137 @@ namespace KB30
             {
                 throw new InvalidOperationException("Quiet");
             }
+            if (!ValidateAudioFilenames("audio"))
+            {
+                throw new InvalidOperationException("Quiet");
+            }
+            if (!ValidateAudioFilenames("backgroundAudio"))
+            {
+                throw new InvalidOperationException("Quiet");
+            }
         }
 
         private bool ValidateFilenames(){
             int i = 0;
-            bool? repeat = false;
-            bool retry = false;
+            bool? repeat_for_all_missing_files = false;
+            bool retry_this_file;
             int action = 0;
             while (i < slides.Count)  // We use this instead of ForEach because we may be deleting items
             {
-                retry = false;
-                string fname = slides[i].fileName;
-                if (!File.Exists(fname) && fname != "black" && fname != "white")
+                retry_this_file = false;
+                do
                 {
-                    if (repeat != true)
+                    string fname = slides[i].fileName;
+                    if (!File.Exists(fname) && fname != "black" && fname != "white")
                     {
-                        NotFoundDialog not_found_dialog = new NotFoundDialog();
-                        not_found_dialog.filename_message.Text = "File Not Found: " + fname;
-                        if (not_found_dialog.ShowDialog() == true)
+                        if (repeat_for_all_missing_files != true)
                         {
-                            action = not_found_dialog.result;
-                            repeat = not_found_dialog.repeatCheckBox.IsChecked;
-                        }
-                        else
-                        {
-                            return false;
-                        }
-                    }
-                    switch (action)
-                    {
-                        case NotFoundDialog.ACTION_SKIP:
-                            slides.RemoveAt(i);
-                            break;
-                        case NotFoundDialog.ACTION_BLACK:
-                            slides[i].fileName = "black";
-                            break;
-                        case NotFoundDialog.ACTION_WHITE:
-                            slides[i].fileName = "white";
-                            break;
-                        case NotFoundDialog.ACTION_FIND:
-                            string found_file = FindMissingFile(fname);
-                            if (found_file == "")
+                            NotFoundDialog not_found_dialog = new NotFoundDialog();
+                            not_found_dialog.filename_message.Text = "File Not Found: " + fname;
+                            if (not_found_dialog.ShowDialog() == true)
                             {
-                                retry = true;
-                                repeat = false;
+                                action = not_found_dialog.result;
+                                repeat_for_all_missing_files = not_found_dialog.repeatCheckBox.IsChecked;
                             }
                             else
                             {
-                                slides[i].fileName = found_file;
+                                return false;
                             }
-                            break;
+                        }
+                        switch (action)
+                        {
+                            case NotFoundDialog.ACTION_SKIP:
+                                slides.RemoveAt(i);
+                                break;
+                            case NotFoundDialog.ACTION_BLACK:
+                                slides[i].fileName = "black";
+                                break;
+                            case NotFoundDialog.ACTION_WHITE:
+                                slides[i].fileName = "white";
+                                break;
+                            case NotFoundDialog.ACTION_FIND:
+                                string found_file = FindMissingFile(fname, "Images (*.BMP;*.JPG;*.GIF,*.PNG)|*.BMP;*.JPG;*.GIF;*.PNG|All files (*.*)|*.*");
+                                if (found_file == "")
+                                {
+                                    retry_this_file = true;
+                                    repeat_for_all_missing_files = false;
+                                }
+                                else
+                                {
+                                    slides[i].fileName = found_file;
+                                }
+                                break;
+                        }
                     }
-                }
-                if (retry == false)
-                {
-                    i++;
-                }
+                } while (retry_this_file == true);
+                i++;
             }
             return true;
+        }
+
+        private bool ValidateAudioFilenames(string audio_property)
+        {
+            bool? repeat_for_all_missing_files = false;
+            bool retry_this_file;
+            int action = 0;
+            foreach (Slide slide in slides)
+            {
+                retry_this_file = false;
+                do
+                {
+                    string fname = get_audio_filename(slide, audio_property);
+                    if (fname != null) { 
+                        if (!File.Exists(fname))
+                        {
+                            if (repeat_for_all_missing_files != true)
+                            {
+                                NotFoundDialog not_found_dialog = new NotFoundDialog();
+                                not_found_dialog.bw_panel.Visibility = Visibility.Hidden;
+                                not_found_dialog.filename_message.Text = "File Not Found: " + fname;
+                                if (not_found_dialog.ShowDialog() == true)
+                                {
+                                    action = not_found_dialog.result;
+                                    repeat_for_all_missing_files = not_found_dialog.repeatCheckBox.IsChecked;
+                                }
+                                else
+                                {
+                                    return false;
+                                }
+                            }
+                            switch (action)
+                            {
+                                case NotFoundDialog.ACTION_SKIP:
+                                    set_audio_filename(slide, audio_property, "");
+                                    break;
+
+                                case NotFoundDialog.ACTION_FIND:
+                                    string found_file = FindMissingFile(fname, "Audio Files (*.MP3)|*.MP3|All files (*.*)|*.*");
+                                    if (found_file == "")
+                                    {
+                                        retry_this_file = true;
+                                        repeat_for_all_missing_files = false;
+                                    }
+                                    else
+                                    {
+                                        set_audio_filename(slide, audio_property, found_file);
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                } while (retry_this_file == true);
+            }
+            return true;
+        }
+
+        private string get_audio_filename(Slide slide, string filename_property)
+        {
+            string f = (string)typeof(Slide).GetProperty(filename_property, typeof(string)).GetValue(slide, null);
+            return f;
+        }
+        private void set_audio_filename(Slide slide, string filename_property, string filename)
+        {
+            typeof(Slide).GetProperty(filename_property, typeof(string)).SetValue(slide, filename);
         }
 
         public Album(Slides _slides, string _filename)
@@ -174,7 +247,7 @@ namespace KB30
             return true;
         }
 
-        private string FindMissingFile(string missing_file_with_path)
+        private string FindMissingFile(string missing_file_with_path, string filter)
         {
             foreach (string search_path in search_paths)
             {
@@ -206,7 +279,7 @@ namespace KB30
             // if all else fails, have user find it
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Title = "Missing File: " + missing_file_with_path;
-            openFileDialog.Filter = "Images (*.BMP;*.JPG;*.GIF,*.PNG)|*.BMP;*.JPG;*.GIF;*.PNG|All files (*.*)|*.*";
+            openFileDialog.Filter = filter;
             openFileDialog.FileName = Path.GetFileName(missing_file_with_path);
             if (openFileDialog.ShowDialog() == true)
             {
