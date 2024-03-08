@@ -289,7 +289,11 @@ namespace KB30
         {
             if (slides.Count > 0)
             {
-                selectKeyframe(currentSlide.keys[currentKeyframeIndex]);
+                Keyframe key = currentSlide.keys[currentKeyframeIndex];
+                imageCropper.cropZoom = key.zoomFactor;
+                imageCropper.cropX = key.x;
+                imageCropper.cropY = key.y;
+                imageCropper.updateLayout();
             }
         }
 
