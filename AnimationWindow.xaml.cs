@@ -23,7 +23,7 @@ namespace KB30
 
         Image currentImage;
         Image otherImage;
-        int currentSlideIndex;
+        public int currentSlideIndex;
         int nextSlideIndex;
         double speedFactor = 1;
 

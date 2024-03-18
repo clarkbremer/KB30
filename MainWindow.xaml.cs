@@ -72,6 +72,7 @@ namespace KB30
         {
             AnimationWindow animationWindow = new AnimationWindow();
             animationWindow.Closed += animationWindow_Closed;
+            animationWindow.Closing += animationWindow_Closing;
             animationWindow.Show();
             animationWindow.animate(slides, start);
         }
@@ -119,6 +120,17 @@ namespace KB30
                 }
             }
         }
+
+        private void animationWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (!playWithArgumentFile)
+            {
+                AnimationWindow animationWindow = (AnimationWindow)sender;
+                selectSlide(animationWindow.currentSlideIndex);
+                currentSlide.BringIntoView();
+            }
+        }
+
 
         private void mainWindowLoaded(object sender, RoutedEventArgs e)
         {
@@ -398,6 +410,10 @@ namespace KB30
                         break;
                     case Key.Right:
                         nexKeyframe();
+                        e.Handled = true;
+                        break;
+                    case Key.Enter:
+                        playFromHereClick(sender, e);
                         e.Handled = true;
                         break;
                 }
