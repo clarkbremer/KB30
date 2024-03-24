@@ -17,7 +17,6 @@ using System.Diagnostics;
 /*
  * Bugs:
  * To DO:
- *  - "Find" missing audio files.
  *  - Keyboard arrow nav in finder window.
  *  - Export 
  *  - Portrait Mode
