@@ -288,6 +288,31 @@ namespace KB30
             Caption.Text = Path.GetFileName(tile.fullPath) + " (" + bmp.PixelWidth + " x " + bmp.PixelHeight + ")  (" + (current_file_index + 1) + " of " + current_image_tiles.Count + ")";
         }
 
+        private Tile currentTile()
+        {
+            if ((current_file_index >= 0) && (current_file_index < current_image_tiles.Count))
+            {
+                return current_image_tiles[current_file_index];
+            }
+            return null;
+        }
+
+        private void selectNextTile()
+        {
+            if (current_file_index < (current_image_tiles.Count - 1))
+            {
+                selectTile(current_image_tiles[current_file_index + 1]);
+            }
+        }
+
+        private void selectPrevTile()
+        {
+            if (current_file_index > 0)
+            {
+                selectTile(current_image_tiles[current_file_index - 1]);
+            }
+        }
+
         public void addButton_Click(object sender, RoutedEventArgs e)
         {
             if (current_file_index >= 0)
@@ -309,18 +334,12 @@ namespace KB30
             }
             if (e.Delta < 0)
             {
-                if (current_file_index < (current_image_tiles.Count - 1))
-                {
-                    selectTile(current_image_tiles[current_file_index + 1]);
-                }
+                selectNextTile();
             }
 
             else if (e.Delta > 0)
             {
-                if (current_file_index > 0)
-                {
-                    selectTile(current_image_tiles[current_file_index - 1]);
-                }
+                selectPrevTile();
             }
         }
 
@@ -384,6 +403,61 @@ namespace KB30
                 }
             }
 
+        }
+
+        private int ItemsPerRow()
+        {
+            double pw = filePanel.ActualWidth;
+            double iw = currentTile().ActualWidth;
+            int items_per_row = (int)(pw / iw);
+            return items_per_row;
+        }
+
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Enter:
+                    if (currentTile() != null)
+                    {
+                        mainWindow.insertSlide(currentTile().fullPath);
+                        e.Handled = true;
+                    }
+                    break;
+
+                case Key.Left:
+                    selectPrevTile();
+                    e.Handled = true;
+                    break;
+
+                case Key.Right:
+                    selectNextTile();
+                    e.Handled = true;
+                    break;
+
+                case Key.Up:
+                    if (currentTile() != null)
+                    {  
+                        if (current_file_index > ItemsPerRow() - 1)
+                        {
+                            selectTile(current_image_tiles[current_file_index - ItemsPerRow()]);
+                        }
+                        e.Handled = true;
+                    }
+                    break;
+
+                case Key.Down:
+                    if (currentTile() != null)
+                    {
+                        if (current_file_index + ItemsPerRow() < current_image_tiles.Count)
+                        {
+                            selectTile(current_image_tiles[current_file_index + ItemsPerRow()]);
+                        }
+                        e.Handled = true;
+                    }
+                    break;
+
+            }
         }
     }
 }

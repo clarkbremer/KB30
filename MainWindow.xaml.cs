@@ -17,7 +17,6 @@ using System.Diagnostics;
 /*
  * Bugs:
  * To DO:
- *  - Keyboard arrow nav in finder window.
  *  - Export 
  *  - Portrait Mode
  *  - Undo/Redo needs work
