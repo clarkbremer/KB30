@@ -26,6 +26,7 @@ namespace KB30
         }
 
         public MainWindow mainWindow;
+        public String starting_path = "";
         Object emptyNode = new Object();
         List<Tile> current_image_tiles = new List<Tile>();
         int current_file_index = 0;
@@ -36,8 +37,15 @@ namespace KB30
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            loadDrives();
             mainWindow.Closed += (s, e) => this.Close();
+            if (starting_path == "")
+            {
+                loadDrives();
+            } else
+            {
+                loadFolder(starting_path);
+            }
+
         }
 
         private void loadDrives() {
@@ -421,6 +429,7 @@ namespace KB30
                     if (currentTile() != null)
                     {
                         mainWindow.insertSlide(currentTile().fullPath);
+                        selectNextTile();
                         e.Handled = true;
                     }
                     break;

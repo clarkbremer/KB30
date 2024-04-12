@@ -252,6 +252,10 @@ namespace KB30
             {
                 imageExplorerWindow = new ImageExplorerWindow();
                 imageExplorerWindow.mainWindow = this;
+                if (slides.Count > 0 && currentSlide.fileName != "black" && currentSlide.fileName != "white")
+                {
+                    imageExplorerWindow.starting_path = Path.GetDirectoryName(currentSlide.fileName);
+                }
                 imageExplorerWindow.Closed += ImageExplorerWindow_Closed;
                 if (this.Top > 100)
                 {
