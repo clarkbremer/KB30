@@ -72,7 +72,7 @@ namespace KB30
             animationWindow.Closed += animationWindow_Closed;
             animationWindow.Closing += animationWindow_Closing;
             animationWindow.Show();
-            animationWindow.animate(slides, start);
+            animationWindow.Animate(slides, start);
         }
         private void playClick(object sender, RoutedEventArgs e)
         {
@@ -89,7 +89,7 @@ namespace KB30
                 oneSlide.Add(currentSlide);
                 AnimationWindow animationWindow = new AnimationWindow();
                 animationWindow.Show();
-                animationWindow.animate(oneSlide);
+                animationWindow.Animate(oneSlide);
             }
         }
         private void playFromHereClick(object sender, RoutedEventArgs e)

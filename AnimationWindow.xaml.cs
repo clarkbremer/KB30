@@ -42,7 +42,6 @@ namespace KB30
         private List<AnimationClock> currentClocks = new List<AnimationClock>();
 
         private Boolean paused = false;
-        private Boolean skip_fade = false;
         public Boolean exitOnClose { get; set; }
 
         public AnimationWindow()
@@ -75,7 +74,7 @@ namespace KB30
             playTimer.Stop();
         }
 
-        public void animate(Slides _slides, int _start = 0)
+        public void Animate(Slides _slides, int _start = 0)
         {
             slides.Clear();
             foreach (Slide slide in _slides)
@@ -140,11 +139,6 @@ namespace KB30
         private void endPanZoom(object sender, EventArgs e)
         {
             beginFadeOutIn();
-            if (skip_fade)
-            {
-                skip_fade = false;
-                fillAllClocks();
-            }
         }
 
         private void beginFadeOutIn()
@@ -187,9 +181,6 @@ namespace KB30
 
         private void endFadeOutIn(object sender, EventArgs e)
         {
-            if (skip_fade) { skip_fade = false; }
-
-
             beginPanZoom(currentImage, slides[currentSlideIndex].keys);
 
             // Load next image *after* we start pan/zoom, for smoother transititions.
@@ -211,6 +202,18 @@ namespace KB30
             {
                 background_audio.start(slides[currentSlideIndex]);
             }
+
+            if (currentImage == image1)  // this should already be set by the fade in/out animations, but in case we get called from other places...
+            {
+                frame1.Opacity = 1;
+                frame2.Opacity = 0;
+            }
+            else
+            {
+                frame2.Opacity = 1;
+                frame1.Opacity = 0;
+            }
+
 
             var iw = image.ActualWidth;
             var ih = image.ActualHeight;
@@ -274,92 +277,136 @@ namespace KB30
 
         void togglePauseAnimation()
         {
-            if (paused)
-            {
-                currentClocks.ForEach(c =>
-                {
-                    c.Controller.Resume();
-                });
-                background_audio.play();
-                foreground_audio.play();
-                playTimer.Start();
-                paused = false;
+            if (paused) { 
+                unPauseAnimation(); 
             }
-            else
-            {
-                currentClocks.ForEach(c =>
-                {
-                    c.Controller.Pause();
-                });
-                background_audio.pause();
-                foreground_audio.pause();
-                playTimer.Stop();
-                paused = true;
+            else { 
+                pauseAnimation(); 
             }
+        }
+
+        void unPauseAnimation() { 
+            currentClocks.ForEach(c =>
+            {
+                c.Controller.Resume();
+            });
+            background_audio.play();
+            foreground_audio.play();
+            playTimer.Start();
+            paused = false;
+        }
+        void pauseAnimation() { 
+            currentClocks.ForEach(c =>
+            {
+                c.Controller.Pause();
+            });
+            background_audio.pause();
+            foreground_audio.pause();
+            playTimer.Stop();
+            paused = true;
         }
 
         void skipAhead()
         {
-            skip_fade = true;
-            fillAllClocks();
-            background_audio.syncToSlide(nextSlideIndex);
-            foreground_audio.syncToSlide(nextSlideIndex);
+            int target = currentSlideIndex + 1;
+            if (target >= slides.Count)
+            {
+                target = 0;
+            }
+            skipTo(target);
         }
 
         void skipBack()
         {
-            if (currentSlideIndex < 0)
+            if (currentClocks.First().CurrentTime > TimeSpan.FromSeconds(1))  // if were already more than 1 second in, then just restart current slide
             {
-                return;
+                skipTo(currentSlideIndex);
             }
-            if (animationState == PAN_ZOOM)
+            else
             {
-                if (currentClocks.First().CurrentTime > TimeSpan.FromSeconds(1))
+                int target = currentSlideIndex - 1;
+                if (target < 0)
                 {
-                    currentClocks.ForEach(c =>
-                    {
-                        c.Controller.Begin();
-                    });
-                    background_audio.syncToSlide(currentSlideIndex);
-                    foreground_audio.syncToSlide(currentSlideIndex);
+                    target = slides.Count - 1;
                 }
-                else
-                {
-                    currentSlideIndex = currentSlideIndex - 2;
-                    if (currentSlideIndex < 0)
-                    {
-                        currentSlideIndex = currentSlideIndex + slides.Count;
-                    }
-                    nextSlideIndex = currentSlideIndex + 1;
-                    if (nextSlideIndex >= slides.Count) { nextSlideIndex = 0; }
-                    otherImage.Source = Util.BitmapFromUri(slides[nextSlideIndex].uri);
-                    skip_fade = true;
-                    fillAllClocks();
-                    background_audio.syncToSlide(nextSlideIndex);
-                    foreground_audio.syncToSlide(nextSlideIndex);
-                }
+                skipTo(target);
             }
-            else  // fade inout
-            {
-                if (slides[currentSlideIndex].Duration() < 1)
-                {
-                    currentSlideIndex = currentSlideIndex - 2;
-                }
-                else
-                {
-                    currentSlideIndex = currentSlideIndex - 1;
-                }
-                if (currentSlideIndex < 0)
-                {
-                    currentSlideIndex = currentSlideIndex + slides.Count;
-                }
-                nextSlideIndex = currentSlideIndex + 1;
-                if (nextSlideIndex >= slides.Count) { nextSlideIndex = 0; }
+        }
 
-                currentImage.Source = Util.BitmapFromUri(slides[nextSlideIndex].uri);
-                fillAllClocks();
-                background_audio.syncToSlide(nextSlideIndex);
-                foreground_audio.syncToSlide(nextSlideIndex);
+        void skipTo(int target_index)
+        {
+            stopAllClocks();
+            currentSlideIndex = target_index;
+            nextSlideIndex = currentSlideIndex + 1;
+            if (nextSlideIndex >= slides.Count) { nextSlideIndex = 0; }
+           
+            currentImage.Source = Util.BitmapFromUri(slides[currentSlideIndex].uri);
+            otherImage.Source = Util.BitmapFromUri(slides[nextSlideIndex].uri);
+            
+            this.UpdateLayout();
+
+            transformImage(currentImage, slides[currentSlideIndex].keys[0]);
+
+            background_audio.syncToSlide(currentSlideIndex);
+            foreground_audio.syncToSlide(currentSlideIndex);
+            paused = false;
+          
+            beginPanZoom(currentImage, slides[currentSlideIndex].keys);
+            playTimer.Start();
+        }
+
+        void skipAheadChapter()
+        {
+            int target_index = currentSlideIndex;
+            Boolean found = false;
+            while (!found)
+            {
+                target_index++;
+                if (target_index >= slides.Count)
+                {
+                    target_index = 0;
+                }
+                if (target_index == currentSlideIndex)
+                {
+                    break;
+                }
+                if (slides[target_index].fileName == "black" || slides[target_index].fileName == "white")
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found)
+            {
+                skipTo(target_index);
+            }
+        }
+        void skipBackChapter()
+        {
+            int target_index = currentSlideIndex;
+            Boolean found = false;
+            while (!found)
+            {
+                target_index--;
+                if (target_index < 0)
+                {
+                    target_index = slides.Count-1;
+                }
+                if (target_index == currentSlideIndex)
+                {
+                    break;
+                }
+                if (slides[target_index].fileName == "black" || slides[target_index].fileName == "white")
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found)
+            {
+                skipTo(target_index);
             }
         }
         void escape()
@@ -617,6 +664,14 @@ namespace KB30
                     skipBack();
                     break;
 
+                case Key.PageUp:
+                    skipBackChapter();
+                    break;
+
+                case Key.PageDown:
+                    skipAheadChapter();
+                    break;
+
                 case Key.Space:
                     togglePauseAnimation();
                     break;
@@ -634,7 +689,7 @@ namespace KB30
 
         private void animationWindow_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            togglePauseAnimation();
+            skipBack();
         }
 
         private void animationWindow_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
@@ -646,6 +701,22 @@ namespace KB30
             else
             {
                 ToggleWindow();
+            }
+        }
+
+        private void animationWindow_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.XButton1 == MouseButtonState.Pressed)
+            {
+                skipAheadChapter();
+            }
+            else if (e.XButton2 == MouseButtonState.Pressed)
+            {
+                skipBackChapter();
+            }
+            else if (e.MiddleButton == MouseButtonState.Pressed)
+            {
+                togglePauseAnimation();
             }
         }
     }

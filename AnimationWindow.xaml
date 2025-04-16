@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:KB30"
         mc:Ignorable="d"
         Title="AnimationWindow" Height="900" Width="1600"
-        Name="animationWindow" KeyDown="KeyHandler" StateChanged="WindowStateChanged" MouseDoubleClick="animationWindow_MouseDoubleClick" MouseLeftButtonUp="animationWindow_MouseLeftButtonUp" MouseRightButtonUp="animationWindow_MouseRightButtonUp">
+        Name="animationWindow" KeyDown="KeyHandler" StateChanged="WindowStateChanged" MouseDoubleClick="animationWindow_MouseDoubleClick" MouseLeftButtonUp="animationWindow_MouseLeftButtonUp" MouseRightButtonUp="animationWindow_MouseRightButtonUp" MouseDown="animationWindow_MouseDown">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="231*"/>
