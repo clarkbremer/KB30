@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 using System.IO;
+using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 
 namespace KB30
 {
@@ -146,6 +148,27 @@ namespace KB30
             }
         }
 
+        public int ImageWidth()
+        {
+            var bitmap = Util.BitmapFromUri(uri);
+            return bitmap.PixelWidth;
+        }
+
+        public int ImageHeight()
+        {
+            var bitmap = Util.BitmapFromUri(uri);
+            return bitmap.PixelHeight;
+        }
+
+        public bool IsLandscape()
+        {
+            if(ImageHeight() > ImageWidth())
+            {
+                return false;
+            }
+            return true;
+        }
+
         public void Dim() { if (slideControl != null) { slideControl.image.Opacity = 0.4; } }
         public void UnDim() { if (slideControl != null) { slideControl.image.Opacity = 1.0; } }
 
@@ -213,10 +236,7 @@ namespace KB30
             double totalDuration = 0;
             foreach (Slide slide in this)
             {
-                for (int k = 0; k < slide.keys.Count; k++)
-                {
-                    totalDuration += slide.keys[k].duration;
-                }
+                totalDuration += slide.Duration();
                 totalDuration += 1.5; // for fade in out
             }
             return (totalDuration);

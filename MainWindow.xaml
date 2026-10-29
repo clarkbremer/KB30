@@ -28,6 +28,10 @@
                 <MenuItem Header="_Save"   Click="fileSaveClick"/>
                 <MenuItem Header="Save_As" Click="fileSaveAsClick"/>
                 <MenuItem Header="Details" Click="fileDetailsClick"/>
+                <MenuItem Header="Export">
+                    <MenuItem Header=".bat" Click="fileExportBATClick"/>
+                    <MenuItem Header=".mlt" Click="fileExportMLTClick"/>
+                </MenuItem>
                 <MenuItem Header="Finder"  Click="imageExplorerClick"/>
             </MenuItem>
         </Menu>

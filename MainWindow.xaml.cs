@@ -245,6 +245,67 @@ namespace KB30
             MessageBox.Show(slides.Count + " slides." + Environment.NewLine +
                             "Total duration " + durationMins + ":" + durationSecs.ToString("D2"), "File Info");
         }
+        private void fileExportBATClick(object sender, RoutedEventArgs e)
+        {
+            string exportFilename;
+            string[] lines;
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "All files (*.bat)|*.*";
+            saveFileDialog.AddExtension = true;
+            if (album.Filename != "" && album.Filename != "untitled")
+            {
+                saveFileDialog.FileName = Path.GetFileNameWithoutExtension(album.Filename) + ".bat";
+            }
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                exportFilename = saveFileDialog.FileName;
+                if (Path.GetExtension(exportFilename) == "")
+                {
+                    exportFilename += ".bat";
+                }
+                using (StreamWriter outputFile = new StreamWriter(exportFilename))
+                {
+                    foreach (Slide slide in slides)
+                    {
+                        outputFile.WriteLine("copy " + slide.fileName + " .");
+                    }
+                    MessageBox.Show(slides.Count + " slides exported");
+                }
+            }
+        }
+
+        private void fileExportMLTClick(object sender, RoutedEventArgs e)
+        {
+            string exportFilename;
+            string[] lines;
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "All files (*.mlt)|*.*";
+            saveFileDialog.AddExtension = true;
+
+            if (slides.Count == 0)
+            {
+                MessageBox.Show("Nothing to Export.");
+                return;
+            }
+
+            if (album.Filename != "" && album.Filename != "untitled")
+            {
+                saveFileDialog.FileName = Path.GetFileNameWithoutExtension(album.Filename) + ".mlt";
+            }
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                exportFilename = saveFileDialog.FileName;
+                if (Path.GetExtension(exportFilename) == "")
+                {
+                    exportFilename += ".mlt";
+                }
+                using (StreamWriter outputFile = new StreamWriter(exportFilename))
+                {
+                    int c = fileExportMLTClick(outputFile);
+                    MessageBox.Show(c + " slides exported");
+                }
+            }
+        }
 
         public void showImageExplorer()
         {
