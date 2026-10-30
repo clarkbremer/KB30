@@ -48,6 +48,14 @@ namespace KB30
 
         }
 
+        public void setFolder(string folder_name)
+        {
+            if (folder_name != "" && folder_name != current_folder)
+            {
+                loadFolder(folder_name);
+            }
+        }
+
         private void loadDrives() {
             current_folder = "";
             folderNavPanel.Children.Clear();

@@ -331,6 +331,9 @@ namespace KB30
             }
             else
             {
+                if (slides.Count > 0 && currentSlide.fileName != "black" && currentSlide.fileName != "white") {
+                    imageExplorerWindow.setFolder(Path.GetDirectoryName(currentSlide.fileName));
+                }
                 imageExplorerWindow.Activate();
             }
         }

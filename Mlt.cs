@@ -220,7 +220,7 @@ namespace KB30
             string pl1 = $"""
                   <playlist id="playlist{playlist_num++}">
                     <property name="shotcut:video">1</property>
-                    <property name="shotcut:name">V2</property>
+                    <property name="shotcut:name">Slides</property>
                     <entry producer="producer0" in="00:00:00.000" out="{LongTimeString(slides[0].Duration())}"/>
                     <entry producer="tractor0" in="00:00:00.000" out="00:00:01.5"/>
                 """;
@@ -240,7 +240,12 @@ namespace KB30
                 </playlist>
                 <playlist id="playlist{playlist_num++}">
                   <property name="shotcut:video">1</property>
-                  <property name="shotcut:name">V3</property>
+                  <property name="shotcut:name">V1</property>
+                  <blank length="00:00:00.017"/>
+                </playlist>
+                <playlist id="playlist{playlist_num++}">
+                  <property name="shotcut:audio">1</property>
+                  <property name="shotcut:name">Audio</property>
                   <blank length="00:00:00.017"/>
                 </playlist>
                 <tractor id="tractor{tractor_num++}" title="Shotcut version 25.03.29" in="00:00:00.000" out="{LongTimeString(slides.TotalTime() - 1.5)}">
@@ -248,10 +253,48 @@ namespace KB30
                   <property name="shotcut:projectAudioChannels">2</property>
                   <property name="shotcut:projectFolder">0</property>
                   <property name="shotcut:skipConvert">0</property>
-                  <property name="shotcut:scaleFactor">4.83681</property>
+                  <property name="shotcut:scaleFactor">0.25</property>
                   <track producer="background"/>
                   <track producer="playlist0"/>
                   <track producer="playlist1"/>
+                  <track producer="playlist2" hide="video"/>
+                  <transition id="transition{transition_num++}">
+                    <property name="a_track">0</property>
+                    <property name="b_track">1</property>
+                    <property name="mlt_service">mix</property>
+                    <property name="always_active">1</property>
+                    <property name="sum">1</property>
+                  </transition>
+                  <transition id="transition{transition_num++}">
+                    <property name="a_track">0</property>
+                    <property name="b_track">1</property>
+                    <property name="version">0.1</property>
+                    <property name="mlt_service">frei0r.cairoblend</property>
+                    <property name="threads">0</property>
+                    <property name="disable">1</property>
+                  </transition>
+                  <transition id="transition{transition_num++}">
+                    <property name="a_track">0</property>
+                    <property name="b_track">2</property>
+                    <property name="mlt_service">mix</property>
+                    <property name="always_active">1</property>
+                    <property name="sum">1</property>
+                  </transition>
+                  <transition id="transition{transition_num++}">
+                    <property name="a_track">1</property>
+                    <property name="b_track">2</property>
+                    <property name="version">0.1</property>
+                    <property name="mlt_service">frei0r.cairoblend</property>
+                    <property name="threads">0</property>
+                    <property name="disable">0</property>
+                  </transition>
+                  <transition id="transition{transition_num++}">
+                    <property name="a_track">0</property>
+                    <property name="b_track">3</property>
+                    <property name="mlt_service">mix</property>
+                    <property name="always_active">1</property>
+                    <property name="sum">1</property>
+                  </transition>
                 </tractor>
               </mlt>
               """;
