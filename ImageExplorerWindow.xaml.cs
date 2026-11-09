@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -33,6 +34,7 @@ namespace KB30
         string current_folder;
         List<string> image_extensions = new List<string>() {".gif", ".jpg", ".png", ".bmp"};
         private Point initialTileMousePosition;
+        private Tile initialMouseDownTile;
 
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -80,6 +82,39 @@ namespace KB30
             loadFolder((sender as Tile).fullPath);
         }
 
+        private void navBtnDragOver(object sender, System.Windows.DragEventArgs e)
+        {
+            e.Effects = DragDropEffects.Copy;
+        }
+
+        private void navBtnDrop(object sender, DragEventArgs e)
+        {
+
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                // Note that you can have more than one file.
+                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+
+                foreach (var file in files)
+                {
+                    if (sender is Button)
+                    {
+                        Button bb = (Button)sender;
+                        string dest = Path.Combine((string)bb.Tag, Path.GetFileName(file));
+                        if (File.Exists(dest))
+                        {
+                            Console.Beep(200, 100);
+                            Console.Beep(200, 100);
+                        }else
+                        {
+                            File.Copy(file, dest);
+                            Console.Beep(1000, 100);
+                            Console.Beep(1500, 100);
+                        }
+                    }
+                }
+            }
+        }
         private void loadFolder(string folder) {
             current_folder = folder;
 
@@ -90,6 +125,9 @@ namespace KB30
             rbtn.Tag = root;
             rbtn.Content = root;
             rbtn.Click += folderNavClick;
+            rbtn.DragOver += delegate (object sender, DragEventArgs e) { navBtnDragOver(sender, e); };
+            rbtn.Drop += delegate (object sender, DragEventArgs e) { navBtnDrop(sender, e); };
+            rbtn.AllowDrop = true;
             folderNavPanel.Children.Add(rbtn);
             if (root != folder)
             {
@@ -103,8 +141,12 @@ namespace KB30
                     btn.Tag = partial_path;
                     btn.Content = f + " \\";
                     btn.Click += folderNavClick;
+                    btn.DragOver += delegate (object sender, DragEventArgs e) { navBtnDragOver(sender, e); };
+                    btn.Drop += delegate (object sender, DragEventArgs e) { navBtnDrop(sender, e); };
+                    btn.AllowDrop = true;
                     folderNavPanel.Children.Add(btn);
                     partial_path += "\\";
+                    /* register for drop events here */
                 }
             }
 
@@ -266,28 +308,31 @@ namespace KB30
             {
                 var pp = e.GetPosition(tile);
                 var movedDistance = Point.Subtract(initialTileMousePosition, pp).Length;
-                if (movedDistance > 30 && initialTileMousePosition != new Point(0, 0))  // We moved enough with the button down to be considered a drag
+                if (movedDistance > 20 && initialTileMousePosition != new Point(0, 0))  // We moved enough with the button down to be considered a drag
                 {
                     // package the data
-                    DataObject data = new DataObject();
-                    string[] files = new string[1];
-                    files[0] = tile.fullPath;
-                    data.SetData(DataFormats.FileDrop, files);
-
-                    // do it!
-                    DragDropEffects result = DragDrop.DoDragDrop(tile, data, DragDropEffects.Copy | DragDropEffects.Move);
+                    if (tile != initialMouseDownTile)
+                    {
+                        Console.Beep(800, 200);
+                        Console.Beep(800, 200);
+                    }
+                    else
+                    {
+                        DataObject data = new DataObject();
+                        string[] files = new string[1];
+                        files[0] = tile.fullPath;
+                        data.SetData(DataFormats.FileDrop, files);
+                        // do it!
+                        DragDropEffects result = DragDrop.DoDragDrop(tile, data, DragDropEffects.Copy);
+                    }
                 }
-                else
-                {
-                    selectTile(tile);
-                }
-            }
-          
+            }          
         }
 
         private void thumbnailPreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             initialTileMousePosition = e.GetPosition((Tile)sender);
+            initialMouseDownTile = (Tile)sender;
         }
         
         private void selectTile(Tile tile) {

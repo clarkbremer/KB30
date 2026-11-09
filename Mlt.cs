@@ -77,15 +77,15 @@ namespace KB30
 
                 scale = (double)frame_height / s.ImageHeight();
 
-                if (slides.IndexOf(s) == 0)
+                if (slides.IndexOf(s) == 0 || slides.IndexOf(s) == slides.Count -1)
                 {
                     dd = 0;
-                    filter_out = s.Duration() + 1.5;
+                    filter_out = s.Duration() + 1.51;
                 }
                 else
                 {
                     dd = 1.5;
-                    filter_out = s.Duration() + 3.0;
+                    filter_out = s.Duration() + 3.01;
                 }
 
                 foreach (Keyframe k in s.keys)
@@ -95,7 +95,7 @@ namespace KB30
                     h = Math.Round((frame_height / 2) - (s.ImageHeight() * scale * k.zoomFactor * k.y), 3);
                     x = Math.Round(k.zoomFactor * s.ImageWidth() * scale, 3);
                     y = Math.Round(k.zoomFactor * s.ImageHeight() * scale, 3);
-                    rect_string += $"{LongTimeString(dd)}$={w} {h} {x} {y} 1;";
+                    rect_string += $"{LongTimeString(dd)}i={w} {h} {x} {y} 1;";
                 }
                 if (s.IsLandscape())
                 {
@@ -299,7 +299,7 @@ namespace KB30
               </mlt>
               """;
             outputFile.WriteLine(postamble);
-
+            outputFile.Close();
             return slides.Count;
         }
     }

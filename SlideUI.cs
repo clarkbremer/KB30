@@ -662,7 +662,7 @@ namespace KB30
         private void slideDrop(object sender, DragEventArgs e, Slide target_slide = null)
         {
             String[] allFormats = e.Data.GetFormats();  // debug
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))  // this was from a winodws explorer window
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))  // this was from a winodws explorer window or the finder window
             {
                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
                 if (target_slide == null)
@@ -781,13 +781,20 @@ namespace KB30
                     slide.highlightBelow();
                 }
 
-                if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+                if (e.Data.GetDataPresent(typeof(Slide)))
                 {
-                    e.Effects = DragDropEffects.Copy;
+                    if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+                    {
+                        e.Effects = DragDropEffects.Copy;
+                    }
+                    else
+                    {
+                        e.Effects = DragDropEffects.Move;
+                    }
                 }
                 else
                 {
-                    e.Effects = DragDropEffects.Move;
+                    e.Effects = DragDropEffects.Copy;
                 }
             }
         }
